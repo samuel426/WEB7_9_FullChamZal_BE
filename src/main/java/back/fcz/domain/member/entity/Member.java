@@ -23,7 +23,7 @@ public class Member extends BaseEntity {
     @Column(name = "user_id", nullable = false, unique = true, length = 100)
     private String userId;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String passwordHash;
 
     @Column(name = "name", nullable = false, length = 50)
@@ -32,7 +32,7 @@ public class Member extends BaseEntity {
     @Column(name = "nickname", nullable = false, length = 20)
     private String nickname;
 
-    @Column(name = "phone_number", nullable = false)
+    @Column(name = "phone_number", nullable = false, length = 500)
     private String phoneNumber; // AES-256 암호화된 전화번호 (IV 포함)
 
     @Column(name = "phone_hash", nullable = false, unique = true, length = 64)
