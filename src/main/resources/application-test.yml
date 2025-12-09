@@ -22,3 +22,15 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
+
+security:
+  encryption:
+    aes-key: ${AES_KEY}
+    sha-salt: ${SHA_SALT}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  access-token:
+    expiration: 10800000 # 3시간 (3 * 60 * 60 * 1000)
+  refresh-token:
+    expiration: 2592000000 # 30일 (30 * 24 * 60 * 60 * 1000)
