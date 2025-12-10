@@ -4,40 +4,38 @@ import back.fcz.domain.capsule.entity.Capsule;
 
 import java.time.LocalDateTime;
 
-public record CapsuleCreateRequestDTO(
+public record SecretCapsuleCreateRequestDTO(
         Long memberId,
-        String nickname,
+        String nickName,
+        String phoneNum,
         String title,
         String content,
-        String capPassword,
-        String capsuleColor,
-        String capsulePackingColor,
         String visibility,
         String unlockType,
         LocalDateTime unlockAt,
         String locationName,
-        int locationLat,
-        int locationLng,
-        int locationRadiusM,
+        double locationLat,
+        double locationIng,
+        int viewingRadius,
+        String packingColor,
+        String contentColor,
         int maxViewCount
 ) {
-
     public Capsule toEntity() {
 
         return Capsule.builder()
-                .nickname(nickname)
+                .nickname(nickName)
                 .title(title)
                 .content(content)
-                .capPassword(capPassword)
-                .capsuleColor(capsuleColor)
-                .capsulePackingColor(capsulePackingColor)
+                .capsuleColor(contentColor)
+                .capsulePackingColor(packingColor)
                 .visibility(visibility)
                 .unlockType(unlockType)
                 .unlockAt(unlockAt)
                 .locationName(locationName)
                 .locationLat(locationLat)
-                .locationLng(locationLng)
-                .locationRadiusM(locationRadiusM)
+                .locationLng(locationIng)
+                .locationRadiusM(viewingRadius)
                 .maxViewCount(maxViewCount)
                 .currentViewCount(0)
                 .isDeleted(false)
@@ -45,4 +43,3 @@ public record CapsuleCreateRequestDTO(
                 .build();
     }
 }
-

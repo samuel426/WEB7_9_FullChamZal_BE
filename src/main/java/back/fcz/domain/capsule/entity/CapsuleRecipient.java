@@ -3,8 +3,10 @@ package back.fcz.domain.capsule.entity;
 
 import back.fcz.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 @Table(name = "capsule_recipient")
 class CapsuleRecipient extends BaseEntity {
     @Id

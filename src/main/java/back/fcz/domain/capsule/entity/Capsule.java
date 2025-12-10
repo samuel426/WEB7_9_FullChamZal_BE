@@ -1,25 +1,30 @@
 package back.fcz.domain.capsule.entity;
 
+import back.fcz.domain.member.entity.Member;
 import back.fcz.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 public class Capsule extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long capsuleId;           // 캡슐 고유 ID
 
-/*
-    회원 엔티티의 이름이 정해져야 합니다. 임시로 Member로 했습니다.
+
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member memberId;            // 회원 고유 ID
-*/
+
     @Column(name = "uuid", nullable = false)
     private String uuid;              // URL용 UUIDv4(난수화)
+
     @Column(name = "nickname", nullable = false)
     private String nickname;          // 작성 당시 닉네임
     @Column(name = "title")
@@ -43,9 +48,9 @@ public class Capsule extends BaseEntity {
     @Column(name = "location_name")
     private String locationName;      // 장소 이름(별명)
     @Column(name = "location_lat")
-    private int locationLat;       // 위도
+    private double locationLat;       // 위도
     @Column(name = "location_lng")
-    private int locationLng;       // 경도
+    private double locationLng;       // 경도
 
     @Column(name = "location_radius_m")
     private int locationRadiusM;      // 조회 반경 : 50, 100, 300, 500, 1000
@@ -58,4 +63,15 @@ public class Capsule extends BaseEntity {
     @Column(name = "is_protected")
     private boolean isProtected = false;      // 보호 여부
 
+    public void setMemberId(Member member){
+        this.memberId = member;
+    }
+
+    public void setUuid(String uuid){
+        this.uuid = uuid;
+    }
+
+    public void setCapPassword(String capPassword){
+        this.capPassword = capPassword;
+    }
 }

@@ -1,6 +1,6 @@
 package back.fcz.domain.capsule.DTO.request;
 
-public record CapsuleUpdateRequest (
+public record CapsuleUpdateRequestDTO(
    String title,
    String content
 ){ }
