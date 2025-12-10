@@ -17,7 +17,10 @@ public enum ErrorCode {
     // ========== 암호화 에러 ==========
     ENCRYPTION_FAILED("CRY001", HttpStatus.INTERNAL_SERVER_ERROR, "데이터 암호화에 실패했습니다."),
     DECRYPTION_FAILED("CRY002", HttpStatus.INTERNAL_SERVER_ERROR, "데이터 복호화에 실패했습니다."),
-    HASHING_FAILED("CRY003", HttpStatus.INTERNAL_SERVER_ERROR, "데이터 해싱에 실패했습니다.");
+    HASHING_FAILED("CRY003", HttpStatus.INTERNAL_SERVER_ERROR, "데이터 해싱에 실패했습니다."),
+
+    //=========== SMS 에러 ==========
+    SMS_SEND_FAILED("SMS001", HttpStatus.INTERNAL_SERVER_ERROR, "문자 발송에 실패했습니다.");
 
     private final String code;
     private final HttpStatus status;

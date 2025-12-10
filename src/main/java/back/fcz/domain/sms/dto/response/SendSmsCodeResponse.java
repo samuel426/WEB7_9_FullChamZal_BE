@@ -1,4 +1,6 @@
 package back.fcz.domain.sms.dto.response;
 
-public class SendSmsCodeResponse {
-}
+public record SendSmsCodeResponse(
+        boolean success,
+        int cooldownSeconds
+) {}

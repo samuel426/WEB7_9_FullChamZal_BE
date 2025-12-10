@@ -1,4 +1,6 @@
 package back.fcz.domain.sms.dto.response;
 
-public class ConfirmSmsCodeResponse {
+public record ConfirmSmsCodeResponse(
+        boolean verified
+) {
 }
