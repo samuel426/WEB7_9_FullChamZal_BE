@@ -9,7 +9,13 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Table(name = "member")
+@Table(
+        name = "member",
+        indexes = {
+                @Index(name = "idx_member_phone_hash", columnList = "phone_hash", unique = true),
+                @Index(name = "idx_member_user_id", columnList = "user_id", unique = true)
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
