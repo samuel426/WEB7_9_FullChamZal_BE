@@ -77,6 +77,7 @@ public class Member extends BaseEntity {
         this.role = role != null ? role : MemberRole.USER;
         this.oauthProvider = oauthProvider;
         this.oauthId = oauthId;
+        this.nicknameChangedAt = null;
     }
 
     public static Member create(String userId, String passwordHash, String name, String nickname,
@@ -93,8 +94,6 @@ public class Member extends BaseEntity {
                 null,
                 null
         );
-
-        member.nicknameChangedAt = LocalDateTime.now();
 
         return member;
     }

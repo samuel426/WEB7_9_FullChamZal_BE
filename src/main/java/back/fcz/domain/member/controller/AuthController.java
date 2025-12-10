@@ -3,7 +3,10 @@ package back.fcz.domain.member.controller;
 import back.fcz.domain.member.dto.request.MemberSignupRequest;
 import back.fcz.domain.member.dto.response.MemberSignupResponse;
 import back.fcz.domain.member.service.AuthService;
+import back.fcz.global.config.swagger.ApiErrorCodeExample;
+import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,12 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @Operation(summary = "회원가입", description = "회원가입 API입니다.")
+    @ApiErrorCodeExample({
+            ErrorCode.DUPLICATE_USER_ID,
+            ErrorCode.DUPLICATE_NICKNAME,
+            ErrorCode.DUPLICATE_PHONENUM
+    })
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<MemberSignupResponse>> signup(
             @Valid @RequestBody MemberSignupRequest request
