@@ -26,6 +26,10 @@ public class Capsule extends BaseEntity {
     private String title;             // 캡슐 제목
     @Column(name = "content", nullable = false)
     private String content;           // 캡슐 본문
+
+    @Column(name = "cap_password")
+    private String capPassword; // 캡슐 비밀번호
+
     @Column(name = "capsule_color", nullable = false)
     private String capsuleColor;       // 편지지 색상
     @Column(name = "capsule_packing_color", nullable = false)
@@ -48,10 +52,10 @@ public class Capsule extends BaseEntity {
     @Column(name = "max_view_count")
     private int maxViewCount;         // 선착순 제한 인원(NULL이면 무제한)
     @Column(name = "current_view_count")
-    private int currentViewCount;     // 현재 조회 인원
+    private int currentViewCount = 0;     // 현재 조회 인원
     @Column(name = "is_deleted")
-    private boolean isDeleted;         // 삭제 여부(Soft Delete, 삭제 전0, 삭제후 1)
+    private boolean isDeleted = false;         // 삭제 여부(Soft Delete, 삭제 전0, 삭제후 1)
     @Column(name = "is_protected")
-    private boolean isProtected;      // 보호 여부
+    private boolean isProtected = false;      // 보호 여부
 
 }
