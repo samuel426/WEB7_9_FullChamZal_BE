@@ -42,8 +42,7 @@ public enum ErrorCode {
     DUPLICATE_NICKNAME("AUTH002", HttpStatus.CONFLICT, "이미 존재하는 닉네임입니다."),
     DUPLICATE_PHONENUM("AUTH003", HttpStatus.CONFLICT, "이미 존재하는 전화번호입니다."),
     INVALID_USER_ID("AUTH004", HttpStatus.CONFLICT, "아이디가 존재하지 않습니다."),
-    INVALID_PASSWORD("AUTH005", HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다.");
-    REDIS_CONNECTION_ERROR("REDISM001", HttpStatus.SERVICE_UNAVAILABLE, "일시적인 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
+    INVALID_PASSWORD("AUTH005", HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
 
     // ========== 캡슐 에러 ==========
     CAPSULE_NOT_FOUND("CPS001", HttpStatus.NOT_FOUND, "해당 캡슐을 찾을 수 없습니다."),
