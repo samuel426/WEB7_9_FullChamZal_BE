@@ -15,9 +15,9 @@ public record CapsuleReadResponseDto(
 
         String unlockType,        // 해제 조건
 
-        LocalDateTime unlockAt,   // 해제 세부 조건 : 시간 기반 해제 일시
+        LocalDateTime unlockAt,   // 해제 세부 조건(시간) : 시간 기반 해제 일시
         String locationName,     // 장소 이름(별명)
-        Double locationLat,       // 위도
-        Double locationLng       // 경도 // 해제 세부 조건
+        Double locationLat,       // 해제 세부 조건(위도) : 위치 기반 해제 일시
+        Double locationLng       // 해제 세부 조건(경도) : 위치 기반 해제 일시
 ) {
 }

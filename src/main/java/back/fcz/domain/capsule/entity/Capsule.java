@@ -1,5 +1,6 @@
 package back.fcz.domain.capsule.entity;
 
+import back.fcz.domain.member.entity.Member;
 import back.fcz.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,12 +17,11 @@ public class Capsule extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long capsuleId;           // 캡슐 고유 ID
 
-/*
-    회원 엔티티의 이름이 정해져야 합니다. 임시로 Member로 했습니다.
+
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member memberId;            // 회원 고유 ID
-*/
+
     @Column(name = "uuid", nullable = false)
     private String uuid;              // URL용 UUIDv4(난수화)
     @Column(name = "nickname", nullable = false)

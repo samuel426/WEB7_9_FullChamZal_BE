@@ -27,12 +27,9 @@ public class CapsuleReadService {
     public Capsule getCapsule(Long capsuleId) {
         Optional<Capsule> resultCapsule = capsuleRepository.findById(capsuleId);
         if (resultCapsule.isPresent()) {
-
-            //내역 남기기
-
             return resultCapsule.get();
         }else{
-            return null;
+            throw new BusinessException(ErrorCode.CAPSULE_NOT_FOUND);
         }
     }
 
