@@ -1,8 +1,10 @@
 package back.fcz.domain.member.controller;
 
+import back.fcz.domain.member.dto.request.MemberUpdateRequest;
 import back.fcz.domain.member.dto.request.PasswordVerifyRequest;
 import back.fcz.domain.member.dto.response.MemberDetailResponse;
 import back.fcz.domain.member.dto.response.MemberInfoResponse;
+import back.fcz.domain.member.dto.response.MemberUpdateResponse;
 import back.fcz.domain.member.service.CurrentUserContext;
 import back.fcz.domain.member.service.MemberService;
 import back.fcz.global.config.swagger.ApiErrorCodeExample;
@@ -75,6 +77,32 @@ public class MemberController {
     public ResponseEntity<ApiResponse<MemberDetailResponse>> getDetailMe() {
         InServerMemberResponse user = currentUserContext.getCurrentUser();
         MemberDetailResponse response = memberService.getDetailMe(user);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PutMapping("/me")
+    @Operation(
+            summary = "회원 정보 수정",
+            description = "현재 로그인한 회원의 정보를 수정합니다. " +
+                    "변경하고자 하는 항목만 요청에 포함하면 됩니다. " +
+                    "비밀번호 변경 시 현재 비밀번호가 필수입니다."
+    )
+    @ApiErrorCodeExample({
+            ErrorCode.MEMBER_NOT_FOUND,
+            ErrorCode.INVALID_PASSWORD,
+            ErrorCode.DUPLICATE_NICKNAME,
+            ErrorCode.NICKNAME_CHANGE_TOO_SOON,
+            ErrorCode.DUPLICATE_PHONENUM,
+            ErrorCode.INVALID_INPUT_VALUE,
+            ErrorCode.TOKEN_EXPIRED,
+            ErrorCode.TOKEN_INVALID,
+            ErrorCode.UNAUTHORIZED
+    })
+    public ResponseEntity<ApiResponse<MemberUpdateResponse>> updateMe(
+            @Valid @RequestBody MemberUpdateRequest request
+    ) {
+        InServerMemberResponse user = currentUserContext.getCurrentUser();
+        MemberUpdateResponse response = memberService.updateMember(user, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

@@ -102,6 +102,35 @@ public class Member extends BaseEntity {
         return this.status == MemberStatus.ACTIVE && this.getDeletedAt() == null;
     }
 
+    public void updateNickname(String newNickname) {
+        if (newNickname == null || newNickname.isBlank()) {
+            throw new IllegalArgumentException("닉네임은 null이거나 빈 값일 수 없습니다.");
+        }
+
+        this.nickname = newNickname;
+        this.nicknameChangedAt = LocalDateTime.now();
+    }
+
+    public void updatePassword(String newPasswordHash) {
+        if (newPasswordHash == null || newPasswordHash.isBlank()) {
+            throw new IllegalArgumentException("비밀번호 해시는 null이거나 빈 값일 수 없습니다.");
+        }
+
+        this.passwordHash = newPasswordHash;
+    }
+
+    public void updatePhoneNumber(String encryptedPhone, String phoneHash) {
+        if (encryptedPhone == null || encryptedPhone.isBlank()) {
+            throw new IllegalArgumentException("암호화된 전화번호는 null이거나 빈 값일 수 없습니다.");
+        }
+        if (phoneHash == null || phoneHash.isBlank()) {
+            throw new IllegalArgumentException("전화번호 해시는 null이거나 빈 값일 수 없습니다.");
+        }
+
+        this.phoneNumber = encryptedPhone;
+        this.phoneHash = phoneHash;
+    }
+
     // 테스트를 위해서 작성한 팩토리 메소드
     public static Member testMember(Long id, String userId, String name) {
         Member m = new Member(
