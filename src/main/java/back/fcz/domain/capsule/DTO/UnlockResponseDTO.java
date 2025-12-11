@@ -2,9 +2,9 @@ package back.fcz.domain.capsule.DTO;
 
 import java.time.LocalDateTime;
 
-public record UnlockDTO (
+public record UnlockResponseDTO(
         LocalDateTime unlockAt,
         String location,
-        GPSDTO gps,
+        GPSResponseDTO gps,
         int viewingRadius
 ){}

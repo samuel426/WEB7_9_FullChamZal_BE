@@ -1,8 +1,8 @@
 package back.fcz.domain.capsule.DTO.response;
 
-import back.fcz.domain.capsule.DTO.GPSDTO;
-import back.fcz.domain.capsule.DTO.UnlockDTO;
-import back.fcz.domain.capsule.DTO.letterCustomDTO;
+import back.fcz.domain.capsule.DTO.GPSResponseDTO;
+import back.fcz.domain.capsule.DTO.UnlockResponseDTO;
+import back.fcz.domain.capsule.DTO.LetterCustomResponseDTO;
 import back.fcz.domain.capsule.entity.Capsule;
 
 public record CapsuleCreateResponseDTO(
@@ -14,25 +14,25 @@ public record CapsuleCreateResponseDTO(
         String visibility,
         String unlockType,
 
-        UnlockDTO unlock,
-        letterCustomDTO letter,
+        UnlockResponseDTO unlock,
+        LetterCustomResponseDTO letter,
 
         int maxViewCount,
         int currentViewCount
 ){
     public static CapsuleCreateResponseDTO from(Capsule capsule) {
 
-        UnlockDTO unlockDTO = new UnlockDTO(
+        UnlockResponseDTO unlockDTO = new UnlockResponseDTO(
                 capsule.getUnlockAt(),             // LocalDateTime unlockAt
                 capsule.getLocationName(),         // String location
-                new GPSDTO(                        // GPSDTO gps
+                new GPSResponseDTO(                        // GPSDTO gps
                         capsule.getLocationLat(),
                         capsule.getLocationLng()
                 ),
                 capsule.getLocationRadiusM()       // int viewingRadius
         );
 
-        letterCustomDTO letterDTO = new letterCustomDTO(
+        LetterCustomResponseDTO letterDTO = new LetterCustomResponseDTO(
                 capsule.getCapsuleColor(),
                 capsule.getCapsulePackingColor()
         );

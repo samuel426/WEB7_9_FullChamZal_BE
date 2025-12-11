@@ -1,6 +1,6 @@
 package back.fcz.domain.capsule.DTO.response;
 
-public record capsuleDeleteResponseDTO(
+public record CapsuleDeleteResponseDTO(
         Long capsuleId,
         String message
 ){ }

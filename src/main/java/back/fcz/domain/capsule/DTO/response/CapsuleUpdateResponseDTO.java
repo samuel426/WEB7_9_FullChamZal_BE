@@ -1,7 +1,7 @@
 package back.fcz.domain.capsule.DTO.response;
 
-import back.fcz.domain.capsule.DTO.UnlockDTO;
-import back.fcz.domain.capsule.DTO.letterCustomDTO;
+import back.fcz.domain.capsule.DTO.UnlockResponseDTO;
+import back.fcz.domain.capsule.DTO.LetterCustomResponseDTO;
 
 public record CapsuleUpdateResponseDTO(
         Long memberId,
@@ -12,7 +12,7 @@ public record CapsuleUpdateResponseDTO(
         String updatedContent,
         String visibility,
         String unlockType,
-        UnlockDTO unlock,
-        letterCustomDTO letter,
+        UnlockResponseDTO unlock,
+        LetterCustomResponseDTO letter,
         int maxViewCount
 ){ }

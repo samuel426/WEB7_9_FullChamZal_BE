@@ -1,6 +1,6 @@
 package back.fcz.domain.capsule.DTO;
 
-public record GPSDTO (
+public record GPSResponseDTO(
         double locationLat,
         double locatinIng
 ) { }

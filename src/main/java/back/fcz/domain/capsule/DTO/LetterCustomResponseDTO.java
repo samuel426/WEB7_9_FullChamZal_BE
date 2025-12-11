@@ -1,6 +1,6 @@
 package back.fcz.domain.capsule.DTO;
 
-public record letterCustomDTO(
+public record LetterCustomResponseDTO(
         String capsuleColor,
         String packingColor
 ){}
