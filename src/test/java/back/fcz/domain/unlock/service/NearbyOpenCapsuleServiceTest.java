@@ -39,7 +39,7 @@ public class NearbyOpenCapsuleServiceTest {
         // given
         Capsule capsule1 = createCapsule(1L, 37.5674, 126.9780);
         Capsule capsule2 = createCapsule(2L, 37.5709, 126.9780);
-        Capsule capsule3 = createCapsule(2L, 37.5845, 127.0000);
+        Capsule capsule3 = createCapsule(3L, 37.5845, 127.0000);
         List<Capsule> mockCapsules = Arrays.asList(capsule1, capsule2, capsule3);
 
         when(capsuleRepository.findOpenCapsule("PUBLIC", 0)).thenReturn(mockCapsules);
