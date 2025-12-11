@@ -1,5 +1,7 @@
 package back.fcz.domain.member.service;
 
+import back.fcz.domain.member.dto.request.PasswordVerifyRequest;
+import back.fcz.domain.member.dto.response.MemberDetailResponse;
 import back.fcz.domain.member.dto.response.MemberInfoResponse;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
@@ -10,6 +12,7 @@ import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +22,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MemberService {
 
+    private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final PhoneCrypto phoneCrypto;
+
+    public void verifyPassword(InServerMemberResponse user, PasswordVerifyRequest request) {
+        Member member = memberRepository.findById(user.memberId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if (!passwordEncoder.matches(request.password(), member.getPasswordHash())) {
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
+    }
 
     public MemberInfoResponse getMe(InServerMemberResponse user) {
         Member member = memberRepository.findById(user.memberId())
@@ -30,5 +43,14 @@ public class MemberService {
         String maskedPhone = PhoneMaskingUtil.mask(decryptedPhone);
 
         return MemberInfoResponse.of(member, maskedPhone);
+    }
+
+    public MemberDetailResponse getDetailMe(InServerMemberResponse user) {
+        Member member = memberRepository.findById(user.memberId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        String decryptedPhone = phoneCrypto.decrypt(member.getPhoneNumber());
+
+        return MemberDetailResponse.of(member, decryptedPhone);
     }
 }
