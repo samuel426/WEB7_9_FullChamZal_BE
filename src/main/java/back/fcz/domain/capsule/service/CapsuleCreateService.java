@@ -109,6 +109,7 @@ public class CapsuleCreateService {
         }else{ // 비회원
             String capsulePW = generatePassword(); // 생성한 비밀번호
             capsule.setCapPassword(phoneCrypto.encrypt(capsulePW));
+            capsule.setMemberId(member);
 
             Capsule saved = capsuleRepository.save(capsule);
 
