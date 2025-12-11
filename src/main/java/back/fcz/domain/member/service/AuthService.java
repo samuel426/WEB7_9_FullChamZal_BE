@@ -37,6 +37,10 @@ public class AuthService {
         }
 
         String normalizedPhone = request.normalizedPhoneNumber();
+        if (normalizedPhone == null) {
+            throw new BusinessException(ErrorCode.INVALID_PHONENUM);
+        }
+
         String phoneHash = phoneCrypto.hash(normalizedPhone);
 
         if (memberRepository.existsByPhoneHash(phoneHash)) {

@@ -10,7 +10,9 @@ import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.global.crypto.PhoneCrypto;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
+import back.fcz.global.security.jwt.JwtProperties;
 import back.fcz.global.security.jwt.JwtProvider;
+import back.fcz.global.security.jwt.service.RefreshTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,8 +24,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 class AuthServiceTest {
 
@@ -32,6 +35,8 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
     private JwtProvider jwtProvider;
     private AuthService authService;
+    private RefreshTokenService refreshTokenService;
+    private JwtProperties jwtProperties;
 
     @BeforeEach
     void setUp() {
@@ -39,7 +44,9 @@ class AuthServiceTest {
         phoneCrypto = mock(PhoneCrypto.class);
         passwordEncoder = mock(PasswordEncoder.class);
         jwtProvider = mock(JwtProvider.class);
-        authService = new AuthService(memberRepository, phoneCrypto, passwordEncoder, jwtProvider);
+        refreshTokenService = mock(RefreshTokenService.class);
+        jwtProperties = mock(JwtProperties.class);
+        authService = new AuthService(memberRepository, phoneCrypto, passwordEncoder, jwtProvider, refreshTokenService, jwtProperties);
     }
 
     @Test
@@ -112,6 +119,13 @@ class AuthServiceTest {
                 .thenReturn("ATK");
         when(jwtProvider.generateMemberRefreshToken(1L, MemberRole.USER.name()))
                 .thenReturn("RTK");
+
+        JwtProperties.TokenConfig refreshTokenConfig = mock(JwtProperties.TokenConfig.class);
+        when(jwtProperties.getRefreshToken()).thenReturn(refreshTokenConfig);
+        when(refreshTokenConfig.getExpiration()).thenReturn(3600000L);
+
+        doNothing().when(refreshTokenService)
+                .saveMemberRefreshToken(anyLong(), anyString(), anyLong());
 
         LoginTokensResponse res = authService.login(req);
 
