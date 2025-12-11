@@ -39,3 +39,9 @@ jwt:
 
 cors:
   allowed-origins: "http://localhost:3000"
+
+coolsms:
+  api-key: dummy-api-key
+  api-secret: dummy-api-secret
+  from-number: "01000000000"
+
