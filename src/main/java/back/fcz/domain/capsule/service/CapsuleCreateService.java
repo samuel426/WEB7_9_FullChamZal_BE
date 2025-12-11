@@ -31,7 +31,7 @@ public class CapsuleCreateService {
     private final PhoneCrypto phoneCrypto;
 
     // url 도메인
-    @Value("${capsule.domain}")
+    @Value("${cors.capsule-domain}")
     private String domain;
 
     // UUID 생성
