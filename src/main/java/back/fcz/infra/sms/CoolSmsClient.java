@@ -6,6 +6,7 @@ import back.fcz.global.exception.ErrorCode;
 import com.solapi.sdk.SolapiClient;
 import com.solapi.sdk.message.model.Message;
 import com.solapi.sdk.message.service.DefaultMessageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,12 +16,19 @@ public class CoolSmsClient {
     private final DefaultMessageService messageService;
     private final String fromNumber;
 
+    @Autowired
     public CoolSmsClient(
             @Value("${coolsms.api-key}")String apiKey,
             @Value("${coolsms.api-secret}")String apiSecret,
             @Value("${coolsms.from-number}")String fromNumber
     ){
         this.messageService = SolapiClient.INSTANCE.createInstance(apiKey, apiSecret);
+        this.fromNumber = fromNumber;
+    }
+
+    // 테스트용 생성자
+    protected CoolSmsClient(DefaultMessageService messageService, String fromNumber) {
+        this.messageService = messageService;
         this.fromNumber = fromNumber;
     }
 
