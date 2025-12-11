@@ -30,7 +30,7 @@ public class PhoneVerificationController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
     // 인증 코드 검증 POST /api/v1/phone-verification/confirm
-    @PostMapping
+    @PostMapping("/confirm")
     public ResponseEntity<ApiResponse<ConfirmSmsCodeResponse>> confirmsCode(
             @RequestBody ConfirmSmsCodeRequest confirmSmsCodeRequest
     ){
