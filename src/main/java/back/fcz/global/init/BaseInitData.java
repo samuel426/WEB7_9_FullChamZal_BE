@@ -1,5 +1,7 @@
 package back.fcz.global.init;
 
+import back.fcz.domain.capsule.repository.CapsuleRecipientRepository;
+import back.fcz.domain.capsule.repository.CapsuleRepository;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.entity.MemberRole;
 import back.fcz.domain.member.entity.MemberStatus;
@@ -22,6 +24,8 @@ public class BaseInitData implements CommandLineRunner {
     private final MemberRepository memberRepository;
     private final PhoneCrypto phoneCrypto;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final CapsuleRepository capsuleRepository;
+    private final CapsuleRecipientRepository capsuleRecipientRepository;
 
     @Override
     @Transactional

@@ -11,10 +11,9 @@ import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/capsule")
 public class CapsuleCreateController {
@@ -49,7 +48,7 @@ public class CapsuleCreateController {
     }
 
     // 캡슐 수정
-    @PatchMapping("/update")
+    @PutMapping("/update")
     public ResponseEntity<CapsuleUpdateResponseDTO> updateCapsule(
             @RequestParam Long capsuleId,
             @RequestBody CapsuleUpdateRequestDTO requestDTO

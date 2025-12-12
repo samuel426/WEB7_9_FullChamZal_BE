@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface CapsuleOpenLogRepository extends JpaRepository<CapsuleOpenLogRepository, Long>{
-    Optional<CapsuleOpenLog> findByCapsuleId(Long capsuleId);
+public interface CapsuleOpenLogRepository extends JpaRepository<CapsuleOpenLog, Long>{
+    Optional<CapsuleOpenLog> findByCapsuleId_CapsuleId(Long capsuleId);
 }

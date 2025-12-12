@@ -132,7 +132,7 @@ public class CapsuleCreateService {
             CapsuleUpdateRequestDTO updateDTO
     ){
         // 수정 가능한 상태인지 확인
-        capsuleOpenLogRepository.findByCapsuleId(capsuleId)
+        capsuleOpenLogRepository.findByCapsuleId_CapsuleId(capsuleId)
                 .ifPresent(open -> { throw new BusinessException(ErrorCode.CAPSULE_NOT_UPDATE); });
 
         // 수정 진행
