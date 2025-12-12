@@ -37,7 +37,7 @@ public class AdminCapsuleSummaryResponse {
                 .createdAt(capsule.getCreatedAt())
                 .currentViewCount(capsule.getCurrentViewCount())
                 .maxViewCount(capsule.getMaxViewCount()) // null 가능하면 0 처리하는 헬퍼 하나 둬도 됨
-                .deleted(capsule.isDeleted())
+//                .deleted(capsule.isDeleted())
                 .reportCount(0L)      // TODO: report 테이블 연동
                 .bookmarkCount(0L)    // TODO: bookmark 테이블 연동
                 .build();

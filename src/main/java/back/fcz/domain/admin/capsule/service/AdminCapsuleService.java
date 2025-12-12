@@ -66,11 +66,11 @@ public class AdminCapsuleService {
         boolean wantDelete = request.getDeleted();
 
         // 이미 상태가 같은 경우 예외를 던질지 말지는 팀 규칙에 맞게
-        if (capsule.isDeleted() == wantDelete) {
-            // 굳이 에러로 보고 싶으면 ErrorCode 하나 더 추가해서 던지면 됨
-            // throw new BusinessException(ErrorCode.ADMIN_CAPSULE_INVALID_STATUS_CHANGE);
-            return AdminCapsuleDetailResponse.from(capsule);
-        }
+//        if (capsule.isDeleted() == wantDelete) {
+//            // 굳이 에러로 보고 싶으면 ErrorCode 하나 더 추가해서 던지면 됨
+//            // throw new BusinessException(ErrorCode.ADMIN_CAPSULE_INVALID_STATUS_CHANGE);
+//            return AdminCapsuleDetailResponse.from(capsule);
+//        }
 
         // TODO: Capsule 엔티티에 setter(or 도메인 메서드) 추가 필요
         //capsule.setDeleted(wantDelete); //

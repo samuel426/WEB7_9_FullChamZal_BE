@@ -58,8 +58,8 @@ public class AdminCapsuleDetailResponse {
                 .locationRadiusM(capsule.getLocationRadiusM())
                 .currentViewCount(capsule.getCurrentViewCount())
                 .maxViewCount(capsule.getMaxViewCount())
-                .deleted(capsule.isDeleted())
-                .protectedCapsule(capsule.isProtected())
+//                .deleted(capsule.isDeleted())
+//                .protectedCapsule(capsule.isProtected())
                 .createdAt(capsule.getCreatedAt())
                 .updatedAt(capsule.getUpdatedAt())
                 .reportCount(0L)      // TODO: report 테이블 연동
