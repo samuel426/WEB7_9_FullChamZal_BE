@@ -46,7 +46,7 @@ public enum ErrorCode {
     // ========== Redis 에러 ==========
     REDIS_CONNECTION_ERROR("REDIS001", HttpStatus.SERVICE_UNAVAILABLE, "일시적인 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
 
-    // ========== Auth 도메인 에러 ==========
+    // ========== 사용자 도메인 에러 ==========
     DUPLICATE_USER_ID("AUTH001", HttpStatus.CONFLICT, "이미 존재하는 아이디입니다."),
     DUPLICATE_NICKNAME("AUTH002", HttpStatus.CONFLICT, "이미 존재하는 닉네임입니다."),
     DUPLICATE_PHONENUM("AUTH003", HttpStatus.CONFLICT, "이미 존재하는 전화번호입니다."),
@@ -56,7 +56,7 @@ public enum ErrorCode {
     WITHDRAWN_USER_ID("AUTH007", HttpStatus.CONFLICT, "사용 불가능한 아이디입니다. 다른 아이디를 사용해 주세요."),
     WITHDRAWN_PHONE_NUMBER("AUTH008", HttpStatus.CONFLICT, "사용 불가능한 전화번호입니다. 다른 전화번호를 사용해 주세요."),
 
-    // ========== Member 도메인 에러 ==========
+    // ========== 사용자 도메인 에러 ==========
     MEMBER_NOT_FOUND("MEM001", HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),
     MEMBER_NOT_ACTIVE("MEM002", HttpStatus.FORBIDDEN, "비활성화된 계정입니다."),
     INVALID_PHONE_FORMAT("MEM003", HttpStatus.BAD_REQUEST, "전화번호가 올바르지 않습니다."),
@@ -70,6 +70,11 @@ public enum ErrorCode {
     CAPSULE_CONDITION_ERROR("CPS05", HttpStatus.BAD_REQUEST, "캡슐 조건 로직 에러입니다."),
     CAPSULE_NOT_CREATE("CPS006", HttpStatus.BAD_REQUEST, "캡슐을 생성할 수 없습니다."),
     CAPSULE_NOT_UPDATE("CPS007", HttpStatus.BAD_REQUEST, "캡슐을 수정할 수 없습니다."),
+
+    // ========== 북마크 에러 ==========
+    BOOKMARK_ALREADY_EXISTS("BMK001", HttpStatus.CONFLICT, "이미 북마크된 캡슐입니다."),
+    BOOKMARK_NOT_FOUND("BMK002", HttpStatus.NOT_FOUND, "북마크를 찾을 수 없습니다."),
+    CAPSULE_NOT_UNLOCKED("BMK003", HttpStatus.BAD_REQUEST, "해제되지 않은 캡슐은 북마크할 수 없습니다."),
 
     // ========== 해제조건 에러 ==========
     INVALID_UNLOCK_TIME("UNL001", HttpStatus.BAD_REQUEST, "유효하지 않은 시간 값입니다."),
