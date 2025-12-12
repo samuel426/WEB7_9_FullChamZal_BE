@@ -127,7 +127,7 @@ public class BaseInitData implements CommandLineRunner {
         createPhoneVerification(
                 "010-3456-7890",
                 "111222",
-                PhoneVerificationPurpose.SIGNUP,
+                PhoneVerificationPurpose.CHANGE_PHONE,
                 PhoneVerificationStatus.EXPIRED,
                 6,
                 now.minusMinutes(10),
