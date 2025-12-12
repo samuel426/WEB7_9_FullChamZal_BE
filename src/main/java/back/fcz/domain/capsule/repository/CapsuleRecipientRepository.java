@@ -11,4 +11,3 @@ public interface CapsuleRecipientRepository extends JpaRepository<CapsuleRecipie
 
     Optional<CapsuleRecipient> findByCapsuleId_CapsuleId(Long capsuleId);
 }
-

@@ -56,6 +56,7 @@ public enum ErrorCode {
     CAPSULE_NOT_RECEIVER("CPS03", HttpStatus.FORBIDDEN, "이 캡슐의 수신자가 아닙니다."),
     CAPSULE_PASSWORD_NOT_MATCH("CPS04", HttpStatus.UNAUTHORIZED, "캡슐 비밀번호가 일치하지 않습니다."),
     CAPSULE_CONDITION_ERROR("CPS05", HttpStatus.BAD_REQUEST, "캡슐 조건 로직 에러입니다."),
+    CAPSULE_NOT_CREATE("CPS006", HttpStatus.BAD_REQUEST, "캡슐을 생성할 수 없습니다."),
 
     // ========== 해제조건 에러 ==========
     INVALID_UNLOCK_TIME("UNL001", HttpStatus.BAD_REQUEST, "유효하지 않은 시간 값입니다."),

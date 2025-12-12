@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 public class Capsule extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,12 +24,17 @@ public class Capsule extends BaseEntity {
 
     @Column(name = "uuid", nullable = false)
     private String uuid;              // URL용 UUIDv4(난수화)
+
     @Column(name = "nickname", nullable = false)
     private String nickname;          // 작성 당시 닉네임
     @Column(name = "title")
     private String title;             // 캡슐 제목
     @Column(name = "content", nullable = false)
     private String content;           // 캡슐 본문
+
+    @Column(name = "cap_password")
+    private String capPassword; // 캡슐 비밀번호
+
     @Column(name = "capsule_color", nullable = false)
     private String capsuleColor;       // 편지지 색상
     @Column(name = "capsule_packing_color", nullable = false)
@@ -56,10 +61,25 @@ public class Capsule extends BaseEntity {
     @Column(name = "max_view_count")
     private int maxViewCount;         // 선착순 제한 인원(NULL이면 무제한)
     @Column(name = "current_view_count")
-    private int currentViewCount;     // 현재 조회 인원
+    private int currentViewCount = 0;     // 현재 조회 인원
     @Column(name = "is_deleted")
-    private int isDeleted;         // 삭제 여부(Soft Delete, 삭제 전 0, 사용자 삭제 후 1, 관리자 삭제 후 2)
+    private Integer isDeleted = 0;         // 삭제 여부(Soft Delete, 삭제 전 0, 삭제후 1, , 관리자 삭제 후 2)
     @Column(name = "is_protected")
-    private boolean isProtected;      // 보호 여부
+    private Integer isProtected = 0;      // 보호 여부(보호 : 0, 미보호 : 1)
 
+    public void setMemberId(Member member){
+        this.memberId = member;
+    }
+
+    public void setUuid(String uuid){
+        this.uuid = uuid;
+    }
+
+    public void setCapPassword(String capPassword){
+        this.capPassword = capPassword;
+    }
+
+    public void setProtected(int protectedValue){
+        this.isProtected = protectedValue;
+    }
 }
