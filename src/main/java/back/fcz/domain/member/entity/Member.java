@@ -97,4 +97,14 @@ public class Member extends BaseEntity {
 
         return member;
     }
+
+    public void changeStatus(MemberStatus newStatus) {
+        if (newStatus == null) {
+            return;
+        }
+        // TODO: 필요하다면 여기서 상태 전이 규칙 추가
+        // 예) EXIT -> ACTIVE 복구 금지 등
+
+        this.status = newStatus;
+    }
 }
