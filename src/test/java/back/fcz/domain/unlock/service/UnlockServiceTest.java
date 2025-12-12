@@ -1,8 +1,7 @@
-package back.fcz.domain.unlock;
+package back.fcz.domain.unlock.service;
 
 import back.fcz.domain.capsule.entity.Capsule;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
-import back.fcz.domain.unlock.service.UnlockService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
