@@ -53,6 +53,8 @@ public enum ErrorCode {
     INVALID_USER_ID("AUTH004", HttpStatus.CONFLICT, "아이디가 존재하지 않습니다."),
     INVALID_PASSWORD("AUTH005", HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     INVALID_PHONENUM("AUTH006", HttpStatus.BAD_REQUEST, "전화번호가 일치하지 않습니다."),
+    WITHDRAWN_USER_ID("AUTH007", HttpStatus.CONFLICT, "사용 불가능한 아이디입니다. 다른 아이디를 사용해 주세요."),
+    WITHDRAWN_PHONE_NUMBER("AUTH008", HttpStatus.CONFLICT, "사용 불가능한 전화번호입니다. 다른 전화번호를 사용해 주세요."),
 
     // ========== Member 도메인 에러 ==========
     MEMBER_NOT_FOUND("MEM001", HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),

@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -28,8 +30,16 @@ public class AuthService {
     private final JwtProperties jwtProperties;
 
     public MemberSignupResponse signup(MemberSignupRequest request) {
-        if (memberRepository.existsByUserId(request.userId())) {
+        // 활성 회원만 체크
+        if (memberRepository.existsByUserIdAndDeletedAtIsNull(request.userId())) {
             throw new BusinessException(ErrorCode.DUPLICATE_USER_ID);
+        }
+
+        // 탈퇴한 회원 체크
+        Optional<Member> deletedMember = memberRepository
+                .findByUserIdAndDeletedAtIsNotNull(request.userId());
+        if (deletedMember.isPresent()) {
+            throw new BusinessException(ErrorCode.WITHDRAWN_USER_ID);
         }
 
         if (memberRepository.existsByNickname(request.nickname())) {
@@ -43,8 +53,16 @@ public class AuthService {
 
         String phoneHash = phoneCrypto.hash(normalizedPhone);
 
-        if (memberRepository.existsByPhoneHash(phoneHash)) {
+        // 활성 회원만 체크
+        if (memberRepository.existsByPhoneHashAndDeletedAtIsNull(phoneHash)) {
             throw new BusinessException(ErrorCode.DUPLICATE_PHONENUM);
+        }
+
+        // 탈퇴 회원 체크
+        Optional<Member> deletedMemberByPhone = memberRepository
+                .findByPhoneHashAndDeletedAtIsNotNull(phoneHash);
+        if (deletedMemberByPhone.isPresent()) {
+            throw new BusinessException(ErrorCode.WITHDRAWN_PHONE_NUMBER);
         }
 
         // TODO: 번호 인증 메서드 추가

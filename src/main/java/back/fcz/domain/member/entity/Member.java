@@ -131,6 +131,20 @@ public class Member extends BaseEntity {
         this.phoneHash = phoneHash;
     }
 
+    public void anonymize() {
+        this.userId = "deleted_user_" + this.memberId;
+        this.name = "탈퇴회원";
+        this.phoneNumber = "DELETED_" + this.memberId;
+        this.phoneHash = "DELETED_" + this.memberId;
+    }
+
+    public void updateStatus(MemberStatus newStatus) {
+        if (newStatus == null) {
+            throw new IllegalArgumentException("회원 상태는 null일 수 없습니다.");
+        }
+        this.status = newStatus;
+    }
+
     // 테스트를 위해서 작성한 팩토리 메소드
     public static Member testMember(Long id, String userId, String name) {
         Member m = new Member(

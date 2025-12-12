@@ -6,6 +6,7 @@ import back.fcz.domain.member.dto.response.MemberDetailResponse;
 import back.fcz.domain.member.dto.response.MemberInfoResponse;
 import back.fcz.domain.member.dto.response.MemberUpdateResponse;
 import back.fcz.domain.member.entity.Member;
+import back.fcz.domain.member.entity.MemberStatus;
 import back.fcz.domain.member.entity.NicknameHistory;
 import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.domain.member.repository.NicknameHistoryRepository;
@@ -91,6 +92,18 @@ public class MemberService {
         }
 
         return MemberUpdateResponse.of(updatedFields, nextNicknameChangeDate);
+    }
+
+    @Transactional
+    public void delete(InServerMemberResponse user) {
+        Member member = memberRepository.findById(user.memberId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        member.markDeleted();
+        member.updateStatus(MemberStatus.EXIT);
+
+        log.info("회원 탈퇴 처리 완료 - memberId: {}, userId: {}, deletedAt: {}",
+                member.getMemberId(), member.getUserId(), member.getDeletedAt());
     }
 
     private void validateUpdateRequest(MemberUpdateRequest request) {
