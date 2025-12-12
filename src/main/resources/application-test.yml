@@ -31,11 +31,18 @@ security:
     sha-salt: "test-salt-for-phone-number-hashing"
 
 jwt:
-  secret-key: "test-jwt-secret-key-minimum-32-bytes-required-for-hs256-algorithm-!!!"
+  secret: "test-jwt-secret-key-minimum-32-bytes-required-for-hs256-algorithm-!!!"
   access-token:
     expiration: 10800000 # 3시간
   refresh-token:
     expiration: 2592000000 # 30일
 
 cors:
-  allowed-origins: "http://localhost:3000"
+  allowed-origins: http://localhost:3000
+  capsule-domain: http://localhost:3000
+
+coolsms:
+  api-key: dummy-api-key
+  api-secret: dummy-api-secret
+  from-number: "01000000000"
+

@@ -8,8 +8,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "member")
+@Table(
+        name = "member",
+        indexes = {
+                @Index(name = "idx_member_phone_hash", columnList = "phone_hash", unique = true),
+                @Index(name = "idx_member_user_id", columnList = "user_id", unique = true)
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
@@ -23,7 +31,7 @@ public class Member extends BaseEntity {
     @Column(name = "user_id", nullable = false, unique = true, length = 100)
     private String userId;
 
-    @Column(name = "password_hash")
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
     @Column(name = "name", nullable = false, length = 50)
@@ -53,6 +61,8 @@ public class Member extends BaseEntity {
     @Column(name = "oauth_id", length = 100)
     private String oauthId;
 
+    private LocalDateTime nicknameChangedAt;
+
     @Builder
     private Member(String userId, String passwordHash, String name, String nickname,
                    String phoneNumber, String phoneHash, MemberStatus status, MemberRole role,
@@ -67,5 +77,102 @@ public class Member extends BaseEntity {
         this.role = role != null ? role : MemberRole.USER;
         this.oauthProvider = oauthProvider;
         this.oauthId = oauthId;
+        this.nicknameChangedAt = null;
+    }
+
+    public static Member create(String userId, String passwordHash, String name, String nickname,
+                                String encryptedPhone, String phoneHash) {
+        Member member = new Member(
+                userId,
+                passwordHash,
+                name,
+                nickname,
+                encryptedPhone,
+                phoneHash,
+                MemberStatus.ACTIVE,
+                MemberRole.USER,
+                null,
+                null
+        );
+
+        return member;
+    }
+
+    public void changeStatus(MemberStatus newStatus) {
+        if (newStatus == null) {
+            return;
+        }
+        // TODO: 필요하다면 여기서 상태 전이 규칙 추가
+        // 예) EXIT -> ACTIVE 복구 금지 등
+
+        this.status = newStatus;
+    }
+
+    public boolean isActive() {
+        return this.status == MemberStatus.ACTIVE && this.getDeletedAt() == null;
+    }
+
+    public void updateNickname(String newNickname) {
+        if (newNickname == null || newNickname.isBlank()) {
+            throw new IllegalArgumentException("닉네임은 null이거나 빈 값일 수 없습니다.");
+        }
+
+        this.nickname = newNickname;
+        this.nicknameChangedAt = LocalDateTime.now();
+    }
+
+    public void updatePassword(String newPasswordHash) {
+        if (newPasswordHash == null || newPasswordHash.isBlank()) {
+            throw new IllegalArgumentException("비밀번호 해시는 null이거나 빈 값일 수 없습니다.");
+        }
+
+        this.passwordHash = newPasswordHash;
+    }
+
+    public void updatePhoneNumber(String encryptedPhone, String phoneHash) {
+        if (encryptedPhone == null || encryptedPhone.isBlank()) {
+            throw new IllegalArgumentException("암호화된 전화번호는 null이거나 빈 값일 수 없습니다.");
+        }
+        if (phoneHash == null || phoneHash.isBlank()) {
+            throw new IllegalArgumentException("전화번호 해시는 null이거나 빈 값일 수 없습니다.");
+        }
+
+        this.phoneNumber = encryptedPhone;
+        this.phoneHash = phoneHash;
+    }
+
+    public void anonymize() {
+        this.userId = "deleted_user_" + this.memberId;
+        this.name = "탈퇴회원";
+        this.phoneNumber = "DELETED_" + this.memberId;
+        this.phoneHash = "DELETED_" + this.memberId;
+    }
+
+    public void updateStatus(MemberStatus newStatus) {
+        if (newStatus == null) {
+            throw new IllegalArgumentException("회원 상태는 null일 수 없습니다.");
+        }
+        this.status = newStatus;
+    }
+
+    // 테스트를 위해서 작성한 팩토리 메소드
+    public static Member testMember(Long id, String userId, String name) {
+        Member m = new Member(
+                userId,
+                "test-password",
+                name,
+                name,           // nickname
+                "encrypted-phone",
+                "hash-phone",
+                MemberStatus.ACTIVE,
+                MemberRole.USER,
+                null,
+                null
+        );
+
+        // ID 강제 주입 (테스트에서만)
+        m.memberId = id;
+
+        return m;
     }
 }

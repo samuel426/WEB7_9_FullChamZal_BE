@@ -41,7 +41,7 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
     // 3. API Documentation (OpenAPI/Swagger)
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
     // 4. Database Drivers (런타임 드라이버)
     runtimeOnly 'com.h2database:h2'
@@ -63,13 +63,16 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+    // 7. sms sdk (문자 발송)
+    implementation 'com.solapi:sdk:1.0.3'
 }
 
 // CI 테스트 제외
 tasks.withType(Test).configureEach {
     useJUnitPlatform {
         if (System.getenv("CI") == "true") {
-            excludeTags("redis", "integration")
+            excludeTags("redis", "integration", "sms")
         }
     }
 }
