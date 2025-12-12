@@ -3,10 +3,18 @@ package back.fcz.domain.capsule.entity;
 
 import back.fcz.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "capsule_recipient")
-class CapsuleRecipient extends BaseEntity {
+public class CapsuleRecipient extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,5 +34,11 @@ class CapsuleRecipient extends BaseEntity {
 
     @Column(name = "is_sender_self", nullable = false)
     private boolean isSenderSelf;
+
+    public void anonymize(Long uniqueId) {
+        this.recipientName = "탈퇴한 수신자";
+        this.recipientPhone = "DELETED_" + uniqueId;
+        this.recipientPhoneHash = "DELETED_" + uniqueId;
+    }
 }
 
