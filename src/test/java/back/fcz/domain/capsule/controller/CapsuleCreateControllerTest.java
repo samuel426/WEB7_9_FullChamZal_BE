@@ -5,9 +5,12 @@ import back.fcz.domain.capsule.DTO.LetterCustomResponseDTO;
 import back.fcz.domain.capsule.DTO.UnlockResponseDTO;
 import back.fcz.domain.capsule.DTO.request.CapsuleUpdateRequestDTO;
 import back.fcz.domain.capsule.DTO.request.SecretCapsuleCreateRequestDTO;
+import back.fcz.domain.capsule.DTO.response.CapsuleDeleteResponseDTO;
 import back.fcz.domain.capsule.DTO.response.CapsuleUpdateResponseDTO;
 import back.fcz.domain.capsule.DTO.response.SecretCapsuleCreateResponseDTO;
 import back.fcz.domain.capsule.service.CapsuleCreateService;
+import back.fcz.domain.member.service.CurrentUserContext;
+import back.fcz.global.dto.InServerMemberResponse;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.exception.GlobalExceptionHandler;
@@ -32,11 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 
 @ExtendWith(MockitoExtension.class)
 class CapsuleCreateControllerTest {
@@ -46,6 +48,9 @@ class CapsuleCreateControllerTest {
 
     @Mock
     private CapsuleCreateService capsuleCreateService;
+
+    @Mock
+    private CurrentUserContext currentUserContext;
 
     private MockMvc mockMvc;
 
@@ -73,7 +78,7 @@ class CapsuleCreateControllerTest {
                         null, null, 10, 0
                 );
 
-        Mockito.when(capsuleCreateService.privateCapsulePassword(any(), any()))
+        when(capsuleCreateService.privateCapsulePassword(any(), any()))
                 .thenReturn(mockResponse);
 
         SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
@@ -91,7 +96,7 @@ class CapsuleCreateControllerTest {
                 )
                 .andExpect(status().isOk());
 
-        Mockito.verify(capsuleCreateService, Mockito.times(1))
+        verify(capsuleCreateService, Mockito.times(1))
                 .privateCapsulePassword(any(), eq("1234"));
     }
 
@@ -109,7 +114,7 @@ class CapsuleCreateControllerTest {
                         null, null, 10, 0
                 );
 
-        Mockito.when(capsuleCreateService.privateCapsulePhone(any(), any()))
+        when(capsuleCreateService.privateCapsulePhone(any(), any()))
                 .thenReturn(mockResponse);
 
         SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
@@ -128,7 +133,7 @@ class CapsuleCreateControllerTest {
                 )
                 .andExpect(status().isOk());
 
-        Mockito.verify(capsuleCreateService, Mockito.times(1))
+        verify(capsuleCreateService, Mockito.times(1))
                 .privateCapsulePhone(any(), eq("01012341234"));
     }
 
@@ -160,8 +165,8 @@ class CapsuleCreateControllerTest {
                     assertEquals(ErrorCode.CAPSULE_NOT_CREATE, ex.getErrorCode());
                 });
 
-        Mockito.verify(capsuleCreateService, Mockito.never()).privateCapsulePhone(any(), any());
-        Mockito.verify(capsuleCreateService, Mockito.never()).privateCapsulePassword(any(), any());
+        verify(capsuleCreateService, Mockito.never()).privateCapsulePhone(any(), any());
+        verify(capsuleCreateService, Mockito.never()).privateCapsulePassword(any(), any());
     }
 
     // 캡슐 수정 테스트
@@ -195,7 +200,7 @@ class CapsuleCreateControllerTest {
                         0
                 );
 
-        Mockito.when(capsuleCreateService.updateCapsule(eq(capsuleId), any()))
+        when(capsuleCreateService.updateCapsule(eq(capsuleId), any()))
                 .thenReturn(responseDTO);
 
         // when & then
@@ -211,5 +216,68 @@ class CapsuleCreateControllerTest {
                 .andExpect(jsonPath("$.visibility").value("PUBLIC"))
                 .andExpect(jsonPath("$.unlock.location").value("장소"))
                 .andExpect(jsonPath("$.letter.capsuleColor").value("BLUE"));
+    }
+
+    // 캡슐 삭제 테스트
+    @Test
+    @DisplayName("발신자 캡슐 삭제 성공")
+    void senderDeleteCapsule_success() throws Exception {
+        // given
+        Long capsuleId = 1L;
+        Long memberId = 10L;
+
+        InServerMemberResponse loginUser = mock(InServerMemberResponse.class);
+
+        when(loginUser.memberId()).thenReturn(memberId);
+
+        CapsuleDeleteResponseDTO responseDTO =
+                new CapsuleDeleteResponseDTO(capsuleId, "삭제 완료");
+
+        when(currentUserContext.getCurrentUser())
+                .thenReturn(loginUser);
+
+        when(capsuleCreateService.senderDelete(capsuleId, memberId))
+                .thenReturn(responseDTO);
+
+        // when & then
+        mockMvc.perform(delete("/api/v1/capsule/delete/sender")
+                        .param("capsuleId", capsuleId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.capsuleId").value(capsuleId))
+                .andExpect(jsonPath("$.message").value("삭제 완료"));
+
+        verify(capsuleCreateService)
+                .senderDelete(capsuleId, memberId);
+    }
+
+    @Test
+    @DisplayName("수신자 캡슐 삭제 성공")
+    void receiverDeleteCapsule_success() throws Exception {
+        // given
+        Long capsuleId = 1L;
+        String phoneHash = "01000000000";
+
+        InServerMemberResponse loginUser = mock(InServerMemberResponse.class);
+
+        when(loginUser.phoneHash()).thenReturn(phoneHash);
+
+        CapsuleDeleteResponseDTO responseDTO =
+                new CapsuleDeleteResponseDTO(capsuleId, "삭제 완료");
+
+        when(currentUserContext.getCurrentUser())
+                .thenReturn(loginUser);
+
+        when(capsuleCreateService.receiverDelete(capsuleId, phoneHash))
+                .thenReturn(responseDTO);
+
+        // when & then
+        mockMvc.perform(delete("/api/v1/capsule/delete/reciver")
+                        .param("capsuleId", capsuleId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.capsuleId").value(capsuleId))
+                .andExpect(jsonPath("$.message").value("삭제 완료"));
+
+        verify(capsuleCreateService)
+                .receiverDelete(capsuleId, phoneHash);
     }
 }
