@@ -14,6 +14,7 @@ import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -36,8 +37,8 @@ public class CapsuleCreateController {
     // 비공개 캡슐
     @PostMapping("/create/private")
     public ResponseEntity<SecretCapsuleCreateResponseDTO> createPrivateCapsule(
-            @RequestParam(required = false) String phoneNum,
-            @RequestParam(required = false) String capsulePassword,
+            @RequestParam String phoneNum,
+            @RequestParam String capsulePassword,
             @RequestBody SecretCapsuleCreateRequestDTO requestDTO
     ){
         if(phoneNum == null){ // url + 비밀번호 방식
@@ -49,6 +50,16 @@ public class CapsuleCreateController {
         }
 
         throw new BusinessException(ErrorCode.CAPSULE_NOT_CREATE);
+    }
+
+    // 비공개 캡슐 - 나에게 보내는 캡슐
+    @PostMapping("/create/me")
+    public ResponseEntity<SecretCapsuleCreateResponseDTO> createToMeCapsule(
+            @RequestParam("phone") String receiveTel,
+            @RequestBody SecretCapsuleCreateRequestDTO requestDTO
+    ){
+
+        return ResponseEntity.ok(capsuleCreateService.capsuleToMe(requestDTO, receiveTel));
     }
 
     // 캡슐 수정

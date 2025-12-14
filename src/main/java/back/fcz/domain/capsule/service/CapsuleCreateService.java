@@ -127,12 +127,16 @@ public class CapsuleCreateService {
     }
 
     // 비공개 캡슐 - 나에게 보내는 캡슐
-    public SecretCapsuleCreateResponseDTO CapsuleToMe(SecretCapsuleCreateRequestDTO requestDTO, String receiveTel){
+    public SecretCapsuleCreateResponseDTO capsuleToMe(SecretCapsuleCreateRequestDTO requestDTO, String receiveTel){
         Capsule capsule = requestDTO.toEntity();
+
+        Member member = memberRepository.findById(requestDTO.memberId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         // 캡슐 설정
         capsule.setProtected(1);
         capsule.setUuid(setUUID());
+        capsule.setMemberId(member);
 
         Capsule saved = capsuleRepository.save(capsule);
 
