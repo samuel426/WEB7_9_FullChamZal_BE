@@ -35,7 +35,7 @@ public class CapsuleRecipient extends BaseEntity {
     private String recipientPhoneHash;
 
     @Column(name = "opend_at")
-    private LocalDateTime opnedAt;
+    private LocalDateTime unlockedAt;
 
     @Column(name = "is_sender_self", nullable = false)
     private int isSenderSelf;
