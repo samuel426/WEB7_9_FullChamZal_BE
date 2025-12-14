@@ -92,8 +92,6 @@ public class CapsuleCreateService {
         Member member = memberRepository.findById(capsuleCreate.memberId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // Optional<Member> recipient = memberRepository.findByPhoneHash(phoneCrypto.hash(receiveTel));
-
         if(memberRepository.existsByPhoneHash(phoneCrypto.hash(receiveTel))){ // 회원
             capsule.setMemberId(member);
             capsule.setProtected(1);
