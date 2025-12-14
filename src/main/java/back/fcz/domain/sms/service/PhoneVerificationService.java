@@ -116,6 +116,10 @@ public class PhoneVerificationService {
             verification.markExpired();
             throw new BusinessException(ErrorCode.VERIFICATION_EXPIRED);
         }
+        // 목적 체크
+        if(verification.getPurpose() != purpose){
+            throw new BusinessException(ErrorCode.VERIFICATION_PURPOSE_MISMATCH);
+        }
         // 시도 횟수 초과 체크
         if(verification.getAttemptCount() >= MAX_ATTEMPTS){
             verification.markExpired();

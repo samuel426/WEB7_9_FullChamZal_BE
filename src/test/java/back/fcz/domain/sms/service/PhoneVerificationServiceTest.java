@@ -9,6 +9,8 @@ import back.fcz.domain.sms.entity.PhoneVerificationPurpose;
 import back.fcz.domain.sms.entity.PhoneVerificationStatus;
 import back.fcz.domain.sms.repository.PhoneVerificationRepository;
 import back.fcz.global.crypto.PhoneCrypto;
+import back.fcz.global.exception.BusinessException;
+import back.fcz.global.exception.ErrorCode;
 import back.fcz.infra.sms.CoolSmsClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -28,6 +31,8 @@ import static org.mockito.Mockito.*;
 class PhoneVerificationServiceTest {
     @InjectMocks
     private PhoneVerificationService phoneVerificationService;
+    @Mock
+    private PhoneVerificationAttemptService phoneVerificationAttemptService;
     @Mock
     private PhoneVerificationRepository phoneVerificationRepository;
     @Mock
@@ -126,6 +131,30 @@ class PhoneVerificationServiceTest {
         verify(coolSmsClient, times(1)).sendSms(eq("01012345678"), anyString());
     }
     @Test
+    @DisplayName("인증 번호 발송 : 재전송 쿨다운 시간 내 - 실패")
+    void sendCode_ResendBeforeCooldown_Failure() {
+        //given
+        SendSmsCodeRequest request = new SendSmsCodeRequest(
+                "010-1234-5678",
+                PhoneVerificationPurpose.SIGNUP,
+                true
+        );
+        when(phoneCrypto.hash(anyString())).thenReturn("hashedPhoneNumber");
+        when(phoneVerificationRepository
+                .countByPhoneNumberHashAndPurposeAndCreatedAtAfter(anyString(),any(),any()))
+                .thenReturn(1L);
+
+
+        //when & then
+        assertThatThrownBy(() -> phoneVerificationService.sendCode(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException)e).getErrorCode())
+                .isEqualTo(ErrorCode.SMS_RESEND_COOLDOWN);
+
+        verify(phoneVerificationRepository, never()).save(any(PhoneVerification.class));
+        verify(coolSmsClient, never()).sendSms(anyString(), anyString());
+    }
+    @Test
     @DisplayName("인증 코드 검증 - 성공")
     void verifyCode_Success() {
         //given
@@ -165,6 +194,179 @@ class PhoneVerificationServiceTest {
         assertThat(pv.getStatus()).isEqualTo(PhoneVerificationStatus.VERIFIED);
         assertThat(pv.getAttemptCount()).isEqualTo(0);
         assertThat(pv.getVerifiedAt()).isNotNull();
+
+        verify(phoneCrypto).hash(nomalizedPhoneNumber);
+        verify(phoneVerificationRepository).findLatestPending(phoneNumberHash, PhoneVerificationPurpose.SIGNUP);
+    }
+
+    @Test
+    @DisplayName("인증 코드 검증 - 실패 : 코드 불일치")
+    void verifyCode_Mismatch_Failure(){
+        //given
+        String phoneNumber = "010-1234-5678";
+        String nomalizedPhoneNumber = "01012345678";
+        String phoneNumberHash = "hashedPhoneNumber";
+        String inputCode = "123456";
+
+        ConfirmSmsCodeRequest request = new ConfirmSmsCodeRequest(
+                phoneNumber,
+                inputCode,
+                PhoneVerificationPurpose.SIGNUP
+        );
+
+        PhoneVerification pv = PhoneVerification.initForTest(
+                phoneNumberHash,
+                "hashedCode",
+                PhoneVerificationPurpose.SIGNUP,
+                PhoneVerificationStatus.PENDING,
+                0,
+                LocalDateTime.now().minusMinutes(1),
+                null,
+                LocalDateTime.now().plusMinutes(2)
+        );
+
+        when(phoneCrypto.hash(nomalizedPhoneNumber)).thenReturn(phoneNumberHash);
+
+        when(phoneVerificationRepository.findLatestPending(eq(phoneNumberHash), eq(PhoneVerificationPurpose.SIGNUP)))
+                .thenReturn(java.util.Optional.of(pv));
+        when(phoneCrypto.verifyHash(eq(inputCode), eq("hashedCode"))).thenReturn(false);
+        doNothing().when(phoneVerificationAttemptService).recordAttempt(any());
+
+        //when & then
+        assertThatThrownBy(() -> phoneVerificationService.confirmCode(request))
+                .isInstanceOf(BusinessException.class)
+                        .extracting(e -> ((BusinessException)e).getErrorCode())
+                        .isEqualTo(ErrorCode.VERIFICATION_CODE_MISMATCH);
+
+        assertThat(pv.getStatus()).isEqualTo(PhoneVerificationStatus.PENDING);
+
+        verify(phoneCrypto).hash(nomalizedPhoneNumber);
+        verify(phoneVerificationAttemptService).recordAttempt(any());
+        verify(phoneVerificationRepository).findLatestPending(phoneNumberHash, PhoneVerificationPurpose.SIGNUP);
+    }
+
+    @Test
+    @DisplayName("인증 코드 검증 - 실패 : 인증 시간 만료")
+    void verifyCode_ExpiredTime_Failure(){
+        //given
+        String phoneNumber = "010-1234-5678";
+        String nomalizedPhoneNumber = "01012345678";
+        String phoneNumberHash = "hashedPhoneNumber";
+        String inputCode = "123456";
+
+        ConfirmSmsCodeRequest request = new ConfirmSmsCodeRequest(
+                phoneNumber,
+                inputCode,
+                PhoneVerificationPurpose.SIGNUP
+        );
+
+        PhoneVerification pv = PhoneVerification.initForTest(
+                phoneNumberHash,
+                "hashedCode",
+                PhoneVerificationPurpose.SIGNUP,
+                PhoneVerificationStatus.PENDING,
+                0,
+                LocalDateTime.now().minusMinutes(10),
+                null,
+                LocalDateTime.now().minusMinutes(5)
+        );
+
+        when(phoneCrypto.hash(nomalizedPhoneNumber)).thenReturn(phoneNumberHash);
+
+        when(phoneVerificationRepository.findLatestPending(eq(phoneNumberHash), eq(PhoneVerificationPurpose.SIGNUP)))
+                .thenReturn(java.util.Optional.of(pv));
+
+        //when & then
+        assertThatThrownBy(() -> phoneVerificationService.confirmCode(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException)e).getErrorCode())
+                .isEqualTo(ErrorCode.VERIFICATION_EXPIRED);
+
+        assertThat(pv.getStatus()).isEqualTo(PhoneVerificationStatus.EXPIRED);
+
+        verify(phoneCrypto).hash(nomalizedPhoneNumber);
+        verify(phoneVerificationRepository).findLatestPending(phoneNumberHash, PhoneVerificationPurpose.SIGNUP);
+    }
+
+    @Test
+    @DisplayName("인증 코드 검증 - 실패 : 목적 불일치")
+    void verifyCode_Purpose_Mismatch_Failure(){
+        //given
+        String phoneNumber = "010-1234-5678";
+        String nomalizedPhoneNumber = "01012345678";
+        String phoneNumberHash = "hashedPhoneNumber";
+        String inputCode = "123456";
+
+        ConfirmSmsCodeRequest request = new ConfirmSmsCodeRequest(
+                phoneNumber,
+                inputCode,
+                PhoneVerificationPurpose.SIGNUP
+        );
+
+        PhoneVerification pv = PhoneVerification.initForTest(
+                phoneNumberHash,
+                "hashedCode",
+                PhoneVerificationPurpose.CHANGE_PHONE,
+                PhoneVerificationStatus.PENDING,
+                0,
+                LocalDateTime.now(),
+                null,
+                LocalDateTime.now().plusMinutes(5)
+        );
+
+        when(phoneCrypto.hash(nomalizedPhoneNumber)).thenReturn(phoneNumberHash);
+
+        when(phoneVerificationRepository.findLatestPending(eq(phoneNumberHash), eq(PhoneVerificationPurpose.SIGNUP)))
+                .thenReturn(java.util.Optional.of(pv));
+
+        //when & then
+        assertThatThrownBy(() -> phoneVerificationService.confirmCode(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException)e).getErrorCode())
+                .isEqualTo(ErrorCode.VERIFICATION_PURPOSE_MISMATCH);
+
+        verify(phoneCrypto).hash(nomalizedPhoneNumber);
+        verify(phoneVerificationRepository).findLatestPending(phoneNumberHash, PhoneVerificationPurpose.SIGNUP);
+    }
+
+    @Test
+    @DisplayName("인증 코드 검증 - 실패 : 시도 횟수 초과")
+    void verifyCode_Attempt_Exceeded_Failure(){
+        //given
+        String phoneNumber = "010-1234-5678";
+        String nomalizedPhoneNumber = "01012345678";
+        String phoneNumberHash = "hashedPhoneNumber";
+        String inputCode = "123456";
+
+        ConfirmSmsCodeRequest request = new ConfirmSmsCodeRequest(
+                phoneNumber,
+                inputCode,
+                PhoneVerificationPurpose.SIGNUP
+        );
+
+        PhoneVerification pv = PhoneVerification.initForTest(
+                phoneNumberHash,
+                "hashedCode",
+                PhoneVerificationPurpose.SIGNUP,
+                PhoneVerificationStatus.PENDING,
+                5,
+                LocalDateTime.now(),
+                null,
+                LocalDateTime.now().plusMinutes(5)
+        );
+
+        when(phoneCrypto.hash(nomalizedPhoneNumber)).thenReturn(phoneNumberHash);
+
+        when(phoneVerificationRepository.findLatestPending(eq(phoneNumberHash), eq(PhoneVerificationPurpose.SIGNUP)))
+                .thenReturn(java.util.Optional.of(pv));
+
+        //when & then
+        assertThatThrownBy(() -> phoneVerificationService.confirmCode(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException)e).getErrorCode())
+                .isEqualTo(ErrorCode.VERIFICATION_ATTEMPT_EXCEEDED);
+
+        assertThat(pv.getStatus()).isEqualTo(PhoneVerificationStatus.EXPIRED);
 
         verify(phoneCrypto).hash(nomalizedPhoneNumber);
         verify(phoneVerificationRepository).findLatestPending(phoneNumberHash, PhoneVerificationPurpose.SIGNUP);

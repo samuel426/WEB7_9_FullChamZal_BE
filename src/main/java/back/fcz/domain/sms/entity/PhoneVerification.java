@@ -59,10 +59,12 @@ public class PhoneVerification {
 
     @PrePersist
     protected void onCreate(){
-        this.createdAt = LocalDateTime.now();
-        this.expiredAt = LocalDateTime.now().plusMinutes(CODE_EXPIRATION_MINUTES);  // 인증 번호 요청 후 3분 후 만료
-        this.status = PhoneVerificationStatus.PENDING;
-        this.attemptCount = 0;
+        if(this.createdAt == null){     // baseinit이나 test init이 아닌 경우에만 설정
+            this.createdAt = LocalDateTime.now();
+            this.expiredAt = LocalDateTime.now().plusMinutes(CODE_EXPIRATION_MINUTES);  // 인증 번호 요청 후 3분 후 만료
+            this.status = PhoneVerificationStatus.PENDING;
+            this.attemptCount = 0;
+        }
     }
 
     public boolean isExpired(LocalDateTime now){    // 현재 시간이 만료 시간 이후인지 확인

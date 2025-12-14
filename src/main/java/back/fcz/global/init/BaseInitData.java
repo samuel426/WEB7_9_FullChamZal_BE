@@ -116,8 +116,8 @@ public class BaseInitData implements CommandLineRunner {
                 PhoneVerificationStatus.PENDING,
                 0,
                 now.minusMinutes(2),
-                now.plusMinutes(1),
-                null
+                null,
+                now.plusMinutes(1)
         );
 
 
@@ -129,8 +129,8 @@ public class BaseInitData implements CommandLineRunner {
                 PhoneVerificationStatus.EXPIRED,
                 3,
                 now.minusMinutes(10),
-                now.minusMinutes(7),
-                null
+                null,
+                now.minusMinutes(7)
         );
 
         // 시도 횟수 초과로 실패한 인증
@@ -141,8 +141,8 @@ public class BaseInitData implements CommandLineRunner {
                 PhoneVerificationStatus.EXPIRED,
                 6,
                 now.minusMinutes(10),
-                now.minusMinutes(7),
-                null
+                null,
+                now.minusMinutes(7)
         );
     }
 
@@ -167,7 +167,7 @@ public class BaseInitData implements CommandLineRunner {
 
     private void createPhoneVerification(String phoneNumber, String code, PhoneVerificationPurpose purpose,
                                          PhoneVerificationStatus status, int attemptCount, LocalDateTime createdAt,
-                                         LocalDateTime expiredAt, LocalDateTime verifiedAt) {
+                                         LocalDateTime verifiedAt, LocalDateTime expiredAt) {
         String phoneNumberHash = phoneCrypto.hash(phoneNumber);
         String codeHash = phoneCrypto.hash(code);
         LocalDateTime now = LocalDateTime.now();
@@ -179,8 +179,8 @@ public class BaseInitData implements CommandLineRunner {
                 status,
                 attemptCount,
                 createdAt,
-                expiredAt,
-                verifiedAt
+                verifiedAt,
+                expiredAt
         );
 
         phoneVerificationRepository.save(phoneVerification);
