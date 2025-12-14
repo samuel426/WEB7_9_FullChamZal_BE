@@ -8,7 +8,6 @@ import back.fcz.domain.capsule.DTO.response.CapsuleDeleteResponseDTO;
 import back.fcz.domain.capsule.DTO.response.CapsuleUpdateResponseDTO;
 import back.fcz.domain.capsule.DTO.response.SecretCapsuleCreateResponseDTO;
 import back.fcz.domain.capsule.entity.Capsule;
-import back.fcz.domain.capsule.entity.CapsuleOpenLog;
 import back.fcz.domain.capsule.entity.CapsuleRecipient;
 import back.fcz.domain.capsule.repository.CapsuleOpenLogRepository;
 import back.fcz.domain.capsule.repository.CapsuleRecipientRepository;
@@ -133,8 +132,6 @@ class CapsuleCreateServiceTest {
                 37.11, 127.22, 300, "red", "white", 10
         );
 
-        Member recipient = Member.testMember(2L, "reciever", "recieverName");
-
         when(memberRepository.findById(1L))
                 .thenReturn(Optional.of(member));
 
@@ -142,10 +139,7 @@ class CapsuleCreateServiceTest {
                 .thenReturn("hashedPhone");
 
         when(memberRepository.existsByPhoneHash("hashedPhone"))
-                .thenReturn(false);
-
-        when(memberRepository.existsByPhoneHash("hashedPhone"))
-                .thenReturn(true);
+                .thenReturn(true); // 회원 수신자
 
         when(capsuleRepository.save(any(Capsule.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -159,9 +153,10 @@ class CapsuleCreateServiceTest {
 
         // then
         assertNotNull(response);
-        assertNull(response.capPW());
+        assertNull(response.capPW()); // 회원 → 비밀번호 없음
         assertEquals("title", response.title());
     }
+
 
 
     // 비공개 캡슐 생성 (전화번호 방식 - 비회원 수신자)
@@ -243,6 +238,55 @@ class CapsuleCreateServiceTest {
         assertEquals(ErrorCode.MEMBER_NOT_FOUND, ex.getErrorCode());
     }
 
+    @Test
+    @DisplayName("나에게 보내는 캡슐 생성 성공")
+    void capsuleToMe_success() {
+        // given
+        SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
+                1L, "nick", "title", "content", "PRIVATE",
+                "TIME", LocalDateTime.now(), "Seoul",
+                37.11, 127.22, 300, "red", "white", 10
+        );
+
+        when(memberRepository.findById(1L))
+                .thenReturn(Optional.of(member));
+
+        when(phoneCrypto.hash("01000000000"))
+                .thenReturn("hashedPhone");
+
+        when(capsuleRepository.save(any(Capsule.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(recipientRepository.save(any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        SecretCapsuleCreateResponseDTO response =
+                capsuleCreateService.capsuleToMe(dto, "01000000000");
+
+        // then
+        assertNotNull(response);
+        assertEquals("title", response.title());
+    }
+
+    @Test
+    @DisplayName("나에게 보내는 캡슐 - member 없음")
+    void capsuleToMe_memberNotFound() {
+        SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
+                99L, "nick", "title", "content", "PRIVATE",
+                "TIME", LocalDateTime.now(), "Seoul",
+                37.11, 127.22, 300, "red", "white", 10
+        );
+
+        when(memberRepository.findById(99L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                BusinessException.class,
+                () -> capsuleCreateService.capsuleToMe(dto, "01000000000")
+        );
+    }
+
 
     // =======================
     // 캡슐 수정 테스트
@@ -268,8 +312,6 @@ class CapsuleCreateServiceTest {
                 new CapsuleUpdateRequestDTO("new title", "new content");
 
         // 캡슐열람 로그 없음 → 수정 가능
-        Mockito.when(capsuleOpenLogRepository.findByCapsuleId_CapsuleId(capsuleId))
-                .thenReturn(Optional.empty());
 
         Mockito.when(capsuleRepository.findById(capsuleId))
                 .thenReturn(Optional.of(capsule));
@@ -293,9 +335,8 @@ class CapsuleCreateServiceTest {
         // given
         Long capsuleId = 1L;
 
-        // 열람 로그가 존재한다고 가정
-        Mockito.when(capsuleOpenLogRepository.findByCapsuleId_CapsuleId(capsuleId))
-                .thenReturn(Optional.of(new CapsuleOpenLog()));
+        when(capsuleRepository.findCurrentViewCountByCapsuleId(capsuleId))
+                .thenReturn(1);
 
         // when & then
         BusinessException ex = assertThrows(
@@ -310,14 +351,12 @@ class CapsuleCreateServiceTest {
     }
 
 
+
     @Test
     @DisplayName("캡슐을 찾을 수 없으면 예외 발생")
     void updateCapsule_fail_capsuleNotFound() {
         // given
         Long capsuleId = 100L;
-
-        Mockito.when(capsuleOpenLogRepository.findByCapsuleId_CapsuleId(capsuleId))
-                .thenReturn(Optional.empty());
 
         Mockito.when(capsuleRepository.findById(capsuleId))
                 .thenReturn(Optional.empty());
@@ -353,8 +392,6 @@ class CapsuleCreateServiceTest {
         CapsuleUpdateRequestDTO dto =
                 new CapsuleUpdateRequestDTO("new title", null);
 
-        Mockito.when(capsuleOpenLogRepository.findByCapsuleId_CapsuleId(capsuleId))
-                .thenReturn(Optional.empty());
 
         Mockito.when(capsuleRepository.findById(capsuleId))
                 .thenReturn(Optional.of(capsule));
@@ -388,9 +425,6 @@ class CapsuleCreateServiceTest {
 
         CapsuleUpdateRequestDTO dto =
                 new CapsuleUpdateRequestDTO(null, "new content");
-
-        Mockito.when(capsuleOpenLogRepository.findByCapsuleId_CapsuleId(capsuleId))
-                .thenReturn(Optional.empty());
 
         Mockito.when(capsuleRepository.findById(capsuleId))
                 .thenReturn(Optional.of(capsule));
