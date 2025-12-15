@@ -32,5 +32,12 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
     @Query("SELECT c FROM Capsule c WHERE c.memberId.memberId = :memberId AND c.isDeleted = 0")
     List<Capsule> findActiveCapsulesByMemberId(@Param("memberId") Long memberId);
 
-    Optional<Capsule> findById(Long capsuleId);
+    Optional<Capsule> findByCapsuleIdAndMemberId_MemberId(Long capsuleId, Long memberId);
+
+    @Query("""
+    select v.currentViewCount
+    from Capsule v
+    where v.capsuleId = :capsuleId
+""")
+    int findCurrentViewCountByCapsuleId(@Param("capsuleId") Long capsuleId);
 }
