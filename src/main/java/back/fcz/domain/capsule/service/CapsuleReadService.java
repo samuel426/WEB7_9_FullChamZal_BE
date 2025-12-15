@@ -60,8 +60,9 @@ public class CapsuleReadService {
 
     //공개 캡슐
     public CapsuleConditionResponseDTO publicCapsuleLogic(Capsule capsule, CapsuleConditionRequestDTO requestDto) {
+        Long currentMemberId = currentUserContext.getCurrentMemberId();
         //2. 조회 횟수 검증
-        if(publicCapsuleRecipientRepository.existsByCapsuleId_CapsuleIdAndMemberId(capsule.getCapsuleId(), requestDto.memberId())){
+        if(publicCapsuleRecipientRepository.existsByCapsuleId_CapsuleIdAndMemberId(capsule.getCapsuleId(), currentMemberId)){
             System.out.println("기존에 조회 된 공개 캡슐");
             //기존에 조회했던 것이니 바로 조회가능
             boolean viewStatus = true;
@@ -69,11 +70,12 @@ public class CapsuleReadService {
         }else{
             System.out.println("기존에 조회 되지 않은 공개 캡슐");
             boolean viewStatus = false;
+
             //조회한 적 없으니 조건 검증이 필요 / 공개 캡슐은 시간, 위치만 검증하면됨
             if(capsuleCondition(capsule, requestDto.unlockAt(), requestDto.locationLat(), requestDto.locationLng())){
                 PublicCapsuleRecipient publicCapsuleLog = PublicCapsuleRecipient.builder()
                         .capsuleId(capsule)
-                        .memberId(requestDto.memberId())
+                        .memberId(currentMemberId)
                         .unlockedAt(requestDto.unlockAt())
                         .build();
                 publicCapsuleRecipientRepository.save(publicCapsuleLog);
@@ -222,7 +224,8 @@ public class CapsuleReadService {
 
     //개인 캡슐 읽기 - 수신자가 회원인 경우
     public CapsuleConditionResponseDTO readMemberCapsule(Capsule capsule, CapsuleConditionRequestDTO requestDto){
-        Member member = memberRepository.findById(requestDto.memberId()).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        Long currentMemberId = currentUserContext.getCurrentMemberId();
+        Member member = memberRepository.findById(currentMemberId).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         CapsuleOpenLog log = CapsuleOpenLog.builder()
                 .capsuleId(capsule)
                 .memberId(member)

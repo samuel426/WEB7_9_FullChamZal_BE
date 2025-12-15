@@ -6,7 +6,6 @@ import back.fcz.domain.capsule.DTO.response.CapsuleDashBoardResponse;
 import back.fcz.domain.capsule.service.CapsuleDashBoardService;
 import back.fcz.domain.capsule.service.CapsuleReadService;
 import back.fcz.global.config.swagger.ApiErrorCodeExample;
-import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,11 +31,11 @@ public class CapsuleReadController {
 
     //캡슐 조건 검증 -> 조건 만족 후 읽기
     @PostMapping("/read")
-    public ResponseEntity<CapsuleConditionResponseDTO> conditionAndReadCapsule(
+    public ResponseEntity<ApiResponse<CapsuleConditionResponseDTO>> conditionAndReadCapsule(
             @RequestBody CapsuleConditionRequestDTO capsuleConditionRequestDto
     ) {
         System.out.println("캡슐 조건 검증 컨트롤러 진입");
-        return ResponseEntity.ok(capsuleReadService.conditionAndRead(capsuleConditionRequestDto));
+        return ResponseEntity.ok(ApiResponse.success(capsuleReadService.conditionAndRead(capsuleConditionRequestDto)));
     }
 
 
