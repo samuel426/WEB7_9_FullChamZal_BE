@@ -13,15 +13,14 @@ import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RequiredArgsConstructor
-@RestController("/api/v1/capsule")
+@RestController
+@RequestMapping("/api/v1/capsule")
 public class CapsuleReadController {
     private final CapsuleReadService capsuleReadService;
     private final CapsuleRecipientRepository capsuleRecipientRepository;
@@ -95,9 +94,9 @@ public class CapsuleReadController {
 
 
     //회원이 전송한 캡슐의 대시보드 api
-    @GetMapping("/send/dashboard/{memberId}")
+    @GetMapping("/send/dashboard")
     public ResponseEntity<ApiResponse<List<CapsuleDashBoardResponse>>> sentCapsuleDash(
-            @PathVariable Long memberId
+            @AuthenticationPrincipal Long memberId
     ) {
         List<CapsuleDashBoardResponse> response = capsuleDashBoardService.readSendCapsuleList(memberId);
 
@@ -105,9 +104,9 @@ public class CapsuleReadController {
     }
 
     //회원이 받은 캡슐의 대시보드 api
-    @GetMapping("/receive/dashboard/{memberId}")
+    @GetMapping("/receive/dashboard")
     public ResponseEntity<ApiResponse<List<CapsuleDashBoardResponse>>> receivedCapsuleDash(
-            @PathVariable Long memberId
+            @AuthenticationPrincipal Long memberId
     ) {
         List<CapsuleDashBoardResponse> response = capsuleDashBoardService.readReceiveCapsuleList(memberId);
 
