@@ -3,9 +3,10 @@ package back.fcz.domain.capsule.entity;
 
 import back.fcz.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.*;
-
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -37,13 +38,16 @@ public class CapsuleRecipient extends BaseEntity {
     private LocalDateTime unlockedAt;
 
     @Column(name = "is_sender_self", nullable = false)
-
     private int isSenderSelf;
 
     public void anonymize(Long uniqueId) {
         this.recipientName = "탈퇴한 수신자";
         this.recipientPhone = "DELETED_" + uniqueId;
         this.recipientPhoneHash = "DELETED_" + uniqueId;
+    }
+
+    public void setUnlockedAt(LocalDateTime unlockedAt) {
+        this.unlockedAt = unlockedAt;
     }
 
 }

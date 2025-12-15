@@ -3,7 +3,6 @@ package back.fcz.domain.capsule.controller;
 import back.fcz.domain.capsule.DTO.request.CapsuleConditionRequestDTO;
 import back.fcz.domain.capsule.DTO.response.CapsuleConditionResponseDTO;
 import back.fcz.domain.capsule.DTO.response.CapsuleDashBoardResponse;
-import back.fcz.domain.capsule.repository.CapsuleRecipientRepository;
 import back.fcz.domain.capsule.service.CapsuleDashBoardService;
 import back.fcz.domain.capsule.service.CapsuleReadService;
 import back.fcz.global.response.ApiResponse;
@@ -18,14 +17,15 @@ import java.util.List;
 @RequestMapping("/api/v1/capsule")
 public class CapsuleReadController {
     private final CapsuleReadService capsuleReadService;
-    private final CapsuleRecipientRepository capsuleRecipientRepository;
     private final CapsuleDashBoardService  capsuleDashBoardService;
+
 
     //캡슐 조건 검증 -> 조건 만족 후 읽기
     @PostMapping("/read")
     public ResponseEntity<CapsuleConditionResponseDTO> conditionAndReadCapsule(
             @RequestBody CapsuleConditionRequestDTO capsuleConditionRequestDto
     ) {
+        System.out.println("캡슐 조건 검증 컨트롤러 진입");
         return ResponseEntity.ok(capsuleReadService.conditionAndRead(capsuleConditionRequestDto));
     }
 

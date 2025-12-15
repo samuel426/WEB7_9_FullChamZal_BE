@@ -10,7 +10,7 @@ public record CapsuleConditionResponseDTO(
         String capsuleColor,         // 편지지 색상
         String capsulePackingColor,  // 편지지 봉투 색상
         String recipient,            // 수신자 이름
-        String sender,               // 송신자 이름
+        String senderNickname,               // 송신자 이름
         String title,                // 제목
         String content,              // 내용 // 내용은 일정 글자수 넘어가면 ...으로 처리
         LocalDateTime createAt,      // 보낸 날짜

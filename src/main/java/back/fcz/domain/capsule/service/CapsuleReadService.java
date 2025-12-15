@@ -10,10 +10,14 @@ import back.fcz.domain.capsule.repository.CapsuleOpenLogRepository;
 import back.fcz.domain.capsule.repository.CapsuleRecipientRepository;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
 import back.fcz.domain.capsule.repository.PublicCapsuleRecipientRepository;
+import back.fcz.domain.member.dto.response.MemberInfoResponse;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
+import back.fcz.domain.member.service.CurrentUserContext;
+import back.fcz.domain.member.service.MemberService;
 import back.fcz.domain.unlock.service.UnlockService;
 import back.fcz.global.crypto.PhoneCrypto;
+import back.fcz.global.dto.InServerMemberResponse;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +39,8 @@ public class CapsuleReadService {
     private final MemberRepository memberRepository;
     private final PublicCapsuleRecipientRepository publicCapsuleRecipientRepository;
     private final CapsuleOpenLogRepository capsuleOpenLogRepository;
+    private final MemberService memberService;
+    private final CurrentUserContext currentUserContext;
 
     //조건확인하고 검증됐다면 읽기
     public CapsuleConditionResponseDTO conditionAndRead(CapsuleConditionRequestDTO requestDto) {
@@ -42,22 +48,26 @@ public class CapsuleReadService {
         // 1. 공개인지 비공개인지
         if(capsule.getVisibility().equals("PUBLIC")){
             //공개 캡슐로직
+            System.out.println("공개 캡슐 로직");
             return publicCapsuleLogic(capsule, requestDto);
         }else{
             //개인 캡슐로직
+            System.out.println("개인 캡슐 로직");
             return privateCapsuleLogic(capsule, requestDto);
         }
 
     }
 
-    //공개 캡슐 - 끝
+    //공개 캡슐
     public CapsuleConditionResponseDTO publicCapsuleLogic(Capsule capsule, CapsuleConditionRequestDTO requestDto) {
         //2. 조회 횟수 검증
         if(publicCapsuleRecipientRepository.existsByCapsuleId_CapsuleIdAndMemberId(capsule.getCapsuleId(), requestDto.memberId())){
+            System.out.println("기존에 조회 된 공개 캡슐");
             //기존에 조회했던 것이니 바로 조회가능
             boolean viewStatus = true;
             return readPublicCapsule(capsule, requestDto, viewStatus);
         }else{
+            System.out.println("기존에 조회 되지 않은 공개 캡슐");
             boolean viewStatus = false;
             //조회한 적 없으니 조건 검증이 필요 / 공개 캡슐은 시간, 위치만 검증하면됨
             if(capsuleCondition(capsule, requestDto.unlockAt(), requestDto.locationLat(), requestDto.locationLng())){
@@ -67,6 +77,7 @@ public class CapsuleReadService {
                         .unlockedAt(requestDto.unlockAt())
                         .build();
                 publicCapsuleRecipientRepository.save(publicCapsuleLog);
+                System.out.println("publicCapsuleLog 저장 완료");
                 return readPublicCapsule(capsule, requestDto, viewStatus);
             }else{// 검증 실패
                 throw new BusinessException(ErrorCode.NOT_OPENED_CAPSULE);
@@ -79,7 +90,7 @@ public class CapsuleReadService {
         //전화번호 기반인지 url+비번 기반인지를 먼저 확인하고 조회 횟수를 검증할것
 
         //2. 전화번호 기반인지 url+비번 기반인지
-        if(requestDto.phoneNumber() == null || requestDto.phoneNumber().isBlank() ){
+        if( !(requestDto.url() == null || requestDto.url().isBlank()) ){
             //url+비번 기반 -> 수신자가 회원인지 비회원인지 판단(isProtected)
             if(capsule.getIsProtected()==0){
                 //수신자 회원
@@ -114,13 +125,24 @@ public class CapsuleReadService {
                 }
             }
         }else{
-            //전화번호 기반 -> 수신자는 회원임
+            //전화번호 기반 -> 수신자는 회원
             if(capsule.getCurrentViewCount()>0){
                 //기존에 조회함 -> 바로 조회가능
                 return readMemberCapsule(capsule, requestDto);
             }else{
+                /*
+                Member member = memberRepository.findById(requestDto.memberId()).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+                InServerMemberResponse inServerMemberResponse = InServerMemberResponse.from(member);
+                MemberInfoResponse me = memberService.getMe(inServerMemberResponse);
+                String phoneNumber = me.phoneNumber();
+*/
+                InServerMemberResponse user = currentUserContext.getCurrentUser();
+                MemberInfoResponse response = memberService.getMe(user);
+                String phoneNumber = response.phoneNumber();
+                System.out.println("response.phoneNumber() : "+response.phoneNumber());
+
                 if(phoneNumberVerification(
-                        capsule, requestDto.phoneNumber(),  requestDto.unlockAt(), requestDto.locationLat(), requestDto.locationLng()
+                        capsule, phoneNumber,  requestDto.unlockAt(), requestDto.locationLat(), requestDto.locationLng()
                 )){
                     return readMemberCapsule(capsule, requestDto);
                 }else{
@@ -157,16 +179,21 @@ public class CapsuleReadService {
             throw new BusinessException(ErrorCode.CAPSULE_PASSWORD_NOT_MATCH);
         }
 
-        //해제 조건 검증
+        //캡슐 해제 조건 검증
         return capsuleCondition(capsule, unlockAt, locationLat, locationLng);
     }
 
+    //캡슐 해제 조건 검증
     private boolean capsuleCondition(Capsule capsule, LocalDateTime unlockAt, Double locationLat, Double locationLng) {
+        System.out.println("검증 로직 진입");
         if(capsule.getUnlockType().equals("TIME") && unlockService.isTimeConditionMet(capsule.getCapsuleId(), unlockAt)) {
+            System.out.println("시간 검증 통과");
             return true;
         }else if(capsule.getUnlockType().equals("LOCATION") && unlockService.isLocationConditionMet(capsule.getCapsuleId(), locationLat, locationLng)) {
+            System.out.println("공간 검증 통과");
             return true;
         }else if (capsule.getUnlockType().equals("TIME_AND_LOCATION") && unlockService.isTimeAndLocationConditionMet(capsule.getCapsuleId(), unlockAt, locationLat, locationLng)) {
+            System.out.println("시공간 검증 통과");
             return true;
         }else{
             //   시간/위치 검증 실패
@@ -235,7 +262,5 @@ public class CapsuleReadService {
 
         return CapsuleConditionResponseDTO.from(capsule);
     }
-
-
 
 }
