@@ -26,7 +26,8 @@ public enum ErrorCode {
     VERIFICATION_EXPIRED("SMS004", HttpStatus.BAD_REQUEST, "인증 코드가 만료되었습니다."),
     VERIFICATION_ATTEMPT_EXCEEDED("SMS005", HttpStatus.BAD_REQUEST, "인증 시도 횟수를 초과했습니다."),
     VERIFICATION_CODE_MISMATCH("SMS006", HttpStatus.BAD_REQUEST, "인증 코드가 일치하지 않습니다."),
-
+    VERIFICATION_PURPOSE_MISMATCH("SMS007", HttpStatus.BAD_REQUEST, "인증 목적이 일치하지 않습니다."),
+  
     // ========== JWT 인증 에러 ==========
     TOKEN_EXPIRED("JWT001", HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
     TOKEN_INVALID("JWT002", HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
@@ -71,6 +72,7 @@ public enum ErrorCode {
     CAPSULE_CONDITION_ERROR("CPS05", HttpStatus.BAD_REQUEST, "캡슐 조건 로직 에러입니다."),
     CAPSULE_NOT_CREATE("CPS006", HttpStatus.BAD_REQUEST, "캡슐을 생성할 수 없습니다."),
     CAPSULE_NOT_UPDATE("CPS007", HttpStatus.BAD_REQUEST, "캡슐을 수정할 수 없습니다."),
+    CAPSULE_RECIPIENT_NOT_FOUND("CPS008", HttpStatus.NOT_FOUND, "캡슐 수신자를 찾을 수 없습니다."),
 
     // ========== 북마크 에러 ==========
     BOOKMARK_ALREADY_EXISTS("BMK001", HttpStatus.CONFLICT, "이미 북마크된 캡슐입니다."),
@@ -80,7 +82,21 @@ public enum ErrorCode {
     // ========== 해제조건 에러 ==========
     INVALID_UNLOCK_TIME("UNL001", HttpStatus.BAD_REQUEST, "유효하지 않은 시간 값입니다."),
     INVALID_LATITUDE_LONGITUDE("UNL002", HttpStatus.BAD_REQUEST, "유효하지 않은 위도 또는 경도 값입니다."),
-    INVALID_RADIUS("UNL003", HttpStatus.BAD_REQUEST, "반경 값은 null, 500m, 1km, 1.5km 중 하나여야 합니다.");
+    INVALID_RADIUS("UNL003", HttpStatus.BAD_REQUEST, "반경 값은 null, 500m, 1km, 1.5km 중 하나여야 합니다."),
+
+    // ========== 관리자(Admin) 에러 ==========
+    ADMIN_MEMBER_NOT_FOUND("ADM001", HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),
+    ADMIN_CAPSULE_NOT_FOUND("ADM002", HttpStatus.NOT_FOUND, "존재하지 않는 캡슐입니다."),
+    ADMIN_REPORT_NOT_FOUND("ADM003", HttpStatus.NOT_FOUND, "존재하지 않는 신고입니다."),
+    ADMIN_REPORT_ALREADY_DONE("ADM004", HttpStatus.CONFLICT, "이미 처리된 신고입니다."),
+    ADMIN_INVALID_MEMBER_STATUS_CHANGE("ADM005", HttpStatus.BAD_REQUEST, "유효하지 않은 회원 상태 변경입니다."),
+    ADMIN_CANNOT_CHANGE_SELF_STATUS("ADM006", HttpStatus.FORBIDDEN, "자기 자신의 계정 상태는 변경할 수 없습니다."),
+    ADMIN_INVALID_CAPSULE_STATUS_CHANGE("ADM007", HttpStatus.BAD_REQUEST, "유효하지 않은 캡슐 상태 변경입니다."),
+    ADMIN_INVALID_REPORT_STATUS_CHANGE("ADM008", HttpStatus.BAD_REQUEST, "유효하지 않은 신고 상태 변경입니다."),
+    ADMIN_PHONE_VERIFICATION_NOT_FOUND("ADM009", HttpStatus.NOT_FOUND, "존재하지 않는 전화번호 인증 내역입니다.");
+    // ADMIN_CAPSULE_INVALID_STATUS_CHANGE("ADM00y", HttpStatus.BAD_REQUEST, "잘못된 캡슐 상태 변경 요청입니다."),
+
+
 
     private final String code;
     private final HttpStatus status;
