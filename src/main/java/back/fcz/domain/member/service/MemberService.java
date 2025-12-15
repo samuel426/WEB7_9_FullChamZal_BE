@@ -11,6 +11,8 @@ import back.fcz.domain.member.entity.NicknameHistory;
 import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.domain.member.repository.NicknameHistoryRepository;
 import back.fcz.domain.member.util.PhoneMaskingUtil;
+import back.fcz.domain.sms.entity.PhoneVerificationPurpose;
+import back.fcz.domain.sms.service.PhoneVerificationService;
 import back.fcz.global.crypto.PhoneCrypto;
 import back.fcz.global.dto.InServerMemberResponse;
 import back.fcz.global.exception.BusinessException;
@@ -35,8 +37,10 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PhoneCrypto phoneCrypto;
     private final NicknameHistoryRepository nicknameHistoryRepository;
+    private final PhoneVerificationService phoneVerificationService;
 
     private static final int NICKNAME_CHANGE_COOLDOWN_DAYS = 90;
+    private static final int VERIFIED_VALID_MINUTES = 10;
 
     public void verifyPassword(InServerMemberResponse user, PasswordVerifyRequest request) {
         Member member = memberRepository.findById(user.memberId())
@@ -165,10 +169,27 @@ public class MemberService {
     }
 
     private void updatePhoneNumber(Member member, String newPhoneNumber) {
+        if (newPhoneNumber == null || newPhoneNumber.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_PHONENUM);
+        }
+
         // TODO: 번호 인증 확인
+        boolean verified = phoneVerificationService.isPhoneVerified(
+                newPhoneNumber,
+                PhoneVerificationPurpose.CHANGE_PHONE
+        );
+
+        if (!verified) {
+            throw new BusinessException(ErrorCode.PHONE_NOT_VERIFIED);
+        }
 
         String newPhoneHash = phoneCrypto.hash(newPhoneNumber);
-        if (memberRepository.existsByPhoneHash(newPhoneHash)) {
+
+        if (newPhoneHash.equals(member.getPhoneHash())) {
+            return;
+        }
+
+        if (memberRepository.existsByPhoneHashAndMemberIdNot(newPhoneHash, member.getMemberId())) {
             throw new BusinessException(ErrorCode.DUPLICATE_PHONENUM);
         }
 

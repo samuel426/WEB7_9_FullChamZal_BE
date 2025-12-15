@@ -7,6 +7,8 @@ import back.fcz.domain.member.entity.MemberRole;
 import back.fcz.domain.member.entity.MemberStatus;
 import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.domain.member.repository.NicknameHistoryRepository;
+import back.fcz.domain.sms.entity.PhoneVerificationPurpose;
+import back.fcz.domain.sms.service.PhoneVerificationService;
 import back.fcz.global.crypto.PhoneCrypto;
 import back.fcz.global.dto.InServerMemberResponse;
 import back.fcz.global.exception.BusinessException;
@@ -37,6 +39,8 @@ class MemberServiceTest {
     private PhoneCrypto phoneCrypto;
     @Mock
     private NicknameHistoryRepository nicknameHistoryRepository;
+    @Mock
+    private PhoneVerificationService phoneVerificationService;
 
     private MemberService memberService;
 
@@ -46,7 +50,8 @@ class MemberServiceTest {
                 passwordEncoder,
                 memberRepository,
                 phoneCrypto,
-                nicknameHistoryRepository
+                nicknameHistoryRepository,
+                phoneVerificationService
         );
     }
 
@@ -175,9 +180,16 @@ class MemberServiceTest {
 
         when(memberRepository.findById(1L))
                 .thenReturn(Optional.of(member));
+
+        // 번호 인증
+        when(phoneVerificationService.isPhoneVerified(
+                "01099998888",
+                PhoneVerificationPurpose.CHANGE_PHONE
+        )).thenReturn(true);
+
         when(phoneCrypto.hash("01099998888"))
                 .thenReturn("NEW_HASH");
-        when(memberRepository.existsByPhoneHash("NEW_HASH"))
+        when(memberRepository.existsByPhoneHashAndMemberIdNot("NEW_HASH", 1L))
                 .thenReturn(false);
         when(phoneCrypto.encrypt("01099998888"))
                 .thenReturn("ENC_NEW_PHONE");
@@ -186,6 +198,7 @@ class MemberServiceTest {
 
         assertEquals("NEW_HASH", member.getPhoneHash());
     }
+
 
     @Test
     @DisplayName("회원 탈퇴 성공")

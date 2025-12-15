@@ -6,17 +6,18 @@ import back.fcz.domain.member.dto.response.LoginTokensResponse;
 import back.fcz.domain.member.dto.response.MemberSignupResponse;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
+import back.fcz.domain.sms.entity.PhoneVerificationPurpose;
+import back.fcz.domain.sms.service.PhoneVerificationService;
 import back.fcz.global.crypto.PhoneCrypto;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.security.jwt.JwtProperties;
 import back.fcz.global.security.jwt.JwtProvider;
 import back.fcz.global.security.jwt.service.RefreshTokenService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +29,11 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
     private final JwtProperties jwtProperties;
+    private final PhoneVerificationService phoneVerificationService;
 
+    private static final int VERIFIED_VALID_MINUTES = 10;
+
+    @Transactional
     public MemberSignupResponse signup(MemberSignupRequest request) {
         // 활성 회원만 체크
         if (memberRepository.existsByUserIdAndDeletedAtIsNull(request.userId())) {
@@ -36,22 +41,17 @@ public class AuthService {
         }
 
         // 탈퇴한 회원 체크
-        Optional<Member> deletedMember = memberRepository
-                .findByUserIdAndDeletedAtIsNotNull(request.userId());
-        if (deletedMember.isPresent()) {
+        if (memberRepository.findByUserIdAndDeletedAtIsNotNull(request.userId()).isPresent()) {
             throw new BusinessException(ErrorCode.WITHDRAWN_USER_ID);
         }
 
+        // 닉네임 중복 체크
         if (memberRepository.existsByNickname(request.nickname())) {
             throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
-        String normalizedPhone = request.normalizedPhoneNumber();
-        if (normalizedPhone == null) {
-            throw new BusinessException(ErrorCode.INVALID_PHONENUM);
-        }
-
-        String phoneHash = phoneCrypto.hash(normalizedPhone);
+        String phoneNumber = request.phoneNumber();
+        String phoneHash = phoneCrypto.hash(phoneNumber);
 
         // 활성 회원만 체크
         if (memberRepository.existsByPhoneHashAndDeletedAtIsNull(phoneHash)) {
@@ -59,15 +59,22 @@ public class AuthService {
         }
 
         // 탈퇴 회원 체크
-        Optional<Member> deletedMemberByPhone = memberRepository
-                .findByPhoneHashAndDeletedAtIsNotNull(phoneHash);
-        if (deletedMemberByPhone.isPresent()) {
+        if (memberRepository.findByPhoneHashAndDeletedAtIsNotNull(phoneHash).isPresent()) {
             throw new BusinessException(ErrorCode.WITHDRAWN_PHONE_NUMBER);
         }
 
         // TODO: 번호 인증 메서드 추가
+        boolean verification =
+                phoneVerificationService.isPhoneVerified(
+                        phoneNumber,
+                        PhoneVerificationPurpose.SIGNUP
+                );
 
-        String phoneEncrypted = phoneCrypto.encrypt(request.normalizedPhoneNumber());
+        if(!verification) {
+            throw new BusinessException(ErrorCode.PHONE_NOT_VERIFIED);
+        }
+
+        String phoneEncrypted = phoneCrypto.encrypt(phoneNumber);
         String encryptedPassword = passwordEncoder.encode(request.password());
 
         Member member = Member.create(
@@ -84,6 +91,7 @@ public class AuthService {
         return MemberSignupResponse.of(saved.getMemberId(), saved.getUserId());
     }
 
+    @Transactional
     public LoginTokensResponse login(MemberLoginRequest request) {
         Member member = memberRepository.findByUserId(request.userId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_USER_ID));
