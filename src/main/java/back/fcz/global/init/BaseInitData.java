@@ -58,12 +58,12 @@ public class BaseInitData implements CommandLineRunner {
             createTestPhoneVerifications();
         }
 
-        if (capsuleRepository.count() == 0) {
-            createDummyCapsules();
-        }
-
         if (reportRepository.count() == 0) {
             createDummyReports();
+        }
+
+        if (capsuleRepository.count() == 0) {
+            createTestCapsules();
         }
     }
 
@@ -204,94 +204,6 @@ public class BaseInitData implements CommandLineRunner {
         phoneVerificationRepository.save(phoneVerification);
     }
 
-    private void createDummyCapsules() {
-        List<Member> members = memberRepository.findAll();
-        Random random = new Random();
-
-        String[] visibilityOptions = {"PUBLIC", "PRIVATE"};
-        String[] unlockTypes = {"TIME", "LOCATION", "TIME_AND_LOCATION"};
-
-        for (int i = 1; i <= 20; i++) {
-
-            Member owner = members.get(random.nextInt(members.size()));
-
-            String visibility = visibilityOptions[random.nextInt(visibilityOptions.length)];
-            String unlockType = unlockTypes[random.nextInt(unlockTypes.length)];
-
-            boolean protectedCapsule = random.nextBoolean(); // true = isProtected=1
-
-            Capsule capsule = Capsule.builder()
-                    .memberId(owner)
-                    .uuid(UUID.randomUUID().toString())
-                    .nickname(owner.getNickname())
-                    .title("더미 캡슐 제목 " + i)
-                    .content("더미 캡슐 내용 " + i)
-                    .capsuleColor(randomColor())
-                    .capsulePackingColor(randomColor())
-                    .visibility(visibility)
-                    .unlockType(unlockType)
-                    .unlockAt(unlockType.contains("TIME") ? LocalDateTime.now().plusDays(i) : null)
-                    .locationName(unlockType.contains("LOCATION") ? "장소-" + i : null)
-                    .locationLat(unlockType.contains("LOCATION") ? randomLat() : null)
-                    .locationLng(unlockType.contains("LOCATION") ? randomLng() : null)
-                    .locationRadiusM(unlockType.contains("LOCATION") ? 100 : 0)
-                    .maxViewCount(0)
-                    .currentViewCount(0)
-                    .isDeleted(0)
-                    .isProtected(protectedCapsule ? 1 : 0)
-                    .build();
-
-            // 보호 캡슐이면 비번 부여
-            if (protectedCapsule) {
-                String password = generateCapsulePassword();
-                capsule.setCapPassword(password);
-            }
-
-            Capsule saved = capsuleRepository.save(capsule);
-
-
-            // 보호 캡슐이면 수신자 생성
-            if (protectedCapsule) {
-                createRecipient(saved, i);
-            }
-        }
-    }
-
-    private String randomColor() {
-        String[] colors = {"RED", "BLUE", "GREEN", "YELLOW", "PINK", "PURPLE"};
-        return colors[new Random().nextInt(colors.length)];
-    }
-
-    private double randomLat() {
-        return 37.5 + (Math.random() * 0.1); // 서울 근처 위도
-    }
-
-    private double randomLng() {
-        return 127.0 + (Math.random() * 0.1); // 서울 근처 경도
-    }
-
-    private String generateCapsulePassword() {
-        Random random = new Random();
-        return String.valueOf(1000 + random.nextInt(9000)); // 4자리 숫자
-    }
-
-    private void createRecipient(Capsule capsule, int index) {
-        String phone = "010-55" + (100 + index) + "-" + (1000 + index);
-
-        String encrypted = phoneCrypto.encrypt(phone);
-        String hash = phoneCrypto.hash(phone);
-
-        CapsuleRecipient recipient = CapsuleRecipient.builder()
-                .capsuleId(capsule)
-                .recipientName("수신자 " + index)
-                .recipientPhone(encrypted)
-                .recipientPhoneHash(hash)
-                .isSenderSelf(0)
-                .build();
-
-        capsuleRecipientRepository.save(recipient);
-    }
-
     private void createDummyReports() {
         List<Capsule> capsules = capsuleRepository.findAll();
         if (capsules.isEmpty()) return;
@@ -395,5 +307,123 @@ public class BaseInitData implements CommandLineRunner {
             reportRepository.save(r);
         }
     }
+
+    private static final List<String> UNLOCK_TYPES =
+            List.of("TIME", "LOCATION", "TIME_AND_LOCATION");
+
+    private static final List<String> CAPSULE_COLORS =
+            List.of("WHITE", "YELLOW", "PINK", "BLUE", "GREEN");
+
+    private static final List<String> PACKING_COLORS =
+            List.of("BLUE", "RED", "BROWN", "BLACK");
+
+    private static final List<String> LOCATION_NAMES =
+            List.of("서울역", "강남역", "한강공원", "우리 집", "학교 앞");
+
+    private static final List<Double[]> LOCATIONS = List.of(
+            new Double[]{37.5551, 126.9707}, // 서울역
+            new Double[]{37.4979, 127.0276}, // 강남역
+            new Double[]{37.5283, 126.9326}, // 한강
+            new Double[]{37.5665, 126.9780}, // 시청
+            new Double[]{37.4010, 127.1080}  // 분당
+    );
+
+    private void createTestCapsules() {
+        List<Member> members = memberRepository.findAll().stream()
+                .filter(m -> m.getRole() == MemberRole.USER)
+                .toList();
+
+        if (members.size() < 2) return;
+
+        Member member1 = members.get(0);
+        Member member2 = members.get(1);
+
+        Random random = new Random();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (int i = 1; i <= 20; i++) {
+
+            boolean isPublic = random.nextBoolean();
+            Member writer = random.nextBoolean() ? member1 : member2;
+
+            String capsuleColor = CAPSULE_COLORS.get(random.nextInt(CAPSULE_COLORS.size()));
+            String packingColor = PACKING_COLORS.get(random.nextInt(PACKING_COLORS.size()));
+
+            String unlockType = UNLOCK_TYPES.get(random.nextInt(UNLOCK_TYPES.size()));
+
+            LocalDateTime unlockAt = null;
+            String locationName = null;
+            Double locationLat = null;
+            Double locationLng = null;
+            int locationRadius = 0;
+
+            // TIME / TIME_AND_LOCATION → 시간 세팅
+            if ("TIME".equals(unlockType) || "TIME_AND_LOCATION".equals(unlockType)) {
+                unlockAt = now.plusDays(random.nextInt(20) - 10);
+            }
+
+            // LOCATION / TIME_AND_LOCATION → 위치 세팅
+            if ("LOCATION".equals(unlockType) || "TIME_AND_LOCATION".equals(unlockType)) {
+                int idx = random.nextInt(LOCATIONS.size());
+                Double[] loc = LOCATIONS.get(idx);
+
+                locationName = LOCATION_NAMES.get(idx);
+                locationLat = loc[0] + random.nextDouble() * 0.01;
+                locationLng = loc[1] + random.nextDouble() * 0.01;
+                locationRadius = List.of(50, 100, 300, 500).get(random.nextInt(4));
+            }
+
+            int currentViewCount = 0;
+
+            if (!isPublic) {
+                currentViewCount = 1;
+            } else {
+                // PUBLIC은 0~5 랜덤
+                currentViewCount = random.nextInt(6);
+            }
+
+            Capsule capsule = Capsule.builder()
+                    .memberId(writer)
+                    .uuid(UUID.randomUUID().toString())
+                    .nickname(writer.getNickname())
+                    .title("테스트 캡슐 " + i)
+                    .content("랜덤 테스트 캡슐 내용입니다. 번호: " + i)
+                    .capPassword(isPublic ? null : "1234")
+                    .capsuleColor(capsuleColor)
+                    .capsulePackingColor(packingColor)
+                    .visibility(isPublic ? "PUBLIC" : "PRIVATE")
+                    .unlockType(unlockType)
+                    .unlockAt(unlockAt)
+                    .locationName(locationName)
+                    .locationLat(locationLat)
+                    .locationLng(locationLng)
+                    .locationRadiusM(locationRadius)
+                    .maxViewCount(isPublic ? 0 : 1)
+                    .currentViewCount(currentViewCount)
+                    .isDeleted(0)
+                    .isProtected(isPublic ? 0 : 1)
+                    .build();
+
+            capsuleRepository.save(capsule);
+
+            if (!isPublic) {
+                Member recipient = (writer.equals(member1)) ? member2 : member1;
+
+                CapsuleRecipient capsuleRecipient = CapsuleRecipient.builder()
+                        .capsuleId(capsule)
+                        .recipientName(recipient.getName())
+                        .recipientPhone(recipient.getPhoneNumber())
+                        .recipientPhoneHash(recipient.getPhoneHash())
+                        .isSenderSelf(0)
+                        .unlockedAt(now.minusDays(random.nextInt(5))) // 이미 열람
+                        .build();
+
+                capsuleRecipientRepository.save(capsuleRecipient);
+            }
+        }
+    }
+
+
+
 
 }
