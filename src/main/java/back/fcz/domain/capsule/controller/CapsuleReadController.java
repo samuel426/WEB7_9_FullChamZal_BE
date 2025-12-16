@@ -1,20 +1,26 @@
 package back.fcz.domain.capsule.controller;
 
 import back.fcz.domain.capsule.DTO.request.CapsuleConditionRequestDTO;
+import back.fcz.domain.capsule.DTO.request.CapsuleSaveButtonRequest;
 import back.fcz.domain.capsule.DTO.response.CapsuleConditionResponseDTO;
 import back.fcz.domain.capsule.DTO.response.CapsuleDashBoardResponse;
+import back.fcz.domain.capsule.DTO.response.CapsuleSaveButtonResponse;
 import back.fcz.domain.capsule.service.CapsuleDashBoardService;
 import back.fcz.domain.capsule.service.CapsuleReadService;
+import back.fcz.domain.capsule.service.CapsuleSaveButtonService;
 import back.fcz.global.config.swagger.ApiErrorCodeExample;
 import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -27,6 +33,7 @@ import java.util.List;
 public class CapsuleReadController {
     private final CapsuleReadService capsuleReadService;
     private final CapsuleDashBoardService  capsuleDashBoardService;
+    private final CapsuleSaveButtonService  capsuleSaveButtonService;
 
 
     //캡슐 조건 검증 -> 조건 만족 후 읽기
@@ -56,13 +63,24 @@ public class CapsuleReadController {
 
     })
     @PostMapping("/save")
-    public ResponseEntity<Void> save(
+    public ResponseEntity<ApiResponse<CapsuleSaveButtonResponse>> save(
+            @RequestBody CapsuleSaveButtonRequest  capsuleSaveButtonRequest
+            ){
+        //로그인 상태인지 확인
+        Long currentMemberId = capsuleSaveButtonService.loginCheck();
+        if(currentMemberId!=null){
+            return ResponseEntity.ok(ApiResponse.success(capsuleSaveButtonService.saveRecipient(capsuleSaveButtonRequest, currentMemberId)));
+        }else{
+            //로그인이 안되어있다면 로그인 화면으로 리다이렉트
+            String loginUrl = "http://localhost:8080/api/v1/auth/login";
 
-    ){
-        //로그인 상태가 아닐경우 회원가입이나 로그인 창으로 보내기
+            HttpHeaders headers = new HttpHeaders();
+            //응답 헤더에 Location필드(새로 요청할 목표 URL) 추가
+            headers.setLocation(URI.create(loginUrl));
 
-        //로그인 상태라면 개인 캡슐 수신자 정보 생성(현재 로그인 중인 회원의 데이터 기록)
-        return ResponseEntity.ok().build();
+            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        }
+
     }
 
 
