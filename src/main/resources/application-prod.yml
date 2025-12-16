@@ -64,5 +64,5 @@ management:
       show-details: when-authorized
 
 cookie:
-  secure: true
+  secure: false
   same-site: None
