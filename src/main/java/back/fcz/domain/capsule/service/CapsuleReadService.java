@@ -10,11 +10,11 @@ import back.fcz.domain.capsule.repository.CapsuleOpenLogRepository;
 import back.fcz.domain.capsule.repository.CapsuleRecipientRepository;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
 import back.fcz.domain.capsule.repository.PublicCapsuleRecipientRepository;
-import back.fcz.domain.member.dto.response.MemberDetailResponse;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.domain.member.service.CurrentUserContext;
 import back.fcz.domain.member.service.MemberService;
+import back.fcz.domain.unlock.service.FirstComeService;
 import back.fcz.domain.unlock.service.UnlockService;
 import back.fcz.global.crypto.PhoneCrypto;
 import back.fcz.global.dto.InServerMemberResponse;
@@ -34,6 +34,7 @@ public class CapsuleReadService {
     private final CapsuleRecipientRepository capsuleRecipientRepository;
     private final PhoneCrypto phoneCrypto;
     private final UnlockService unlockService;
+    private final FirstComeService firstComeService;
     private final MemberRepository memberRepository;
     private final PublicCapsuleRecipientRepository publicCapsuleRecipientRepository;
     private final CapsuleOpenLogRepository capsuleOpenLogRepository;
@@ -226,7 +227,20 @@ public class CapsuleReadService {
                 .ipAddress(null)
                 .build();
         capsuleOpenLogRepository.save(log);
-        capsule.increasedViewCount();
+
+        // viewStatus = false: 처음 조회
+        // viewStatus = true: 재조회
+        boolean isFirstView = !viewStatus;
+        boolean hasFirstCome = firstComeService.hasFirstComeLimit(capsule);
+
+        // 조회수 증가 조건:
+        // 1. 처음 조회이고
+        // 2. 선착순이 없는 경우만
+        // (선착순 있으면 FirstComeService에서 이미 증가됨)
+        if (isFirstView && !hasFirstCome) {
+            capsule.increasedViewCount();
+        }
+
         return CapsuleConditionResponseDTO.from(capsule, viewStatus);
 
     }
