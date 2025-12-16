@@ -79,7 +79,7 @@ public class CapsuleCreateService {
 
         // TODO: 캡슐 이미지 추가 하실 때 여기서 하시면 됩니다.
         secretCapsule.setUuid(setUUID());
-        secretCapsule.setCapPassword(phoneCrypto.encrypt(password)); // 사용자가 지정한 비밀번호 저장
+        secretCapsule.setCapPassword(phoneCrypto.hash(password)); // 사용자가 지정한 비밀번호 저장
         secretCapsule.setMemberId(member);
 
         Capsule saved = capsuleRepository.save(secretCapsule);
@@ -120,7 +120,7 @@ public class CapsuleCreateService {
 
         }else{ // 비회원
             String capsulePW = generatePassword(); // 생성한 비밀번호
-            capsule.setCapPassword(phoneCrypto.encrypt(capsulePW));
+            capsule.setCapPassword(phoneCrypto.hash(capsulePW));
             capsule.setMemberId(member);
 
             // TODO: 캡슐 이미지 추가 하실 때 여기서 하시면 됩니다.
