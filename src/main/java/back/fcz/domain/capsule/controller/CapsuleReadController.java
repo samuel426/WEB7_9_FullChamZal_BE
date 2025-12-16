@@ -62,6 +62,7 @@ public class CapsuleReadController {
         //로그인 상태가 아닐경우 회원가입이나 로그인 창으로 보내기
 
         //로그인 상태라면 개인 캡슐 수신자 정보 생성(현재 로그인 중인 회원의 데이터 기록)
+        return ResponseEntity.ok().build();
     }
 
 
