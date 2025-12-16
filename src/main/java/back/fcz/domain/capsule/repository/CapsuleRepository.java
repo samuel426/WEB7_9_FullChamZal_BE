@@ -6,11 +6,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
 import java.util.Optional;
 
+@Repository
 public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
 
     // 기본: 삭제되지 않은 캡슐만 조회
@@ -32,5 +33,12 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
     @Query("SELECT c FROM Capsule c WHERE c.memberId.memberId = :memberId AND c.isDeleted = 0")
     List<Capsule> findActiveCapsulesByMemberId(@Param("memberId") Long memberId);
 
-    Optional<Capsule> findById(Long capsuleId);
+    Optional<Capsule> findByCapsuleIdAndMemberId_MemberId(Long capsuleId, Long memberId);
+
+    @Query("""
+    select v.currentViewCount
+    from Capsule v
+    where v.capsuleId = :capsuleId
+""")
+    int findCurrentViewCountByCapsuleId(@Param("capsuleId") Long capsuleId);
 }

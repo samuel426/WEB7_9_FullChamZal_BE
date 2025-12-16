@@ -15,6 +15,8 @@ public interface CapsuleRecipientRepository extends JpaRepository<CapsuleRecipie
 
     Optional<CapsuleRecipient> findByCapsuleId_CapsuleId(Long capsuleId);
 
+    boolean existsByCapsuleId_CapsuleId(Long capsuleId);
+
     // 회원 탈퇴 시
     List<CapsuleRecipient> findAllByRecipientPhoneHash(String recipientPhoneHash);
 
@@ -27,4 +29,9 @@ public interface CapsuleRecipientRepository extends JpaRepository<CapsuleRecipie
         WHERE pcr.recipientPhoneHash = :phoneHash
     """)
     void anonymizeByRecipientPhoneHash(@Param("phoneHash") String phoneHash);
+
+    Optional<CapsuleRecipient> findByCapsuleId_CapsuleIdAndRecipientPhoneHash(Long capsuleId, String phoneHash);
+    // phoneHash를 가지는 수신자 리스트 조회. JOIN을 이용하여 Capsule 테이블도 같이 조회
+    @Query("SELECT cr FROM CapsuleRecipient cr JOIN FETCH cr.capsuleId c WHERE cr.recipientPhoneHash = :phoneHash")
+    List<CapsuleRecipient> findAllByRecipientPhoneHashWithCapsule(@Param("phoneHash") String phoneHash);
 }

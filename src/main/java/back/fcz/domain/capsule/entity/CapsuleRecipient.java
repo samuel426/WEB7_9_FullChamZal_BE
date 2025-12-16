@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -32,13 +34,21 @@ public class CapsuleRecipient extends BaseEntity {
     @Column(name = "recipient_phone_hash", nullable = false)
     private String recipientPhoneHash;
 
+    @Column(name = "opend_at")
+    private LocalDateTime unlockedAt;
+
     @Column(name = "is_sender_self", nullable = false)
-    private boolean isSenderSelf;
+    private int isSenderSelf;
 
     public void anonymize(Long uniqueId) {
         this.recipientName = "탈퇴한 수신자";
         this.recipientPhone = "DELETED_" + uniqueId;
         this.recipientPhoneHash = "DELETED_" + uniqueId;
     }
+
+    public void setUnlockedAt(LocalDateTime unlockedAt) {
+        this.unlockedAt = unlockedAt;
+    }
+
 }
 

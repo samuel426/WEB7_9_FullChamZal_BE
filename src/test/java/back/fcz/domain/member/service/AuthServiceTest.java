@@ -7,6 +7,8 @@ import back.fcz.domain.member.dto.response.MemberSignupResponse;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.entity.MemberRole;
 import back.fcz.domain.member.repository.MemberRepository;
+import back.fcz.domain.sms.entity.PhoneVerificationPurpose;
+import back.fcz.domain.sms.service.PhoneVerificationService;
 import back.fcz.global.crypto.PhoneCrypto;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
@@ -36,6 +38,7 @@ class AuthServiceTest {
     private AuthService authService;
     private RefreshTokenService refreshTokenService;
     private JwtProperties jwtProperties;
+    private PhoneVerificationService phoneVerificationService;
 
     @BeforeEach
     void setUp() {
@@ -45,7 +48,8 @@ class AuthServiceTest {
         jwtProvider = mock(JwtProvider.class);
         refreshTokenService = mock(RefreshTokenService.class);
         jwtProperties = mock(JwtProperties.class);
-        authService = new AuthService(memberRepository, phoneCrypto, passwordEncoder, jwtProvider, refreshTokenService, jwtProperties);
+        phoneVerificationService = mock(PhoneVerificationService.class);
+        authService = new AuthService(memberRepository, phoneCrypto, passwordEncoder, jwtProvider, refreshTokenService, jwtProperties, phoneVerificationService);
     }
 
     @Test
@@ -73,6 +77,13 @@ class AuthServiceTest {
         when(memberRepository.findByPhoneHashAndDeletedAtIsNotNull("HASHED"))
                 .thenReturn(Optional.empty());
 
+        // 번호 인증
+        when(phoneVerificationService.isPhoneVerified(
+                "01012345678",
+                PhoneVerificationPurpose.SIGNUP
+        )).thenReturn(true);
+
+
         // 암호화
         when(phoneCrypto.encrypt("01012345678"))
                 .thenReturn("ENCRYPTED");
@@ -92,6 +103,7 @@ class AuthServiceTest {
         assertEquals(1L, res.memberId());
         assertEquals("uid", res.userId());
     }
+
 
     @Test
     @DisplayName("회원가입 실패 - 중복 userId")
