@@ -1,6 +1,6 @@
 package back.fcz.domain.storytrack.dto;
 
-public record pathResponse(
+public record PathResponse(
         int stepOrder,
-        capsuleResponse capsule
+        CapsuleResponse capsule
 ) {}

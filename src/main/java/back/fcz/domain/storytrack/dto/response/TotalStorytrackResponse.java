@@ -1,7 +1,7 @@
 package back.fcz.domain.storytrack.dto.response;
 
 
-record totalStorytrackResponse (
+public record TotalStorytrackResponse(
         Long storytrackId,
         String createName,
         String title,

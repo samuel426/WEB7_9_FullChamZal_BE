@@ -4,7 +4,7 @@ import back.fcz.domain.capsule.DTO.GPSResponseDTO;
 
 import java.time.LocalDateTime;
 
-public record unlockResponse(
+public record UnlockResponse(
         LocalDateTime unlockAt,
         String locationName,
         GPSResponseDTO location,

@@ -2,7 +2,7 @@ package back.fcz.domain.storytrack.dto.response;
 
 import java.time.LocalDateTime;
 
-record joinStorytrackResponse (
+public record JoinStorytrackResponse(
         String title, // 스토리트랙 제목
         String description,
         String storytrackType,

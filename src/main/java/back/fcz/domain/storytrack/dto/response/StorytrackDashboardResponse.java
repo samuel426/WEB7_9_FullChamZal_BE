@@ -1,11 +1,11 @@
 package back.fcz.domain.storytrack.dto.response;
 
-import back.fcz.domain.storytrack.dto.pathResponse;
+import back.fcz.domain.storytrack.dto.PathResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-record storytrackDashboardResponse (
+public record StorytrackDashboardResponse(
         Long storytrackId,
         String title,
         String storytrackType,
@@ -14,6 +14,6 @@ record storytrackDashboardResponse (
         LocalDateTime createdAt,
         int totalParticipant,
         int completeParticipant,
-        List<pathResponse> paths
+        List<PathResponse> paths
 ){
 }

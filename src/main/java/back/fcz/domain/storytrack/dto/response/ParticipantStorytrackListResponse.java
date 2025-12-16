@@ -2,7 +2,8 @@ package back.fcz.domain.storytrack.dto.response;
 
 import java.time.LocalDateTime;
 
-public record createrStorytrackListResponse (
+public record ParticipantStorytrackListResponse(
+        Long memberId,
         Long storytrackId,
         String title,
         String description,
@@ -10,6 +11,9 @@ public record createrStorytrackListResponse (
         int isPublic,
         int price,
         int totalSteps,
-        LocalDateTime createAt
+        int completedSteps,
+        int lastCpmpletedStep,
+        LocalDateTime startedAt,
+        LocalDateTime completedAt
 ){
 }

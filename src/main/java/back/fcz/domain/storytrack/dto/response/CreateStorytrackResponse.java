@@ -1,9 +1,9 @@
-package back.fcz.domain.storytrack.dto.request;
-
+package back.fcz.domain.storytrack.dto.response;
 
 import java.util.List;
 
-record createStorytrackRequest(
+public record CreateStorytrackResponse(
+        Long storytrackId,
         String title,
         String description,
         String trackType,

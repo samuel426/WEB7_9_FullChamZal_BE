@@ -1,0 +1,103 @@
+package back.fcz.domain.storytrack.service;
+
+import back.fcz.domain.storytrack.dto.response.DeleteParticipantResponse;
+import back.fcz.domain.storytrack.dto.response.DeleteStorytrackResponse;
+import back.fcz.domain.storytrack.entity.Storytrack;
+import back.fcz.domain.storytrack.entity.StorytrackProgress;
+import back.fcz.domain.storytrack.repository.StorytrackProgressRepository;
+import back.fcz.domain.storytrack.repository.StorytrackRepository;
+import back.fcz.global.exception.BusinessException;
+import back.fcz.global.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class StorytrackService {
+
+    private final StorytrackRepository storytrackRepository;
+    private final StorytrackProgressRepository storytrackProgressRepository;
+
+    // 삭제
+    // 생성자 : 스토리트랙 삭제
+    public DeleteStorytrackResponse deleteStorytrack(Long memberId, Long storytrackId){
+
+        Storytrack targetStorytrack = storytrackRepository.findById(storytrackId)
+                .orElseThrow(()-> new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND));
+
+        targetStorytrack.markDeleted();
+
+        storytrackRepository.save(targetStorytrack);
+        return new DeleteStorytrackResponse(
+                storytrackId,
+                storytrackId + "번 스토리트랙이 삭제 되었습니다."
+        );
+    }
+
+    // 참여자 : 참여자 삭제(참여 중지)
+    public DeleteParticipantResponse deleteParticipant(Long memberId, Long storytrackId){
+
+        StorytrackProgress targetMember = storytrackProgressRepository.findByMember_MemberIdAndStorytrack_StorytrackId(memberId, storytrackId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND));
+
+        targetMember.markDeleted();
+
+        storytrackProgressRepository.save(targetMember);
+
+        return new DeleteParticipantResponse(
+                "스토리트랙 참여를 종료했습니다."
+        );
+    }
+
+    // 수정
+    // 스토리트랙 경로 수정
+//    public updatePathResponse updatePath (){
+//
+//    }
+
+    // 생성
+    // 스토리 트랙 생성
+//    public createStorytrackResponse createStorytrack(){
+//
+//    }
+
+    // 스토리트랙 참여 회원 생성
+//    public joinStorytrackResponse joinParticipant(){
+//
+//    }
+
+    // 조회
+    // 전체 스토리 트랙 조회
+//    public totalStorytrackResponse readTotalStorytrack(){
+//
+//    }
+
+    // 스토리트랙 상세 조회
+//    public storytrackDashboardResponse storytrackDashBoard(){
+//
+//    }
+
+    // 스토리트랙 경로 조회
+//    public storytrackPathResponse storytrackPath(){
+//
+//    }
+
+    // 생성자 : 생성한 스토리트랙 목록 조회
+//    public createrStorytrackListResponse createdStorytrackList(){
+//
+//    }
+
+    // 참여자 : 참여한 스토리트랙 목록 조회
+//    public participantStorytrackListResponse joinStorytrackList(){
+//
+//    }
+
+    // 참여자 : 스토리트랙 진행 상세 조회
+//    public participantProgressResponse progressRead(){
+//
+//    }
+
+    // 스토리트랙 캡슐 상세 조회
+    // 참여자인지 생성자인지 검증 로직 필요
+    // CapsuleReadService의 publicCapsuleLogic() 사용 -> 공개 캡슐 조회
+}

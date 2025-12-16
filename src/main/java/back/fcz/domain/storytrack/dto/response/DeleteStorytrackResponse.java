@@ -1,6 +1,6 @@
 package back.fcz.domain.storytrack.dto.response;
 
-record deleteParticipantResponse (
+public record DeleteStorytrackResponse(
+        Long storytrackId,
         String message
-){
-}
+){ }

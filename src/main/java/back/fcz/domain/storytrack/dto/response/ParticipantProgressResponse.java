@@ -2,7 +2,7 @@ package back.fcz.domain.storytrack.dto.response;
 
 import java.time.LocalDateTime;
 
-record participantProgressReponse (
+public record ParticipantProgressResponse(
         Long storytrackId,
         int completedSteps,
         int lastCompletedStep,
