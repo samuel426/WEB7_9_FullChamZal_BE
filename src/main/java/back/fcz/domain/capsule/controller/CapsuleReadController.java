@@ -49,6 +49,21 @@ public class CapsuleReadController {
         return ResponseEntity.ok(ApiResponse.success(capsuleReadService.conditionAndRead(capsuleConditionRequestDto)));
     }
 
+    //캡슐 저장 버튼
+    @Operation(summary = "",
+            description = "url+비밀번호 읽기를 성공했을때 호출되는 api입니다.")
+    @ApiErrorCodeExample({
+
+    })
+    @PostMapping("/save")
+    public ResponseEntity<Void> save(
+
+    ){
+        //로그인 상태가 아닐경우 회원가입이나 로그인 창으로 보내기
+
+        //로그인 상태라면 개인 캡슐 수신자 정보 생성(현재 로그인 중인 회원의 데이터 기록)
+    }
+
 
     @Operation(summary = "전송한 캡슐 조회", description = "사용자가 전송한 캡슐들을 조회합니다. 이때, 삭제되지 않은 캡슐만 조회가 가능합니다.")
     @ApiErrorCodeExample({
