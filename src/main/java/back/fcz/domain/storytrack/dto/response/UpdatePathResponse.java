@@ -21,6 +21,7 @@ public record UpdatePathResponse(
                         updateCapsule.getUnlockAt(),
                         updateCapsule.getLocationName(),
                         new GPSResponseDTO(
+                                updateCapsule.getAddress(),
                                 updateCapsule.getLocationLat(),
                                 updateCapsule.getLocationLng()
                         ),
