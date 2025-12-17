@@ -114,7 +114,6 @@ class CapsuleCreateServiceTest {
         capsule.setMemberId(member);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
-        when(phoneCrypto.encrypt(originalPassword)).thenReturn(encryptedPassword);
         when(capsuleRepository.save(any(Capsule.class))).thenReturn(capsule);
 
         // when
@@ -184,8 +183,6 @@ class CapsuleCreateServiceTest {
         when(memberRepository.existsByPhoneHash("hashedPhone"))
                 .thenReturn(false); // 없으면 비회원
 
-        when(phoneCrypto.encrypt(anyString()))
-                .thenReturn("encryptedPw");
 
         when(capsuleRepository.save(any(Capsule.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
