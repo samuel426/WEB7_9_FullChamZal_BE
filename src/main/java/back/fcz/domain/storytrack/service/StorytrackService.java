@@ -39,8 +39,12 @@ public class StorytrackService {
             throw new BusinessException(ErrorCode.NOT_STORYTRACK_CREATER);
         }
 
+        // 스토리트랙 참여자가 존재하면 미 삭제
+
         // 삭제 - 소프트딜리트
         targetStorytrack.markDeleted();
+
+        // 스토리트랙 단계 삭제
 
         storytrackRepository.save(targetStorytrack);
         return new DeleteStorytrackResponse(
@@ -74,7 +78,7 @@ public class StorytrackService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_PAHT_NOT_FOUND));
 
         // 요청한 사람과 스토리트랙 작성자가 같은지 확인
-        if(targetStep.getStorytrack().getMember().getMemberId() == loginMemberId){
+        if(targetStep.getStorytrack().getMember().getMemberId() != loginMemberId){
             throw new BusinessException(ErrorCode.NOT_STORYTRACK_CREATER);
         }
 

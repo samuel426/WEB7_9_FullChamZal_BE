@@ -1,15 +1,14 @@
 package back.fcz.domain.storytrack.controller;
 
 import back.fcz.domain.member.service.CurrentUserContext;
+import back.fcz.domain.storytrack.dto.request.UpdatePathRequest;
 import back.fcz.domain.storytrack.dto.response.DeleteParticipantResponse;
 import back.fcz.domain.storytrack.dto.response.DeleteStorytrackResponse;
+import back.fcz.domain.storytrack.dto.response.UpdatePathResponse;
 import back.fcz.domain.storytrack.service.StorytrackService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,6 +28,8 @@ public class storytrackController {
             @RequestParam Long storytrackId
     ){
         Long loginMember = currentUserContext.getCurrentUser().memberId();
+        // 포스트맨 테스트용
+        // Long loginMember = 1L;
 
         return ResponseEntity.ok(storytrackService.deleteStorytrack(loginMember, storytrackId));
     }
@@ -40,11 +41,26 @@ public class storytrackController {
     ){
         Long loginMember = currentUserContext.getCurrentUser().memberId();
 
+        // 포스트맨 테스트용
+        // Long loginMember = 1L;
+
         return ResponseEntity.ok(storytrackService.deleteParticipant(loginMember, storytrackId));
     }
 
     // 수정
     // 작성자 - 스토리트랙 경로 수정
+    @PutMapping("/update")
+    public ResponseEntity<UpdatePathResponse> updatePath(
+            @RequestParam Long storytrackStepId,
+            @RequestBody UpdatePathRequest request
+    ){
+         Long loginMember = currentUserContext.getCurrentUser().memberId();
+
+        // 포스트맨 테스트용
+        // Long loginMember = 1L;
+
+        return ResponseEntity.ok(storytrackService.updatePath(request, storytrackStepId, loginMember));
+    }
 
 
     // 생성
