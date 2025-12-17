@@ -9,7 +9,7 @@ public record SecretCapsuleCreateResponseDTO (
         Long memberId,
         Long capsuleId,
         String nickName,
-        String receiverNickName,
+        String receiverNickname,
         String url,
         String capPW,
         String title,

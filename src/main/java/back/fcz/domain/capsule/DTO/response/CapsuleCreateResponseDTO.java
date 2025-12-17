@@ -8,7 +8,7 @@ import back.fcz.domain.capsule.entity.Capsule;
 public record CapsuleCreateResponseDTO(
         Long memberId,
         Long capsuleId,
-        String nickName,
+        String nickname,
         String title,
         String content,
         String visibility,
