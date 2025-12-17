@@ -236,7 +236,7 @@ public class CapsuleReadService {
 
     }
 
-    //개인 캡슐 읽기 - 수신자가 회원인 경우
+    //개인 캡슐 읽기 - 수신자가 회원인 경우(로그 + CapsuleRecipient를 남김)
     public CapsuleConditionResponseDTO readMemberCapsule(Capsule capsule, CapsuleConditionRequestDTO requestDto){
         Long currentMemberId = currentUserContext.getCurrentMemberId();
         Member member = memberRepository.findById(currentMemberId).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
@@ -261,7 +261,7 @@ public class CapsuleReadService {
 
         return CapsuleConditionResponseDTO.from(capsule, recipient);
     }
-    //개인 캡슐 읽기 - 수신자가 비회원인 경우
+    //개인 캡슐 읽기 - 수신자가 비회원인 경우(로그만 남김)
     public CapsuleConditionResponseDTO readNonMemberCapsule(Capsule capsule, CapsuleConditionRequestDTO requestDto){
         CapsuleOpenLog log = CapsuleOpenLog.builder()
                 .capsuleId(capsule)
