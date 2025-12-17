@@ -10,6 +10,7 @@ import back.fcz.domain.capsule.repository.CapsuleOpenLogRepository;
 import back.fcz.domain.capsule.repository.CapsuleRecipientRepository;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
 import back.fcz.domain.capsule.repository.PublicCapsuleRecipientRepository;
+import back.fcz.domain.member.dto.response.MemberDetailResponse;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.domain.member.service.CurrentUserContext;
@@ -21,7 +22,7 @@ import back.fcz.global.dto.InServerMemberResponse;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,9 +49,19 @@ public class CapsuleReadService {
         Capsule capsule = capsuleRepository.findById(requestDto.capsuleId()).orElseThrow(() -> new BusinessException(ErrorCode.CAPSULE_NOT_FOUND));
 
         //자신에게 보내는 캡슐인 경우(시공간 검증만)
-        if(requestDto.isSendSelf()==1){
-            if(capsuleCondition(capsule, requestDto.unlockAt(), requestDto.locationLat(), requestDto.locationLng())){
+        if(requestDto.isSendSelf() == 1){
+            // 시간/위치 조건 검증
+            boolean conditionMet = unlockService.validateUnlockConditionsForPrivate(
+                    capsule,
+                    requestDto.unlockAt(),
+                    requestDto.locationLat(),
+                    requestDto.locationLng()
+            );
+
+            if(conditionMet){
                 return readMemberCapsule(capsule, requestDto);
+            } else {
+                throw new BusinessException(ErrorCode.NOT_OPENED_CAPSULE);
             }
         }
 
