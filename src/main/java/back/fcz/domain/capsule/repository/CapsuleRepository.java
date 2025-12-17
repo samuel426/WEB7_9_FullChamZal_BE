@@ -1,11 +1,10 @@
 package back.fcz.domain.capsule.repository;
 
 import back.fcz.domain.capsule.entity.Capsule;
-import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -103,7 +102,12 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
     );
 
     // 선착순
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT c FROM Capsule c WHERE c.capsuleId = :capsuleId")
-    Optional<Capsule> findByIdWithLock(@Param("capsuleId") Long capsuleId);
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+    UPDATE Capsule c 
+    SET c.currentViewCount = c.currentViewCount + 1 
+    WHERE c.capsuleId = :capsuleId 
+    AND (c.maxViewCount IS NULL OR c.currentViewCount < c.maxViewCount)
+""")
+    int incrementViewCountIfAvailable(@Param("capsuleId") Long capsuleId);
 }

@@ -16,27 +16,18 @@ public class UnlockService {
     private final CapsuleRepository capsuleRepository;
     private final FirstComeService firstComeService;
 
-    public boolean validateUnlockConditions(
+    // 개인 캡슐
+    public boolean validateUnlockConditionsForPrivate(
             Capsule capsule,
             LocalDateTime currentTime,
             Double currentLat,
-            Double currentLng,
-            boolean isFirstTimeViewing
+            Double currentLng
     ) {
-
-        // 선착순 조건 검증이면
-        if (isFirstTimeViewing && "PUBLIC".equals(capsule.getVisibility())) {
-            if (firstComeService.hasFirstComeLimit(capsule)) {
-                // 비관 락을 통한 조회수 증가 시도
-                // 실패 시 BusinessException(FIRST_COME_CLOSED) 발생
-                firstComeService.tryIncrementViewCount(capsule.getCapsuleId());
-            }
-        }
-
         return validateTimeAndLocationConditions(capsule, currentTime, currentLat, currentLng);
     }
 
-    private boolean validateTimeAndLocationConditions(
+    // 시간/위치 조건만 검증 (선착순 제외)
+    public boolean validateTimeAndLocationConditions(
             Capsule capsule,
             LocalDateTime currentTime,
             Double currentLat,
@@ -48,7 +39,7 @@ public class UnlockService {
             case "TIME" -> isTimeConditionMet(capsule.getCapsuleId(), currentTime);
             case "LOCATION" -> isLocationConditionMet(capsule.getCapsuleId(), currentLat, currentLng);
             case "TIME_AND_LOCATION" -> isTimeAndLocationConditionMet(capsule.getCapsuleId(), currentTime, currentLat, currentLng);
-            default ->  throw new BusinessException(ErrorCode.CAPSULE_CONDITION_ERROR);
+            default -> throw new BusinessException(ErrorCode.CAPSULE_CONDITION_ERROR);
         };
     }
 

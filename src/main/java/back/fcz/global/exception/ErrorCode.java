@@ -13,6 +13,7 @@ public enum ErrorCode {
     INVALID_TYPE_VALUE("CMN004", HttpStatus.BAD_REQUEST, "잘못된 타입의 값입니다."),
     MISSING_REQUEST_PARAMETER("CMN005", HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다."),
     UNAUTHORIZED("CMN006", HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
+    TOO_MANY_REQUEST("CMN007", HttpStatus.TOO_MANY_REQUESTS, "현재 많은 사용자가 접속 중입니다. 잠시 후 다시 시도해 주세요."),
 
     // ========== 암호화 에러 ==========
     ENCRYPTION_FAILED("CRY001", HttpStatus.INTERNAL_SERVER_ERROR, "데이터 암호화에 실패했습니다."),
@@ -84,6 +85,7 @@ public enum ErrorCode {
 
     // ========== 선착순 에러 ==========
     FIRST_COME_CLOSED("FCM001", HttpStatus.CONFLICT, "선착순 마감되었습니다."),
+    FAILED_FIRST_COME_REQUEST("FCM002", HttpStatus.TOO_MANY_REQUESTS, "조회수 증가에 실패했습니다. 잠시 후 다시 시도해 주세요."),
 
     // ========== 해제조건 에러 ==========
     INVALID_UNLOCK_TIME("UNL001", HttpStatus.BAD_REQUEST, "유효하지 않은 시간 값입니다."),

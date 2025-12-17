@@ -21,6 +21,7 @@ import back.fcz.global.dto.InServerMemberResponse;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +29,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Slf4j
 public class CapsuleReadService {
     private final CapsuleRepository capsuleRepository;
     private final CapsuleRecipientRepository capsuleRecipientRepository;
@@ -42,6 +43,7 @@ public class CapsuleReadService {
     private final CurrentUserContext currentUserContext;
 
     //조건확인하고 검증됐다면 읽기
+    @Transactional
     public CapsuleConditionResponseDTO conditionAndRead(CapsuleConditionRequestDTO requestDto) {
         Capsule capsule = capsuleRepository.findById(requestDto.capsuleId()).orElseThrow(() -> new BusinessException(ErrorCode.CAPSULE_NOT_FOUND));
 
@@ -55,7 +57,7 @@ public class CapsuleReadService {
         // 1. 공개인지 비공개인지
         if(capsule.getVisibility().equals("PUBLIC")){
             //공개 캡슐로직
-            System.out.println("공개 캡슐 로직");
+            log.info("공개 캡슐 로직 진입 - capsuleId: {}", capsule.getCapsuleId());
             return publicCapsuleLogic(capsule, requestDto);
         }else{
             //개인 캡슐로직
@@ -66,40 +68,64 @@ public class CapsuleReadService {
     }
 
     //공개 캡슐
+    @Transactional
     public CapsuleConditionResponseDTO publicCapsuleLogic(Capsule capsule, CapsuleConditionRequestDTO requestDto) {
+        log.info("=== 공개 캡슐 로직 시작 - capsuleId: {} ===", capsule.getCapsuleId());
+
         // 공개 캡슐은 회원만 조회 가능 - 로그인 체크
         if (!isUserLoggedIn()) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
         
         Long currentMemberId = currentUserContext.getCurrentMemberId();
+        log.info("로그인 회원 - memberId: {}", currentMemberId);
 
-        boolean isFirstTimeViewing = !publicCapsuleRecipientRepository
-                .existsByCapsuleId_CapsuleIdAndMemberId(capsule.getCapsuleId(), currentMemberId);
+        log.info("첫 조회 - 검증 시작");
 
-        //2. 조회 횟수 검증
-        if(!isFirstTimeViewing){
-            System.out.println("기존에 조회 된 공개 캡슐");
-            //기존에 조회했던 것이니 바로 조회가능
-            boolean viewStatus = true;
-            return readPublicCapsule(capsule, requestDto, viewStatus);
-        }else{
-            System.out.println("기존에 조회 되지 않은 공개 캡슐");
-            boolean viewStatus = false;
+        // 시간/위치 조건 검증
+        boolean conditionMet = unlockService.validateTimeAndLocationConditions(
+                capsule, requestDto.unlockAt(), requestDto.locationLat(), requestDto.locationLng()
+        );
 
-            //조회한 적 없으니 조건 검증이 필요 / 공개 캡슐은 시간, 위치만 검증하면됨
-            if(capsuleCondition(capsule, requestDto.unlockAt(), requestDto.locationLat(), requestDto.locationLng(), isFirstTimeViewing)){
+        if (!conditionMet) {
+            log.warn("시간/위치 조건 미충족");
+            throw new BusinessException(ErrorCode.NOT_OPENED_CAPSULE);
+        }
+
+        log.info("시간/위치 조건 통과");
+
+        if (firstComeService.hasFirstComeLimit(capsule)) {
+            log.info("선착순 제한 있음 - maxViewCount: {}", capsule.getMaxViewCount());
+
+            // 선착순 검증과 PublicCapsuleRecipient 저장을 원자적으로 처리
+            boolean isNewView = firstComeService.tryIncrementViewCountAndSaveRecipient(
+                    capsule.getCapsuleId(),
+                    currentMemberId,
+                    requestDto.unlockAt()
+            );
+
+            log.info("선착순 검증 및 저장 완료");
+            return readPublicCapsule(capsule, requestDto, !isNewView);
+        } else {
+            log.info("선착순 없음 - 바로 저장");
+
+            boolean isFirstTimeViewing = !publicCapsuleRecipientRepository
+                    .existsByCapsuleId_CapsuleIdAndMemberId(capsule.getCapsuleId(), currentMemberId);
+
+            if (isFirstTimeViewing) {
                 PublicCapsuleRecipient publicCapsuleLog = PublicCapsuleRecipient.builder()
                         .capsuleId(capsule)
                         .memberId(currentMemberId)
                         .unlockedAt(requestDto.unlockAt())
                         .build();
                 publicCapsuleRecipientRepository.save(publicCapsuleLog);
-                System.out.println("publicCapsuleLog 저장 완료");
-                return readPublicCapsule(capsule, requestDto, viewStatus);
-            }else{// 검증 실패
-                throw new BusinessException(ErrorCode.NOT_OPENED_CAPSULE);
+                log.info("저장 완료");
+            } else {
+                log.info("재조회 - 저장 건너뜀");
             }
+
+            log.info("=== 공개 캡슐 로직 종료 ===");
+            return readPublicCapsule(capsule, requestDto, !isFirstTimeViewing);
         }
     }
 
@@ -180,7 +206,9 @@ public class CapsuleReadService {
 
         if(phoneCrypto.verifyHash(phoneNumber, capsuleRecipient.getRecipientPhoneHash())){
             //두 값이 같다면 해제 조건 확인
-            return capsuleCondition(capsule, unlockAt, locationLat, locationLng, false);
+            return unlockService.validateUnlockConditionsForPrivate(
+                    capsule, unlockAt, locationLat, locationLng
+            );
         }else{
             //같지 않다면 403 에러
             throw new BusinessException(ErrorCode.CAPSULE_NOT_RECEIVER);
@@ -200,16 +228,8 @@ public class CapsuleReadService {
         }
 
         //캡슐 해제 조건 검증
-        return capsuleCondition(capsule, unlockAt, locationLat, locationLng, false);
-    }
-
-    //캡슐 해제 조건 검증
-    private boolean capsuleCondition(Capsule capsule, LocalDateTime unlockAt, Double locationLat, Double locationLng,
-                                     boolean isFirstTimeViewing) {
-        System.out.println("검증 로직 진입");
-
-        return unlockService.validateUnlockConditions(
-                capsule, unlockAt, locationLat, locationLng, isFirstTimeViewing
+        return unlockService.validateUnlockConditionsForPrivate(
+                capsule, unlockAt, locationLat, locationLng
         );
     }
 

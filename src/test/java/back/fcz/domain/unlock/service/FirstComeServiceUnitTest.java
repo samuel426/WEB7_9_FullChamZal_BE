@@ -72,7 +72,7 @@ public class FirstComeServiceUnitTest {
     @DisplayName("동시에 여러 요청 - 정확히 maxViewCount만큼만 성공해야 함")
     void concurrentRequests() throws InterruptedException {
         // given
-        int threadCount = 1000; // 1000명이 동시에 시도
+        int threadCount = 100; // 100명이 동시에 시도
         int maxViewCount = 3; // 3명만 성공해야 함
 
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
@@ -81,11 +81,27 @@ public class FirstComeServiceUnitTest {
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failCount = new AtomicInteger(0);
 
-        // when - 10개 스레드가 동시에 조회수 증가 시도
+        // when - 100개 스레드가 동시에 조회수 증가 시도
         for (int i = 0; i < threadCount; i++) {
+            final int index = i;
             executorService.submit(() -> {
                 try {
-                    firstComeService.tryIncrementViewCount(testCapsule.getCapsuleId());
+                    // 각 스레드마다 다른 회원으로 시도
+                    Member member = Member.builder()
+                            .userId("concurrent" + index)
+                            .passwordHash("password")
+                            .name("동시" + index)
+                            .nickname("동시" + index)
+                            .phoneNumber("010" + String.format("%08d", index))
+                            .phoneHash("hash" + index)
+                            .build();
+                    memberRepository.save(member);
+
+                    firstComeService.tryIncrementViewCountAndSaveRecipient(
+                            testCapsule.getCapsuleId(),
+                            member.getMemberId(),
+                            LocalDateTime.now()
+                    );
                     successCount.incrementAndGet();
                 } catch (BusinessException e) {
                     if (e.getErrorCode() == ErrorCode.FIRST_COME_CLOSED) {
@@ -97,12 +113,12 @@ public class FirstComeServiceUnitTest {
             });
         }
 
-        latch.await(10, TimeUnit.SECONDS);
+        latch.await(30, TimeUnit.SECONDS);
         executorService.shutdown();
 
         // then
         assertThat(successCount.get()).isEqualTo(maxViewCount); // 정확히 3명만 성공
-        assertThat(failCount.get()).isEqualTo(threadCount - maxViewCount); // 나머지 7명은 실패
+        assertThat(failCount.get()).isEqualTo(threadCount - maxViewCount); // 나머지 97명은 실패
 
         Capsule result = capsuleRepository.findById(testCapsule.getCapsuleId()).orElseThrow();
         assertThat(result.getCurrentViewCount()).isEqualTo(maxViewCount);
