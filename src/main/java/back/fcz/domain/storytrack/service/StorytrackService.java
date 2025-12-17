@@ -1,11 +1,17 @@
 package back.fcz.domain.storytrack.service;
 
+import back.fcz.domain.capsule.entity.Capsule;
+import back.fcz.domain.capsule.repository.CapsuleRepository;
+import back.fcz.domain.storytrack.dto.request.UpdatePathRequest;
 import back.fcz.domain.storytrack.dto.response.DeleteParticipantResponse;
 import back.fcz.domain.storytrack.dto.response.DeleteStorytrackResponse;
+import back.fcz.domain.storytrack.dto.response.UpdatePathResponse;
 import back.fcz.domain.storytrack.entity.Storytrack;
 import back.fcz.domain.storytrack.entity.StorytrackProgress;
+import back.fcz.domain.storytrack.entity.StorytrackStep;
 import back.fcz.domain.storytrack.repository.StorytrackProgressRepository;
 import back.fcz.domain.storytrack.repository.StorytrackRepository;
+import back.fcz.domain.storytrack.repository.StorytrackStepRepository;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +23,8 @@ public class StorytrackService {
 
     private final StorytrackRepository storytrackRepository;
     private final StorytrackProgressRepository storytrackProgressRepository;
+    private final StorytrackStepRepository storytrackStepRepository;
+    private final CapsuleRepository capsuleRepository;
 
     // 삭제
     // 생성자 : 스토리트랙 삭제
@@ -60,9 +68,27 @@ public class StorytrackService {
 
     // 수정
     // 스토리트랙 경로 수정
-//    public updatePathResponse updatePath (){
-//
-//    }
+    public UpdatePathResponse updatePath (UpdatePathRequest request, Long storytrackStepId, Long loginMemberId){
+        // 스토리트랙 경로 조회
+        StorytrackStep targetStep = storytrackStepRepository.findById(storytrackStepId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_PAHT_NOT_FOUND));
+
+        // 요청한 사람과 스토리트랙 작성자가 같은지 확인
+        if(targetStep.getStorytrack().getMember().getMemberId() == loginMemberId){
+            throw new BusinessException(ErrorCode.NOT_STORYTRACK_CREATER);
+        }
+
+        // 새 캡슐
+        Capsule updateCapsule = capsuleRepository.findById(request.updatedCapsuleId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.CAPSULE_NOT_FOUND));
+
+        // 경로 수정
+        targetStep.setCapsule(updateCapsule);
+
+        storytrackStepRepository.save(targetStep);
+
+        return UpdatePathResponse.from(updateCapsule, targetStep);
+    }
 
     // 생성
     // 스토리 트랙 생성
