@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/storytrack")
-public class storytrackController {
+public class StorytrackController {
 
     // 로그인 회원 확인
     private final CurrentUserContext currentUserContext;
@@ -27,9 +27,7 @@ public class storytrackController {
     public ResponseEntity<DeleteStorytrackResponse> deleteStorytrack(
             @RequestParam Long storytrackId
     ){
-        // Long loginMember = currentUserContext.getCurrentUser().memberId();
-        // 포스트맨 테스트용
-        Long loginMember = 1L;
+        Long loginMember = currentUserContext.getCurrentUser().memberId();
 
         return ResponseEntity.ok(storytrackService.deleteStorytrack(loginMember, storytrackId));
     }
@@ -39,10 +37,7 @@ public class storytrackController {
     public ResponseEntity<DeleteParticipantResponse> deleteParticipant(
             @RequestParam Long storytrackId
     ){
-        // Long loginMember = currentUserContext.getCurrentUser().memberId();
-
-        // 포스트맨 테스트용
-        Long loginMember = 2L;
+        Long loginMember = currentUserContext.getCurrentUser().memberId();
 
         return ResponseEntity.ok(storytrackService.deleteParticipant(loginMember, storytrackId));
     }
