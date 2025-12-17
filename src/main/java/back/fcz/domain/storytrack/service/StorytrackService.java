@@ -42,7 +42,7 @@ public class StorytrackService {
         }
 
         // 스토리트랙 참여자가 존재하면 미 삭제
-        if(storytrackProgressRepository.countMemberIdByStorytrack_StorytrackId(storytrackId) > 0){
+        if(storytrackProgressRepository.countActiveParticipants(storytrackId) > 0){
             throw new BusinessException(ErrorCode.PARTICIPANT_EXISTS);
         }
 

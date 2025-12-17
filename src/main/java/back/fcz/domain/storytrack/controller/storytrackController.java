@@ -27,9 +27,9 @@ public class storytrackController {
     public ResponseEntity<DeleteStorytrackResponse> deleteStorytrack(
             @RequestParam Long storytrackId
     ){
-        Long loginMember = currentUserContext.getCurrentUser().memberId();
+        // Long loginMember = currentUserContext.getCurrentUser().memberId();
         // 포스트맨 테스트용
-        // Long loginMember = 1L;
+        Long loginMember = 1L;
 
         return ResponseEntity.ok(storytrackService.deleteStorytrack(loginMember, storytrackId));
     }
@@ -39,10 +39,10 @@ public class storytrackController {
     public ResponseEntity<DeleteParticipantResponse> deleteParticipant(
             @RequestParam Long storytrackId
     ){
-        Long loginMember = currentUserContext.getCurrentUser().memberId();
+        // Long loginMember = currentUserContext.getCurrentUser().memberId();
 
         // 포스트맨 테스트용
-        // Long loginMember = 1L;
+        Long loginMember = 2L;
 
         return ResponseEntity.ok(storytrackService.deleteParticipant(loginMember, storytrackId));
     }
@@ -54,10 +54,10 @@ public class storytrackController {
             @RequestParam Long storytrackStepId,
             @RequestBody UpdatePathRequest request
     ){
-         Long loginMember = currentUserContext.getCurrentUser().memberId();
+         // Long loginMember = currentUserContext.getCurrentUser().memberId();
 
         // 포스트맨 테스트용
-        // Long loginMember = 1L;
+        Long loginMember = 1L;
 
         return ResponseEntity.ok(storytrackService.updatePath(request, storytrackStepId, loginMember));
     }
