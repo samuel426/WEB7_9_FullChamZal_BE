@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public record SecretCapsuleCreateRequestDTO(
         Long memberId,
         String nickName,
-        String receiverNickName,
+        String receiverNickname,
         String title,
         String content,
         String visibility,
@@ -26,7 +26,7 @@ public record SecretCapsuleCreateRequestDTO(
 
         return Capsule.builder()
                 .nickname(nickName)
-                .receiverNickname(receiverNickName)
+                .receiverNickname(receiverNickname)
                 .title(title)
                 .content(content)
                 .capsuleColor(contentColor)
