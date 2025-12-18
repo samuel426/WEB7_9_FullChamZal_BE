@@ -71,32 +71,57 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
             Pageable pageable
     );
 
-    // ===== Admin 통계/조회용 =====
-    long countByMemberId_MemberIdAndIsDeleted(Long memberId, Integer isDeleted);
+    // ✅ 관리자 캡슐 검색/필터
+    @Query("""
+        select c
+        from Capsule c
+        where (:visibility is null or :visibility = '' or c.visibility = :visibility)
+          and (:isDeleted is null or c.isDeleted = :isDeleted)
+          and (:isProtected is null or c.isProtected = :isProtected)
+          and (
+                :keyword is null or :keyword = '' or
+                lower(c.title) like lower(concat('%', :keyword, '%')) or
+                lower(c.content) like lower(concat('%', :keyword, '%')) or
+                lower(c.nickname) like lower(concat('%', :keyword, '%')) or
+                lower(c.uuid) like lower(concat('%', :keyword, '%'))
+              )
+    """)
+    Page<Capsule> searchAdmin(
+            @Param("visibility") String visibility,
+            @Param("isDeleted") Integer isDeleted,
+            @Param("isProtected") Integer isProtected,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 
-    long countByMemberId_MemberIdAndIsDeletedAndIsProtected(Long memberId, Integer isDeleted, Integer isProtected);
+    // ✅ 회원 최근 캡슐 5개(미삭제)
+    List<Capsule> findTop5ByMemberId_MemberIdAndIsDeletedOrderByCreatedAtDesc(Long memberId, int isDeleted);
 
-    List<Capsule> findTop5ByMemberId_MemberIdAndIsDeletedOrderByCreatedAtDesc(Long memberId, Integer isDeleted);
-
+    // ✅ 회원별 "미삭제 캡슐 수" 배치 집계
     @Query("""
         select c.memberId.memberId, count(c)
         from Capsule c
-        where c.memberId.memberId in :memberIds
-          and c.isDeleted = 0
+        where c.isDeleted = 0
+          and c.memberId.memberId in :memberIds
         group by c.memberId.memberId
-        """)
+    """)
     List<Object[]> countActiveByMemberIds(@Param("memberIds") List<Long> memberIds);
 
+    // ✅ 회원별 "보호(블라인드) 캡슐 수" 배치 집계 (보호:1)
     @Query("""
         select c.memberId.memberId, count(c)
         from Capsule c
-        where c.memberId.memberId in :memberIds
-          and c.isDeleted = 0
-          and c.isProtected = :isProtected
+        where c.isDeleted = 0
+          and c.isProtected = :protectedValue
+          and c.memberId.memberId in :memberIds
         group by c.memberId.memberId
-        """)
+    """)
     List<Object[]> countProtectedActiveByMemberIds(
             @Param("memberIds") List<Long> memberIds,
-            @Param("isProtected") Integer isProtected
+            @Param("protectedValue") int protectedValue
     );
+
+    long countByMemberId_MemberIdAndIsDeleted(Long memberId, int isDeleted);
+    long countByMemberId_MemberIdAndIsDeletedAndIsProtected(Long memberId, int isDeleted, int isProtected);
+
 }
