@@ -4,6 +4,7 @@ import back.fcz.global.security.jwt.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -35,7 +36,9 @@ public class SecurityConfig {
     private static final String[] PUBLIC_ENDPOINTS = {
             "/api/v1/auth/**",
             "/api/v1/capsule/read",
-            "/api/v1/capsule/save"
+            "/api/v1/capsule/save",
+            "/api/v1/phone-verification/**",
+            "/api/v1/storytrack/**"
     };
 
     @Bean
@@ -65,6 +68,8 @@ public class SecurityConfig {
 
                 // 개발 엔드포인트 예외 허용
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers(H2_WHITELIST).permitAll()
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()

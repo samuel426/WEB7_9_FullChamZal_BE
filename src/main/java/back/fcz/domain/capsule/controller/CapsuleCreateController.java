@@ -11,8 +11,8 @@ import back.fcz.domain.capsule.service.CapsuleCreateService;
 import back.fcz.domain.member.service.CurrentUserContext;
 import back.fcz.global.config.swagger.ApiErrorCodeExample;
 import back.fcz.global.dto.InServerMemberResponse;
-import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
+import back.fcz.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -36,10 +36,13 @@ public class CapsuleCreateController {
             ErrorCode.MEMBER_NOT_FOUND
     })
     @PostMapping("/create/public")
-    public ResponseEntity<CapsuleCreateResponseDTO> createPublicCapsule(
+    public ResponseEntity<ApiResponse<CapsuleCreateResponseDTO>> createPublicCapsule(
             @RequestBody CapsuleCreateRequestDTO requestDTO
             ){
-        return ResponseEntity.ok(capsuleCreateService.publicCapsuleCreate(requestDTO));
+
+        CapsuleCreateResponseDTO response = capsuleCreateService.publicCapsuleCreate(requestDTO);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 비공개 캡슐
@@ -49,32 +52,24 @@ public class CapsuleCreateController {
             ErrorCode.MEMBER_NOT_FOUND
     })
     @PostMapping("/create/private")
-    public ResponseEntity<SecretCapsuleCreateResponseDTO> createPrivateCapsule(
-            @RequestParam(required = false) String phoneNum,
-            @RequestParam(required = false) String capsulePassword,
+    public ResponseEntity<ApiResponse<SecretCapsuleCreateResponseDTO>> createPrivateCapsule(
             @RequestBody SecretCapsuleCreateRequestDTO requestDTO
     ){
-        if(phoneNum == null){ // url + 비밀번호 방식
-            return ResponseEntity.ok(capsuleCreateService.privateCapsulePassword(requestDTO, capsulePassword));
-        }
-
-        if(capsulePassword == null){ // 전화 번호 입력 방식
-            return ResponseEntity.ok(capsuleCreateService.privateCapsulePhone(requestDTO, phoneNum));
-        }
-
-        throw new BusinessException(ErrorCode.CAPSULE_NOT_CREATE);
+        SecretCapsuleCreateResponseDTO response = capsuleCreateService.createPrivateCapsule(requestDTO);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 비공개 캡슐 - 나에게 보내는 캡슐
     @Operation(summary = "비공개 캡슐 생성", description = "나에게 보내는 캡슐 생성입니다.")
     @ApiErrorCodeExample({ ErrorCode.MEMBER_NOT_FOUND })
     @PostMapping("/create/me")
-    public ResponseEntity<SecretCapsuleCreateResponseDTO> createToMeCapsule(
-            @RequestParam("phone") String receiveTel,
+    public ResponseEntity
+            <ApiResponse<SecretCapsuleCreateResponseDTO>> createToMeCapsule(
             @RequestBody SecretCapsuleCreateRequestDTO requestDTO
     ){
-
-        return ResponseEntity.ok(capsuleCreateService.capsuleToMe(requestDTO, receiveTel));
+        InServerMemberResponse currentUser = currentUserContext.getCurrentUser();
+        SecretCapsuleCreateResponseDTO response = capsuleCreateService.capsuleToMe(requestDTO, currentUser.phoneNumber(), currentUser.phoneHash());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 캡슐 수정
@@ -84,35 +79,43 @@ public class CapsuleCreateController {
             ErrorCode.CAPSULE_NOT_FOUND
     })
     @PutMapping("/update")
-    public ResponseEntity<CapsuleUpdateResponseDTO> updateCapsule(
+    public ResponseEntity
+            <ApiResponse<CapsuleUpdateResponseDTO>> updateCapsule(
             @RequestParam Long capsuleId,
             @RequestBody CapsuleUpdateRequestDTO requestDTO
     ){
-        return ResponseEntity.ok(capsuleCreateService.updateCapsule(capsuleId, requestDTO));
+        CapsuleUpdateResponseDTO response = capsuleCreateService.updateCapsule(capsuleId, requestDTO);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 캡슐 삭제 - 발신자 삭제
     @Operation(summary = "캡슐 삭제 API", description = "캡슐 발신자가 본인이 생성한 캡슐을 삭제할 수 있도록 하는 API입니다.")
     @ApiErrorCodeExample({ ErrorCode.CAPSULE_NOT_FOUND })
     @DeleteMapping("/delete/sender")
-    public ResponseEntity<CapsuleDeleteResponseDTO> senderDeleteCapsule(
+    public ResponseEntity<ApiResponse<CapsuleDeleteResponseDTO>> senderDeleteCapsule(
             @RequestParam Long capsuleId
     ){
         InServerMemberResponse loginUser = currentUserContext.getCurrentUser();
 
-        return ResponseEntity.ok(capsuleCreateService.senderDelete(capsuleId, loginUser.memberId()));
+        CapsuleDeleteResponseDTO response = capsuleCreateService.senderDelete(capsuleId, loginUser.memberId());
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 캡슐 삭제 - 수신자
     @Operation(summary = "캡슐 삭제 API", description = "캡슐 수신자가 본인이 받은 캡슐을 저장 목록에서 삭제할 수 있도록 하는 API입니다.")
     @ApiErrorCodeExample({ ErrorCode.CAPSULE_NOT_FOUND })
     @DeleteMapping("/delete/reciver")
-    public ResponseEntity<CapsuleDeleteResponseDTO> reciverDeleteCapsule(
+    public ResponseEntity
+            <ApiResponse<CapsuleDeleteResponseDTO>> reciverDeleteCapsule(
             @RequestParam Long capsuleId
     ){
         // 현재 로그인 한 사용자 id
         InServerMemberResponse loginUser = currentUserContext.getCurrentUser();
 
-        return ResponseEntity.ok(capsuleCreateService.receiverDelete(capsuleId, loginUser.phoneHash()));
+        CapsuleDeleteResponseDTO response = capsuleCreateService.receiverDelete(capsuleId, loginUser.phoneHash());
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

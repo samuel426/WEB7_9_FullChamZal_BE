@@ -25,14 +25,18 @@ public class CapsuleDashBoardService {
 
     // 사용자가 전송한 캡슐 목록 조회
     public List<CapsuleDashBoardResponse> readSendCapsuleList(Long memberId) {
-        // 사용자가 전송한 캡슐 목록 조회
         List<Capsule> capsules = capsuleRepository.findActiveCapsulesByMemberId(memberId);
+
+        for(Capsule capsule : capsules){
+            System.out.println("capsuleId : " + capsule.getCapsuleId());
+            System.out.println("수신자 : " + capsule.getReceiverNickname());
+        }
 
         List<CapsuleDashBoardResponse> response = capsules.stream()
                 .map(capsule -> {
                     // 캡슐의 수신자 조회
                     CapsuleRecipient recipient = capsuleRecipientRepository.findByCapsuleId_CapsuleId(capsule.getCapsuleId())
-                            .orElseThrow(() -> new BusinessException(ErrorCode.CAPSULE_RECIPIENT_NOT_FOUND));
+                            .orElse(null);
 
                     return new CapsuleDashBoardResponse(capsule, recipient);
                 })
@@ -49,9 +53,9 @@ public class CapsuleDashBoardService {
         // 수신자 테이블에서 phoneHash를 가지는 수신자 목록 조회
         List<CapsuleRecipient> recipients = capsuleRecipientRepository.findAllByRecipientPhoneHashWithCapsule(phoneHash);
 
-        // 수신자가 받은 캡슐 중, 삭제되지 않은 캡슐만 조회
+        // 수신자가 받은 캡슐 중, 수신자가 삭제하지 않은 캡슐만 조회
         List<CapsuleDashBoardResponse> response = recipients.stream()
-                .filter(recipient -> recipient.getCapsuleId().getIsDeleted() == 0)
+                .filter(recipient -> recipient.getDeletedAt() == null)
                 .map(recipient -> {
                     Capsule capsule = recipient.getCapsuleId();
 

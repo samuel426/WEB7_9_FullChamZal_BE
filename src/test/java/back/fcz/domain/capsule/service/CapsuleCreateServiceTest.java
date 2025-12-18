@@ -35,7 +35,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -77,7 +76,7 @@ class CapsuleCreateServiceTest {
         CapsuleCreateRequestDTO dto = new CapsuleCreateRequestDTO(
                 1L, "nick", "title", "content", null,
                 "white", "blue", "PUBLIC", "TIME",
-                LocalDateTime.now(), null, "Seoul", 37.11, 127.22,
+                LocalDateTime.now(), null, "Seoul", "창원시 의창구",37.11, 127.22,
                 100, 10
         );
 
@@ -102,23 +101,23 @@ class CapsuleCreateServiceTest {
     void testPrivateCapsulePassword() {
         // given
         SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
-                1L, "nick", "title", "content", "PRIVATE",
-                "TIME", LocalDateTime.now(), null, "Seoul",
+                1L, null, "1234", "nick", "receiver","title", "content", "PRIVATE",
+                "TIME", LocalDateTime.now(), null, "Seoul","창원시 의창구",
                 37.11, 127.22, 300, "red", "white", 10
         );
 
         String originalPassword = "1234";
-        String encryptedPassword = "encryptedPw";
+        String hashedPassword = "hashedPw";
 
-        Capsule capsule = dto.toEntity();
-        capsule.setMemberId(member);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
-        when(capsuleRepository.save(any(Capsule.class))).thenReturn(capsule);
+        when(phoneCrypto.hash(originalPassword)).thenReturn(hashedPassword);
+        when(capsuleRepository.save(any(Capsule.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         SecretCapsuleCreateResponseDTO response =
-                capsuleCreateService.privateCapsulePassword(dto, originalPassword);
+                capsuleCreateService.createPrivateCapsule(dto);
 
         // then
         assertNotNull(response);
@@ -130,8 +129,8 @@ class CapsuleCreateServiceTest {
     void testPrivateCapsulePhone_MemberRecipient() {
         // given
         SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
-                1L, "nick", "title", "content", "PRIVATE",
-                "TIME", LocalDateTime.now(), null, "Seoul",
+                1L, "01000000000", null, "nick", "receiver","title", "content", "PRIVATE",
+                "TIME", LocalDateTime.now(), null, "Seoul","창원시 의창구",
                 37.11, 127.22, 300, "red", "white", 10
         );
 
@@ -152,7 +151,7 @@ class CapsuleCreateServiceTest {
 
         // when
         SecretCapsuleCreateResponseDTO response =
-                capsuleCreateService.privateCapsulePhone(dto, "01000000000");
+                capsuleCreateService.createPrivateCapsule(dto);
 
         // then
         assertNotNull(response);
@@ -167,8 +166,8 @@ class CapsuleCreateServiceTest {
     void testPrivateCapsulePhone_NonMemberRecipient() {
         // given
         SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
-                1L, "nick", "title", "content", "PRIVATE",
-                "TIME", LocalDateTime.now(), null, "Seoul",
+                1L, "01000000000", null, "nick", "receiver","title", "content", "PRIVATE",
+                "TIME", LocalDateTime.now(), null, "Seoul","창원시 의창구",
                 37.11, 127.22, 300, "red", "white", 10
         );
 
@@ -176,20 +175,19 @@ class CapsuleCreateServiceTest {
                 .thenReturn(Optional.of(member));
 
         // 해시값 가짜로 생성
-        when(phoneCrypto.hash(anyString()))
-                .thenReturn("hashedPhone");
+        given(phoneCrypto.hash("01000000000"))
+                .willReturn("hashedPhone");
 
         // hashedPhone으로 찾기
-        when(memberRepository.existsByPhoneHash("hashedPhone"))
-                .thenReturn(false); // 없으면 비회원
-
+        given(memberRepository.existsByPhoneHash("hashedPhone"))
+                .willReturn(false); // 없으면 비회원
 
         when(capsuleRepository.save(any(Capsule.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         SecretCapsuleCreateResponseDTO response =
-                capsuleCreateService.privateCapsulePhone(dto, "01000000000");
+                capsuleCreateService.createPrivateCapsule(dto);
 
         // then
         assertNotNull(response);
@@ -204,7 +202,7 @@ class CapsuleCreateServiceTest {
         CapsuleCreateRequestDTO dto = new CapsuleCreateRequestDTO(
                 99L, "nick", "title", "content", null,
                 "white", "blue", "PUBLIC", "TIME",
-                LocalDateTime.now(), null, "Seoul", 37.11, 127.22,
+                LocalDateTime.now(), null, "Seoul","창원시 의창구", 37.11, 127.22,
                 100, 10
         );
 
@@ -220,11 +218,12 @@ class CapsuleCreateServiceTest {
     }
 
     @Test
+    @DisplayName("비공개 캡슐 - 비회원 전화 번호 방식")
     void testPrivateCapsulePhone_MemberNotFound() {
         // given
         SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
-                99L, "nick", "title", "content", "PRIVATE",
-                "TIME", LocalDateTime.now(), null, "Seoul",
+                99L, "01012341234", null, "nick", "receiver","title", "content", "PRIVATE",
+                "TIME", LocalDateTime.now(), null, "Seoul","창원시 의창구",
                 37.11, 127.22, 300, "red", "white", 10
         );
 
@@ -233,7 +232,7 @@ class CapsuleCreateServiceTest {
         // when & then
         BusinessException ex = assertThrows(
                 BusinessException.class,
-                () -> capsuleCreateService.privateCapsulePhone(dto, "01012341234")
+                () -> capsuleCreateService.createPrivateCapsule(dto)
         );
 
         assertEquals(ErrorCode.MEMBER_NOT_FOUND, ex.getErrorCode());
@@ -244,16 +243,16 @@ class CapsuleCreateServiceTest {
     void capsuleToMe_success() {
         // given
         SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
-                1L, "nick", "title", "content", "PRIVATE",
-                "TIME", LocalDateTime.now(), null, "Seoul",
+                1L, null, null, "nick", "receiver","title", "content", "PRIVATE",
+                "TIME", LocalDateTime.now(), null, "Seoul","창원시 의창구",
                 37.11, 127.22, 300, "red", "white", 10
         );
 
+        String encryptedPhone = "encryptedPhone123";
+        String phoneHash = "hashedPhone456";
+
         when(memberRepository.findById(1L))
                 .thenReturn(Optional.of(member));
-
-        when(phoneCrypto.hash("01000000000"))
-                .thenReturn("hashedPhone");
 
         when(capsuleRepository.save(any(Capsule.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -263,7 +262,7 @@ class CapsuleCreateServiceTest {
 
         // when
         SecretCapsuleCreateResponseDTO response =
-                capsuleCreateService.capsuleToMe(dto, "01000000000");
+                capsuleCreateService.capsuleToMe(dto, encryptedPhone, phoneHash);
 
         // then
         assertNotNull(response);
@@ -274,20 +273,80 @@ class CapsuleCreateServiceTest {
     @DisplayName("나에게 보내는 캡슐 - member 없음")
     void capsuleToMe_memberNotFound() {
         SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
-                99L, "nick", "title", "content", "PRIVATE",
-                "TIME", LocalDateTime.now(), null, "Seoul",
+                99L, null, null, "nick", "receiver","title", "content", "PRIVATE",
+                "TIME", LocalDateTime.now(), null, "Seoul","창원시 의창구",
                 37.11, 127.22, 300, "red", "white", 10
         );
+
+        String encryptedPhone = "encryptedPhone123";
+        String phoneHash = "hashedPhone456";
 
         when(memberRepository.findById(99L))
                 .thenReturn(Optional.empty());
 
         assertThrows(
                 BusinessException.class,
-                () -> capsuleCreateService.capsuleToMe(dto, "01000000000")
+                () -> capsuleCreateService.capsuleToMe(dto, encryptedPhone, phoneHash)
         );
     }
 
+    @Test
+    @DisplayName("receiverNickname null이면 예외 발생")
+    void receiverNickname_null_throwsException() {
+        SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
+                1L, null, null, "nick", null, "title", "content", "PRIVATE",
+                "TIME", LocalDateTime.now(), null, "Seoul",
+                "창원시 의창구",37.11, 127.22, 300, "red", "white", 10
+        );
+
+        when(memberRepository.findById(1L))
+                .thenReturn(Optional.of(member));
+
+        BusinessException ex = assertThrows(
+                BusinessException.class,
+                () -> capsuleCreateService.privateCapsulePassword(dto, "1234")
+        );
+
+        assertEquals(ErrorCode.RECEIVERNICKNAME_IS_REQUIRED, ex.getErrorCode());
+    }
+
+
+    @DisplayName("비공개 캡슐 생성 - 전화번호와 비밀번호 둘 다 없으면 예외 발생")
+    void createPrivateCapsule_bothNull_throwsException() {
+        // given
+        SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
+                1L, null, null, "nick", "receiver","title", "content", "PRIVATE",
+                "TIME", LocalDateTime.now(), null, "Seoul","창원시 의창구",
+                37.11, 127.22, 300, "red", "white", 10
+        );
+
+        // when & then
+        BusinessException ex = assertThrows(
+                BusinessException.class,
+                () -> capsuleCreateService.createPrivateCapsule(dto)
+        );
+
+        assertEquals(ErrorCode.CAPSULE_NOT_CREATE, ex.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("비공개 캡슐 생성 - 전화번호와 비밀번호 둘 다 있으면 예외 발생")
+    void createPrivateCapsule_bothProvided_throwsException() {
+        // given
+        SecretCapsuleCreateRequestDTO dto = new SecretCapsuleCreateRequestDTO(
+                1L, "01000000000", "1234", "nick", "receiver","title", "content", "PRIVATE",
+                "TIME", LocalDateTime.now(), null, "Seoul","창원시 의창구",
+                37.11, 127.22, 300, "red", "white", 10
+        );
+
+        // when & then
+        BusinessException ex = assertThrows(
+                BusinessException.class,
+                () -> capsuleCreateService.createPrivateCapsule(dto)
+        );
+
+        assertEquals(ErrorCode.CAPSULE_NOT_CREATE, ex.getErrorCode());
+    }
 
     // =======================
     // 캡슐 수정 테스트
@@ -547,7 +606,7 @@ class CapsuleCreateServiceTest {
 
         // when
         CapsuleDeleteResponseDTO response =
-                capsuleCreateService.senderDelete(memberId, capsuleId);
+                capsuleCreateService.senderDelete(capsuleId, memberId);
 
         // then
         verify(capsule).markDeleted();
@@ -566,7 +625,7 @@ class CapsuleCreateServiceTest {
         Long capsuleId = 1L;
 
         given(capsuleRepository
-                .findByCapsuleIdAndMemberId_MemberId(capsuleId, memberId))
+                .findByCapsuleIdAndMemberId_MemberId(memberId, capsuleId))
                 .willReturn(Optional.empty());
 
         // when & then
