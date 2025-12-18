@@ -10,19 +10,15 @@ public record CreateStorytrackRequest(
         String trackType,
         int isPublic,
         int price,
-        int totalSteps,
-        List<Integer> capsuleList
+        List<Long> capsuleList
 ){
     public Storytrack toEntity() {
-
         return Storytrack.builder()
                 .title(title)
                 .description(description)
                 .trackType(trackType)
                 .isPublic(isPublic)
                 .price(price)
-                .totalSteps(totalSteps)
-                .capsuleList(capsuleList)
                 .build();
     }
 }

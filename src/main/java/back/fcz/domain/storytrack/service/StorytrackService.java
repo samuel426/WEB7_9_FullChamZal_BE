@@ -2,6 +2,8 @@ package back.fcz.domain.storytrack.service;
 
 import back.fcz.domain.capsule.entity.Capsule;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
+import back.fcz.domain.member.entity.Member;
+import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.domain.storytrack.dto.request.CreateStorytrackRequest;
 import back.fcz.domain.storytrack.dto.request.UpdatePathRequest;
 import back.fcz.domain.storytrack.dto.response.CreateStorytrackResponse;
@@ -17,11 +19,14 @@ import back.fcz.domain.storytrack.repository.StorytrackStepRepository;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StorytrackService {
@@ -30,6 +35,7 @@ public class StorytrackService {
     private final StorytrackProgressRepository storytrackProgressRepository;
     private final StorytrackStepRepository storytrackStepRepository;
     private final CapsuleRepository capsuleRepository;
+    private final MemberRepository memberRepository;
 
     // 삭제
     // 생성자 : 스토리트랙 삭제
@@ -86,6 +92,9 @@ public class StorytrackService {
     // 수정
     // 스토리트랙 경로 수정
     public UpdatePathResponse updatePath (UpdatePathRequest request, Long storytrackStepId, Long loginMemberId){
+        storytrackStepRepository.findAll()
+                .forEach(s -> log.info("FOUND STEP ID = {}", s.getId()));
+
         // 스토리트랙 경로 조회
         StorytrackStep targetStep = storytrackStepRepository.findById(storytrackStepId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_PAHT_NOT_FOUND));
@@ -109,11 +118,49 @@ public class StorytrackService {
 
     // 생성
     // 스토리 트랙 생성
-    public CreateStorytrackResponse createStorytrack(CreateStorytrackRequest request){
+    @Transactional
+    public CreateStorytrackResponse createStorytrack(CreateStorytrackRequest request, Long memberId) {
 
-        Storytrack storytrack = new CreateStorytrackRequest.toEntity();
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
+        // 스토리트랙 생성
+        Storytrack storytrack = Storytrack.builder()
+                .member(member)
+                .title(request.title())
+                .description(request.description())
+                .trackType(request.trackType())
+                .isPublic(request.isPublic())
+                .price(request.price())
+                .isDeleted(0)
+                .build();
+
+        int stepOrder = 1;
+
+        // 스토리트랙 스탭 생성
+        for (Long capsuleId : request.capsuleList()) {
+
+            Capsule capsule = capsuleRepository.findById(capsuleId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.CAPSULE_NOT_FOUND));
+
+            // 스토리트랙 스탭 캡슐이 비공개 상태 캡슐일 때
+            if (capsule.getVisibility().equals("PRIVATE")) {
+                throw new BusinessException(ErrorCode.CAPSULE_NOT_PUBLIC);
+            }
+
+            StorytrackStep step = StorytrackStep.builder()
+                    .capsule(capsule)
+                    .stepOrder(stepOrder++)
+                    .build();
+
+            savedStorytrack.addStep(step);
+
+            storytrackStepRepository.save(step);
+        }
+
+        return CreateStorytrackResponse.from(savedStorytrack);
     }
+
 
     // 스토리트랙 참여 회원 생성
 //    public joinStorytrackResponse joinParticipant(){

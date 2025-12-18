@@ -1,7 +1,9 @@
 package back.fcz.domain.storytrack.controller;
 
 import back.fcz.domain.member.service.CurrentUserContext;
+import back.fcz.domain.storytrack.dto.request.CreateStorytrackRequest;
 import back.fcz.domain.storytrack.dto.request.UpdatePathRequest;
+import back.fcz.domain.storytrack.dto.response.CreateStorytrackResponse;
 import back.fcz.domain.storytrack.dto.response.DeleteParticipantResponse;
 import back.fcz.domain.storytrack.dto.response.DeleteStorytrackResponse;
 import back.fcz.domain.storytrack.dto.response.UpdatePathResponse;
@@ -36,8 +38,7 @@ public class StorytrackController {
             ErrorCode.PARTICIPANT_EXISTS
     })
     @DeleteMapping("/delete")
-    public ResponseEntity
-            <ApiResponse<DeleteStorytrackResponse>> deleteStorytrack(
+    public ResponseEntity<ApiResponse<DeleteStorytrackResponse>> deleteStorytrack(
             @RequestParam Long storytrackId
     ){
         Long loginMember = currentUserContext.getCurrentUser().memberId();
@@ -71,8 +72,7 @@ public class StorytrackController {
             ErrorCode.CAPSULE_NOT_FOUND
     })
     @PutMapping("/update")
-    public ResponseEntity
-            <ApiResponse<UpdatePathResponse>> updatePath(
+    public ResponseEntity<ApiResponse<UpdatePathResponse>> updatePath(
             @RequestParam Long storytrackStepId,
             @RequestBody UpdatePathRequest request
     ){
@@ -86,6 +86,22 @@ public class StorytrackController {
 
     // 생성
     // 스토리트랙 생성
+    @Operation(summary = "스토리트랙 생성", description = "공개 상태의 캡슐로 스토리트랙을 생성할 수 있습니다.")
+    @ApiErrorCodeExample({
+            ErrorCode.CAPSULE_NOT_FOUND,
+            ErrorCode.CAPSULE_NOT_PUBLIC
+    })
+    @PostMapping("/creat")
+    public ResponseEntity<ApiResponse<CreateStorytrackResponse>> createStoyrtrack(
+            @RequestBody CreateStorytrackRequest request
+            ){
+
+        Long loginMember = currentUserContext.getCurrentUser().memberId();
+
+        CreateStorytrackResponse response = storytrackService.createStorytrack(request, loginMember);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
     // 스토리트랙 참여자 생성
 
