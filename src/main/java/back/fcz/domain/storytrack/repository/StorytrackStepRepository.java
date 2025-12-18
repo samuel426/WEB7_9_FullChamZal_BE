@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface StorytrackStepRepository extends JpaRepository<StorytrackStep, Long> {
     List<StorytrackStep> findAllByStorytrack_StorytrackId(Long storytrackId);
 
-    Optional<Object> findByStorytrackIdAndStepOrderId(Long aLong, int i);
+    Optional<Object> findByStorytrack_StorytrackIdAndStepOrder(Long storytrackId, int stpeOrderId);
 }
