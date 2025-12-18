@@ -83,8 +83,10 @@ public class StorytrackControllerTest {
         mockMvc.perform(delete("/api/v1/storytrack/delete")
                         .param("storytrackId", storytrackId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.storytrackId").value(storytrackId))
-                .andExpect(jsonPath("$.message").value("1번 스토리트랙이 삭제 되었습니다."));
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.data.storytrackId").value(storytrackId))
+                .andExpect(jsonPath("$.data.message").value("1번 스토리트랙이 삭제 되었습니다."));
+
 
         verify(storytrackService).deleteStorytrack(loginMember, storytrackId);
     }
@@ -108,7 +110,9 @@ public class StorytrackControllerTest {
         mockMvc.perform(delete("/api/v1/storytrack/delete/participant")
                         .param("storytrackId", storytrackId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("스토리트랙 참여를 종료했습니다."));
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.data.message").value("스토리트랙 참여를 종료했습니다."));
+
 
         verify(storytrackService).deleteParticipant(loginMember, storytrackId);
     }
@@ -166,7 +170,8 @@ public class StorytrackControllerTest {
                           "updatedCapsuleId": 100
                         }
                     """))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"));
 
         verify(storytrackService)
                 .updatePath(any(UpdatePathRequest.class), eq(stepId), eq(loginMemberId));
