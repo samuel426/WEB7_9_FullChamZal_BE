@@ -158,7 +158,7 @@ public class CapsuleCreateService {
     }
 
     // 비공개 캡슐 - 나에게 보내는 캡슐
-    public SecretCapsuleCreateResponseDTO capsuleToMe(SecretCapsuleCreateRequestDTO requestDTO, String receiveTel){
+    public SecretCapsuleCreateResponseDTO capsuleToMe(SecretCapsuleCreateRequestDTO requestDTO, String encryptedPhone, String phoneHash){
         Capsule capsule = requestDTO.toEntity();
 
         Member member = memberRepository.findById(requestDTO.memberId())
@@ -176,8 +176,8 @@ public class CapsuleCreateService {
         CapsuleRecipient recipientRecord = CapsuleRecipient.builder()
                 .capsuleId(saved)
                 .recipientName(requestDTO.nickname())
-                .recipientPhone(receiveTel)
-                .recipientPhoneHash(phoneCrypto.hash(receiveTel))
+                .recipientPhone(encryptedPhone)
+                .recipientPhoneHash(phoneHash)
                 .isSenderSelf(1)
                 .build();
 

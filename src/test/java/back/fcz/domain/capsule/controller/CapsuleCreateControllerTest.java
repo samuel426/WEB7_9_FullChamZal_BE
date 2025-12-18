@@ -124,8 +124,8 @@ class CapsuleCreateControllerTest {
                         .name("홍길동")
                         .nickname("테스터")
                         .passwordHash("pw")
-                        .phoneHash("hash")
-                        .phoneNumber("encrypted")
+                        .phoneHash("hash123")
+                        .phoneNumber("encrypted456")
                         .role(MemberRole.USER)
                         .status(MemberStatus.ACTIVE)
                         .build()
@@ -134,8 +134,8 @@ class CapsuleCreateControllerTest {
         SecretCapsuleCreateRequestDTO requestDTO =
                 new SecretCapsuleCreateRequestDTO(
                         member.getMemberId(),
-                        "01012345678",
-                        "수신자",
+                        null,
+                        null,
                         "senderNick",
                         "receiver",
                         "나에게 보내는 캡슐",
@@ -154,8 +154,19 @@ class CapsuleCreateControllerTest {
                         5
                 );
 
+        InServerMemberResponse mockUserResponse = new InServerMemberResponse(
+                member.getMemberId(),
+                member.getUserId(),
+                member.getName(),
+                member.getNickname(),
+                "encrypted456",
+                "hash123",
+                member.getRole()
+        );
+
+        when(currentUserContext.getCurrentUser()).thenReturn(mockUserResponse);
+
         mockMvc.perform(post("/api/v1/capsule/create/me")
-                        .param("phone", "01000000000")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isOk())
@@ -171,6 +182,9 @@ class CapsuleCreateControllerTest {
         assertEquals(member.getMemberId(), capsule.getMemberId().getMemberId());
         assertEquals(1, capsule.getIsProtected());
         assertEquals(1, recipient.getIsSenderSelf());
+
+        assertEquals("encrypted456", recipient.getRecipientPhone());
+        assertEquals("hash123", recipient.getRecipientPhoneHash());
     }
 
     // =========================

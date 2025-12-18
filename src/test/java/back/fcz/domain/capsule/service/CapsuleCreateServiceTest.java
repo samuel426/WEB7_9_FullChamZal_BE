@@ -252,11 +252,11 @@ class CapsuleCreateServiceTest {
                 37.11, 127.22, 300, "red", "white", 10
         );
 
+        String encryptedPhone = "encryptedPhone123";
+        String phoneHash = "hashedPhone456";
+
         when(memberRepository.findById(1L))
                 .thenReturn(Optional.of(member));
-
-        when(phoneCrypto.hash("01000000000"))
-                .thenReturn("hashedPhone");
 
         when(capsuleRepository.save(any(Capsule.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -266,7 +266,7 @@ class CapsuleCreateServiceTest {
 
         // when
         SecretCapsuleCreateResponseDTO response =
-                capsuleCreateService.capsuleToMe(dto, "01000000000");
+                capsuleCreateService.capsuleToMe(dto, encryptedPhone, phoneHash);
 
         // then
         assertNotNull(response);
@@ -282,12 +282,15 @@ class CapsuleCreateServiceTest {
                 37.11, 127.22, 300, "red", "white", 10
         );
 
+        String encryptedPhone = "encryptedPhone123";
+        String phoneHash = "hashedPhone456";
+
         when(memberRepository.findById(99L))
                 .thenReturn(Optional.empty());
 
         assertThrows(
                 BusinessException.class,
-                () -> capsuleCreateService.capsuleToMe(dto, "01000000000")
+                () -> capsuleCreateService.capsuleToMe(dto, encryptedPhone, phoneHash)
         );
     }
 

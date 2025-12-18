@@ -11,7 +11,6 @@ import back.fcz.domain.capsule.service.CapsuleCreateService;
 import back.fcz.domain.member.service.CurrentUserContext;
 import back.fcz.global.config.swagger.ApiErrorCodeExample;
 import back.fcz.global.dto.InServerMemberResponse;
-import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -66,11 +65,10 @@ public class CapsuleCreateController {
     @PostMapping("/create/me")
     public ResponseEntity
             <ApiResponse<SecretCapsuleCreateResponseDTO>> createToMeCapsule(
-            @RequestParam("phone") String receiveTel,
             @RequestBody SecretCapsuleCreateRequestDTO requestDTO
     ){
-        SecretCapsuleCreateResponseDTO response = capsuleCreateService.capsuleToMe(requestDTO, receiveTel);
-
+        InServerMemberResponse currentUser = currentUserContext.getCurrentUser();
+        SecretCapsuleCreateResponseDTO response = capsuleCreateService.capsuleToMe(requestDTO, currentUser.phoneNumber(), currentUser.phoneHash());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
