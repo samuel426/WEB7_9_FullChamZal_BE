@@ -34,7 +34,7 @@ public record CapsuleDashBoardResponse(
                 capsule.getCreatedAt(),
                 capsule.getCurrentViewCount() > 0,
                 capsule.getUnlockType(),
-                capsule.getUpdatedAt(),
+                capsule.getUnlockAt(),
                 capsule.getLocationName(),
                 capsule.getLocationLat(),
                 capsule.getLocationLng()
