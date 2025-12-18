@@ -91,7 +91,7 @@ public class StorytrackService {
     // 스토리트랙 경로 수정
     public UpdatePathResponse updatePath (UpdatePathRequest request, Long loginMemberId){
         // 스토리트랙 경로 조회
-        StorytrackStep targetStep = (StorytrackStep) storytrackStepRepository.findByStorytrackIdAndStepOrderId(request.storytrackId(), request.stepOrderId())
+        StorytrackStep targetStep = (StorytrackStep) storytrackStepRepository.findByStorytrack_StorytrackIdAndStepOrder(request.storytrackId(), request.stepOrderId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_PAHT_NOT_FOUND));
 
         // 요청한 사람과 스토리트랙 작성자가 같은지 확인
@@ -168,6 +168,10 @@ public class StorytrackService {
         // 스토리트랙 존재 확인
         Storytrack storytrack = storytrackRepository.findById(request.storytrackId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND));
+
+        if(storytrack.getIsPublic() == 0){
+            throw new BusinessException(ErrorCode.STORYTRACK_NOT_PUBLIC);
+        }
 
         // 참여자 생성
         StorytrackProgress participant = StorytrackProgress.builder()

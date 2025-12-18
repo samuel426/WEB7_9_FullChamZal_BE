@@ -113,7 +113,8 @@ public enum ErrorCode {
     NOT_STORYTRACK_CREATER("ST003", HttpStatus.FORBIDDEN, "로그인한 사용자는 스토리트랙 생성자가 아닙니다."),
     STORYTRACK_PAHT_NOT_FOUND("ST004", HttpStatus.BAD_REQUEST, "존재하지 않는 스토리트랙 경로입니다."),
     PARTICIPANT_EXISTS("ST005", HttpStatus.BAD_REQUEST, "스토리트랙 참여자가 존재합니다."),
-    CAPSULE_NOT_PUBLIC("ST006", HttpStatus.BAD_REQUEST, "PUBLIC 상태의 캡슐만 스토리트랙에 추가할 수 있습니다.");
+    CAPSULE_NOT_PUBLIC("ST006", HttpStatus.BAD_REQUEST, "PUBLIC 상태의 캡슐만 스토리트랙에 추가할 수 있습니다."),
+    STORYTRACK_NOT_PUBLIC("ST007", HttpStatus.BAD_REQUEST, "PUBLIC 상태의 스토리트랙에만 참여자가 참여할 수 있습니다.");
 
 
 
