@@ -5,11 +5,9 @@ import back.fcz.domain.capsule.repository.CapsuleRepository;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.domain.storytrack.dto.request.CreateStorytrackRequest;
+import back.fcz.domain.storytrack.dto.request.JoinStorytrackRequest;
 import back.fcz.domain.storytrack.dto.request.UpdatePathRequest;
-import back.fcz.domain.storytrack.dto.response.CreateStorytrackResponse;
-import back.fcz.domain.storytrack.dto.response.DeleteParticipantResponse;
-import back.fcz.domain.storytrack.dto.response.DeleteStorytrackResponse;
-import back.fcz.domain.storytrack.dto.response.UpdatePathResponse;
+import back.fcz.domain.storytrack.dto.response.*;
 import back.fcz.domain.storytrack.entity.Storytrack;
 import back.fcz.domain.storytrack.entity.StorytrackProgress;
 import back.fcz.domain.storytrack.entity.StorytrackStep;
@@ -133,7 +131,7 @@ public class StorytrackService {
                 .build();
 
         storytrack.setTotalSteps(storytrack.getSteps().size());
-        Storytrack saved = storytrackRepository.save(storytrack);
+        storytrackRepository.save(storytrack);
 
         int stepOrder = 1;
 
@@ -162,9 +160,27 @@ public class StorytrackService {
 
 
     // 스토리트랙 참여 회원 생성
-//    public joinStorytrackResponse joinParticipant(){
-//
-//    }
+    public JoinStorytrackResponse joinParticipant(JoinStorytrackRequest request, Long memberId){
+        // 멤버 존재 확인
+        Member member = memberRepository.findById(request.memberId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND));
+
+        // 스토리트랙 존재 확인
+        Storytrack storytrack = storytrackRepository.findById(request.storytrackId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND));
+
+        // 참여자 생성
+        StorytrackProgress participant = StorytrackProgress.builder()
+                .member(member)
+                .storytrack(storytrack)
+                .completedSteps(0)
+                .lastCompletedStep(0)
+                .build();
+
+        storytrackProgressRepository.save(participant);
+
+        return JoinStorytrackResponse.from(storytrack, participant);
+    }
 
     // 조회
     // 전체 스토리 트랙 조회

@@ -4,6 +4,7 @@ import back.fcz.domain.member.entity.Member;
 import back.fcz.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -31,8 +32,9 @@ public class StorytrackProgress extends BaseEntity {
     private int completedSteps;
 
     @Column(name = "last_completed_steps")
-    private int last_completed_step;
+    private int lastCompletedStep;
 
+    @CreationTimestamp
     @Column(name = "started_at")
     private LocalDateTime startedAt;
 
