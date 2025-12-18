@@ -6,10 +6,15 @@ import back.fcz.domain.storytrack.dto.response.DeleteParticipantResponse;
 import back.fcz.domain.storytrack.dto.response.DeleteStorytrackResponse;
 import back.fcz.domain.storytrack.dto.response.UpdatePathResponse;
 import back.fcz.domain.storytrack.service.StorytrackService;
+import back.fcz.global.config.swagger.ApiErrorCodeExample;
+import back.fcz.global.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "스토리트랙 API", description = "스토리트랙 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/storytrack")
@@ -23,6 +28,12 @@ public class StorytrackController {
 
     //삭제
     // 작성자 - 스토리트랙 삭제
+    @Operation(summary = "스토리트랙 삭제", description = "스토리트랙 작성자가 스토리트랙을 삭제할 수 있습니다.")
+    @ApiErrorCodeExample({
+            ErrorCode.STORYTRACK_NOT_FOUND,
+            ErrorCode.NOT_STORYTRACK_CREATER,
+            ErrorCode.PARTICIPANT_EXISTS
+    })
     @DeleteMapping("/delete")
     public ResponseEntity<DeleteStorytrackResponse> deleteStorytrack(
             @RequestParam Long storytrackId
@@ -33,6 +44,10 @@ public class StorytrackController {
     }
 
     // 참여자 - 참여 스토리트랙 삭제(참여종료)
+    @Operation(summary = "참여 스토리트랙 삭제", description = "스토리트랙 참여자가 참여한 스토리트랙을 삭제할 수 있습니다.")
+    @ApiErrorCodeExample({
+            ErrorCode.PARTICIPANT_NOT_FOUND
+    })
     @DeleteMapping("/delete/participant")
     public ResponseEntity<DeleteParticipantResponse> deleteParticipant(
             @RequestParam Long storytrackId
@@ -44,6 +59,12 @@ public class StorytrackController {
 
     // 수정
     // 작성자 - 스토리트랙 경로 수정
+    @Operation(summary = "스토리트랙 경로 수정", description = "스토리트랙 작성자가 스토리트랙 경로를 수정할 수 있습니다.")
+    @ApiErrorCodeExample({
+            ErrorCode.STORYTRACK_PAHT_NOT_FOUND,
+            ErrorCode.NOT_STORYTRACK_CREATER,
+            ErrorCode.CAPSULE_NOT_FOUND
+    })
     @PutMapping("/update")
     public ResponseEntity<UpdatePathResponse> updatePath(
             @RequestParam Long storytrackStepId,
