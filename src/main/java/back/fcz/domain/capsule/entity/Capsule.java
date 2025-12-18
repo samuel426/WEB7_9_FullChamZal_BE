@@ -65,6 +65,11 @@ public class Capsule extends BaseEntity {
     private int isDeleted = 0;         // 삭제 여부(Soft Delete, 삭제 전 0, 삭제후 1, , 관리자 삭제 후 2)
     @Column(name = "is_protected")
     private int isProtected = 0;      // 보호 여부(보호 : 0, 미보호 : 1)
+/*
+
+    @Column(name = "like_count")
+    private int likeCount = 0;      //캡슐의 좋아요 수
+*/
 
     public void setMemberId(Member member){
         this.memberId = member;

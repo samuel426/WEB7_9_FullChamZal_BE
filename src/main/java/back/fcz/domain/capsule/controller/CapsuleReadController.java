@@ -61,7 +61,8 @@ public class CapsuleReadController {
     @Operation(summary = "",
             description = "url+비밀번호 읽기를 성공했을때 호출되는 api입니다.")
     @ApiErrorCodeExample({
-
+            ErrorCode.MEMBER_NOT_FOUND,
+            ErrorCode.CAPSULE_NOT_FOUND,
     })
     @PostMapping("/save")
     public ResponseEntity<ApiResponse<CapsuleSaveButtonResponse>> save(
