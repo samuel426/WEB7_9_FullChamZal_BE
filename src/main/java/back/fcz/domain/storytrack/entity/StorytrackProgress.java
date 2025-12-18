@@ -21,23 +21,23 @@ public class StorytrackProgress extends BaseEntity {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @ManyToOne
-    @JoinColumn(name = "storytrack_id")
+    @JoinColumn(name = "storytrack_id", nullable = false)
     private Storytrack storytrack;
 
-    @Column(name = "completed_steps")
+    @Column(name = "completed_steps", nullable = false)
     private int completedSteps;
 
     @Column(name = "last_completed_steps")
     private int lastCompletedStep;
 
     @CreationTimestamp
-    @Column(name = "started_at")
+    @Column(name = "started_at", nullable = false)
     private LocalDateTime startedAt;
 
-    @Column(name = "completed_at", nullable = false)
+    @Column(name = "completed_at")
     private LocalDateTime completedAt;
 }
