@@ -18,6 +18,9 @@ import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,19 +40,19 @@ public class StorytrackService {
 
     // 삭제
     // 생성자 : 스토리트랙 삭제
-    public DeleteStorytrackResponse deleteStorytrack(Long memberId, Long storytrackId){
+    public DeleteStorytrackResponse deleteStorytrack(Long memberId, Long storytrackId) {
 
         // 삭제할 대상 스토리트랙 조회
         Storytrack targetStorytrack = storytrackRepository.findById(storytrackId)
-                .orElseThrow(()-> new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND));
 
         // 요청한 사람과 스토리트랙 생성자가 동일한지 확인
-        if(!Objects.equals(targetStorytrack.getMember().getMemberId(), memberId)){
+        if (!Objects.equals(targetStorytrack.getMember().getMemberId(), memberId)) {
             throw new BusinessException(ErrorCode.NOT_STORYTRACK_CREATER);
         }
 
         // 스토리트랙 참여자가 존재하면 미 삭제
-        if(storytrackProgressRepository.countActiveParticipants(storytrackId) > 0){
+        if (storytrackProgressRepository.countActiveParticipants(storytrackId) > 0) {
             throw new BusinessException(ErrorCode.PARTICIPANT_EXISTS);
         }
 
@@ -59,7 +62,7 @@ public class StorytrackService {
         // 스토리트랙 단계 삭제
         List<StorytrackStep> targetSteps = storytrackStepRepository.findAllByStorytrack_StorytrackId(storytrackId);
 
-        for(StorytrackStep step : targetSteps){
+        for (StorytrackStep step : targetSteps) {
             step.markDeleted();
         }
 
@@ -71,7 +74,7 @@ public class StorytrackService {
     }
 
     // 참여자 : 참여자 삭제(참여 중지)
-    public DeleteParticipantResponse deleteParticipant(Long memberId, Long storytrackId){
+    public DeleteParticipantResponse deleteParticipant(Long memberId, Long storytrackId) {
 
         // 스토리트랙 참여자 조회
         StorytrackProgress targetMember = storytrackProgressRepository.findByMember_MemberIdAndStorytrack_StorytrackId(memberId, storytrackId)
@@ -89,13 +92,13 @@ public class StorytrackService {
 
     // 수정
     // 스토리트랙 경로 수정
-    public UpdatePathResponse updatePath (UpdatePathRequest request, Long loginMemberId){
+    public UpdatePathResponse updatePath(UpdatePathRequest request, Long loginMemberId) {
         // 스토리트랙 경로 조회
         StorytrackStep targetStep = (StorytrackStep) storytrackStepRepository.findByStorytrack_StorytrackIdAndStepOrder(request.storytrackId(), request.stepOrderId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_PAHT_NOT_FOUND));
 
         // 요청한 사람과 스토리트랙 작성자가 같은지 확인
-        if(!Objects.equals(targetStep.getStorytrack().getMember().getMemberId(), loginMemberId)){
+        if (!Objects.equals(targetStep.getStorytrack().getMember().getMemberId(), loginMemberId)) {
             throw new BusinessException(ErrorCode.NOT_STORYTRACK_CREATER);
         }
 
@@ -160,7 +163,7 @@ public class StorytrackService {
 
 
     // 스토리트랙 참여 회원 생성
-    public JoinStorytrackResponse joinParticipant(JoinStorytrackRequest request, Long memberId){
+    public JoinStorytrackResponse joinParticipant(JoinStorytrackRequest request, Long memberId) {
         // 멤버 존재 확인
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND));
@@ -169,7 +172,8 @@ public class StorytrackService {
         Storytrack storytrack = storytrackRepository.findById(request.storytrackId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND));
 
-        if(storytrack.getIsPublic() == 0){
+        // 스토리트랙 상태 확인
+        if (storytrack.getIsPublic() == 0) {
             throw new BusinessException(ErrorCode.STORYTRACK_NOT_PUBLIC);
         }
 
@@ -188,16 +192,24 @@ public class StorytrackService {
 
     // 조회
     // 전체 스토리 트랙 조회
-//    public totalStorytrackResponse readTotalStorytrack(){
-//
-//    }
+    public Page<TotalStorytrackResponse> readTotalStorytrack(int page, int size) {
 
-    // 스토리트랙 상세 조회
-//    public storytrackDashboardResponse storytrackDashBoard(){
-//
-//    }
+        Pageable pageable = PageRequest.of(
+                page,
+                size
+        );
 
-    // 스토리트랙 경로 조회
+        Page<Storytrack> storytracks = storytrackRepository.findByIsPublic(1, pageable);
+
+        return storytracks.map(TotalStorytrackResponse::from);
+    }
+
+    // 스토리트랙 조회 -> 스토리트랙에 대한 간략한 조회
+    public StorytrackDashboardResponse storytrackDashBoard(){
+
+    }
+
+    // 생성, 참여 : 스토리트랙 경로 조회
 //    public storytrackPathResponse storytrackPath(){
 //
 //    }
@@ -206,6 +218,10 @@ public class StorytrackService {
 //    public createrStorytrackListResponse createdStorytrackList(){
 //
 //    }
+
+    // 생성자 : 스토리트랙 참여자 목록 조회
+
+    // 참여자 : 참여 가능한 스토리트랙 목록 조회
 
     // 참여자 : 참여한 스토리트랙 목록 조회
 //    public participantStorytrackListResponse joinStorytrackList(){
@@ -218,6 +234,14 @@ public class StorytrackService {
 //    }
 
     // 스토리트랙 캡슐 상세 조회
-    // 참여자인지 생성자인지 검증 로직 필요
-    // CapsuleReadService의 publicCapsuleLogic() 사용 -> 공개 캡슐 조회
+    /* public CapsuleDTO readCapsuelStorytrack(){
+       // 생성자인지 참여자인지 확인
+
+       // 생성자면 캡슐 오픈 -> 확인 (논의 필요)
+
+       // 참여자면 캡슐 조건 확인
+         // 스토리트랙 타입 확인
+            // 스토리트랙의 단계에 맞나? -> 조건 미충족 시 예외
+       // 캡슐 조건이 맞나 -> 조건 미충족 시 예외
+    */ }
 }
