@@ -50,11 +50,9 @@ coolsms:
 
 openai:
   api:
-    key: ${OPENAI_API_KEY}          # 이미 쓰는 키가 있으면 그걸로
+    key: ${OPENAI_API_KEY}
     base-url: https://api.openai.com/v1
   moderation:
     model: omni-moderation-2024-09-26
-    connect-timeout-ms: 2000
-    read-timeout-ms: 5000
-    fail-closed: true               # OpenAI 장애/타임아웃이면 저장 막을지
-
+    block-flagged: false   # ✅ 지금은 "통과 + 기록"
+    fail-open: true        # ✅ OpenAI 장애에도 통과 + 기록
