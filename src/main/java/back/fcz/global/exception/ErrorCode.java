@@ -77,7 +77,9 @@ public enum ErrorCode {
     RECIPIENT_NOT_FOUND("CPS009", HttpStatus.NOT_FOUND, "수신자 정보를 찾을수 없습니다."),
     RECEIVERNICKNAME_IS_REQUIRED("CP010", HttpStatus.BAD_REQUEST, "수신자 닉네임을 입력해주세요."),
     CAPSULE_PASSWORD_REQUIRED("CP011", HttpStatus.BAD_REQUEST, "캡슐 비밀번호 입력이 필요합니다."),
-    DUPLICATE_LIKE_REQUEST("CPS012", HttpStatus.BAD_REQUEST, "중복된 좋아요 요청입니다."),
+    DUPLICATE_LIKE_REQUEST("CPS012", HttpStatus.BAD_REQUEST, "중복으로 좋아요를 누를수 없습니다."),
+    SELF_LIKE_NOT_ALLOWED("CPS013", HttpStatus.BAD_REQUEST, "자신의 캡슐에 좋아요를 누를수 없습니다."),
+    LIKE_DECREASED_FAIL("CPS014", HttpStatus.BAD_REQUEST, "좋아요를 해제할 수 없습니다."),
 
     // ========== 북마크 에러 ==========
     BOOKMARK_ALREADY_EXISTS("BMK001", HttpStatus.CONFLICT, "이미 북마크된 캡슐입니다."),

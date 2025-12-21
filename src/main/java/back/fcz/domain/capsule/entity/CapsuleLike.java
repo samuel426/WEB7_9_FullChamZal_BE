@@ -1,6 +1,15 @@
 package back.fcz.domain.capsule.entity;
 
-/*
+import back.fcz.domain.member.entity.Member;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Builder
@@ -35,4 +44,4 @@ public class CapsuleLike {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 }
-*/
+
