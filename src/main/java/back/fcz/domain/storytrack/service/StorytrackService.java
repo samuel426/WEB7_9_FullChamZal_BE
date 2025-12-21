@@ -191,7 +191,7 @@ public class StorytrackService {
         return JoinStorytrackResponse.from(storytrack, participant);
     }
 
-    // 조회
+    // 조회 -> 조회 페이징 필요!
     // 전체 스토리 트랙 목록 조회
     public Page<TotalStorytrackResponse> readTotalStorytrack(int page, int size) {
 
@@ -266,14 +266,17 @@ public class StorytrackService {
                 .toList();
     }
 
-    // 생성자 : 스토리트랙 참여자 목록 조회
-
-    // 참여자 : 참여 가능한 스토리트랙 목록 조회
-
     // 참여자 : 참여한 스토리트랙 목록 조회
-//    public participantStorytrackListResponse joinStorytrackList(){
-//
-//    }
+    public List<ParticipantStorytrackListResponse> joinStorytrackList(Long memberId){
+
+        return storytrackProgressRepository.findProgressesByMemberId(memberId)
+                .stream()
+                .map(progress -> ParticipantStorytrackListResponse.from(
+                        progress,
+                        progress.getStorytrack()
+                ))
+                .toList();
+    }
 
     // 참여자 : 스토리트랙 진행 상세 조회
 //    public participantProgressResponse progressRead(){
