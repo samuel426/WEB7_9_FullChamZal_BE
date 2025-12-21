@@ -209,9 +209,9 @@ public class StorytrackService {
     // 스토리트랙 조회 -> 스토리트랙에 대한 간략한 조회
     // 대략적인 경로(순서), 총 인원 수, 완료한 인원 수, 스토리트랙 제작자(닉네임)
     public StorytrackDashBoardResponse storytrackDashboard(
-            Long storytrackId,
-            Pageable pageable
+            Long storytrackId
     ) {
+        // 스토리트랙
         Storytrack storytrack = storytrackRepository
                 .findByStorytrackIdAndIsDeleted(storytrackId, 0)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND));
@@ -220,15 +220,16 @@ public class StorytrackService {
         int completeProgress = storytrackProgressRepository.countByStorytrack_StorytrackIdAndCompletedAtIsNotNull(storytrackId);
 
         // 스토리트랙 경로
-        Page<StorytrackStep> stepPage =
-                storytrackStepRepository.findStepsWithCapsule(storytrackId, pageable);
-
-        Page<PathResponse> pathPage =
-                stepPage.map(PathResponse::from);
+        // TODO: 스토리트랙 경로 페이징 필요
+        List<PathResponse> paths =
+                storytrackStepRepository.findStepsWithCapsule(storytrackId)
+                        .stream()
+                        .map(PathResponse::from)
+                        .toList();
 
         return StorytrackDashBoardResponse.of(
                 storytrack,
-                pathPage,
+                paths,
                 totalParticipant,
                 completeProgress
         );
@@ -237,9 +238,25 @@ public class StorytrackService {
 
     // 생성, 참여 : 스토리트랙 경로 조회
     // 단계, 각 단계의 캡슐 조회
-//    public storytrackPathResponse storytrackPath(){
-//
-//    }
+    public StorytrackPathResponse storytrackPath(Long storytrackId) {
+        Storytrack storytrack = storytrackRepository
+                .findByStorytrackIdAndIsDeleted(storytrackId, 0)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND));
+
+        List<PathResponse> paths =
+                storytrackStepRepository.findStepsWithCapsule(storytrackId)
+                        .stream()
+                        .map(PathResponse::from)
+                        .toList();
+
+        return new StorytrackPathResponse(
+                storytrack.getStorytrackId(),
+                storytrack.getTitle(),
+                storytrack.getDescription(),
+                storytrack.getTotalSteps(),
+                paths
+        );
+    }
 
     // 생성자 : 생성한 스토리트랙 목록 조회
 //    public createrStorytrackListResponse createdStorytrackList(){

@@ -13,9 +13,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -129,22 +126,25 @@ public class StorytrackController {
     }
 
     // 스토리트랙 상세 조회
-    @GetMapping("/dashboard/{storytrackId}")
+    @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<StorytrackDashBoardResponse>> dashboard(
-            @PathVariable Long storytrackId,
-            @PageableDefault(
-                    size = 10,
-                    sort = "stepOrder",
-                    direction = Sort.Direction.ASC
-            ) Pageable pageable
+            @RequestParam Long storytrackId
     ) {
-        StorytrackDashBoardResponse response = storytrackService.storytrackDashboard(storytrackId, pageable);
+        StorytrackDashBoardResponse response = storytrackService.storytrackDashboard(storytrackId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
 
     // 스토리트랙 경로 조회
+    @GetMapping("/path")
+    public ResponseEntity<ApiResponse<StorytrackPathResponse>> storytrackPath(
+            @RequestParam Long storytrackId
+    ){
+        StorytrackPathResponse response = storytrackService.storytrackPath(storytrackId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
     // 생성자 : 생성한 스토리트랙 목록 조회
 

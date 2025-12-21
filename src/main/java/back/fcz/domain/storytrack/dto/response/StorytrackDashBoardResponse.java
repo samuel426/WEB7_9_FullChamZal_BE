@@ -2,7 +2,6 @@ package back.fcz.domain.storytrack.dto.response;
 
 import back.fcz.domain.storytrack.dto.PathResponse;
 import back.fcz.domain.storytrack.entity.Storytrack;
-import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +19,7 @@ public record StorytrackDashBoardResponse(
 ){
     public static StorytrackDashBoardResponse of(
             Storytrack storytrack,
-            Page<PathResponse> pathPage,
+            List<PathResponse> paths,
             int totalParticipant,
             int completeProgress
     ) {
@@ -35,7 +34,7 @@ public record StorytrackDashBoardResponse(
                 totalParticipant,
                 completeProgress,
 
-                pathPage.getContent()
+                paths
         );
     }
 }
