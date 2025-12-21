@@ -35,4 +35,6 @@ public interface StorytrackProgressRepository extends JpaRepository<StorytrackPr
     where sp.member.memberId = :memberId
 """)
     List<StorytrackProgress> findProgressesByMemberId(Long memberId);
+
+    StorytrackProgress findByStorytrack_StorytrackIdAndMember_MemberId(Long storytrackId, Long memberId);
 }
