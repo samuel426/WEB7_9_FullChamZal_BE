@@ -267,7 +267,7 @@ public class StorytrackService {
     }
 
     // 참여자 : 참여한 스토리트랙 목록 조회
-    public List<ParticipantStorytrackListResponse> joinStorytrackList(Long memberId){
+    public List<ParticipantStorytrackListResponse> joinedStorytrackList(Long memberId){
 
         return storytrackProgressRepository.findProgressesByMemberId(memberId)
                 .stream()
@@ -279,7 +279,7 @@ public class StorytrackService {
     }
 
     // 참여자 : 스토리트랙 진행 상세 조회
-    public ParticipantProgressResponse progressRead(Long storytrackId, Long memberId){
+    public ParticipantProgressResponse storytrackProgress(Long storytrackId, Long memberId){
         StorytrackProgress progress = storytrackProgressRepository.findByStorytrack_StorytrackIdAndMember_MemberId(storytrackId, memberId);
 
         return ParticipantProgressResponse.from(progress);

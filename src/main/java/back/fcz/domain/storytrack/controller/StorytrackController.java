@@ -159,8 +159,26 @@ public class StorytrackController {
     }
 
     // 참여자 : 참여한 스토리트랙 목록 조회
+    @GetMapping("/participant/joinedList")
+    public ResponseEntity<ApiResponse<List<ParticipantStorytrackListResponse>>> joinedStorytrackList(){
+        Long loginMember = currentUserContext.getCurrentUser().memberId();
+
+        List<ParticipantStorytrackListResponse> response = storytrackService.joinedStorytrackList(loginMember);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
     // 참여자 : 스토리트랙 진행 상세 조회
+    @GetMapping("/participant/progress")
+    public ResponseEntity<ApiResponse<ParticipantProgressResponse>> sotyrtrackProgress (
+            @RequestParam Long storytrackId
+    ){
+        Long loginMember = currentUserContext.getCurrentUser().memberId();
+
+        ParticipantProgressResponse response = storytrackService.storytrackProgress(storytrackId, loginMember);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
     // 스토리트랙 캡슐 오픈
 }
