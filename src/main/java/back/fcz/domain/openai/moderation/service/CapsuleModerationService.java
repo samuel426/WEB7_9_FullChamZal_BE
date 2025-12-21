@@ -1,182 +1,208 @@
 package back.fcz.domain.openai.moderation.service;
 
 import back.fcz.domain.openai.moderation.client.OpenAiModerationClient;
-import back.fcz.domain.openai.moderation.client.dto.OpenAiModerationResponse;
-import back.fcz.domain.openai.moderation.entity.*;
+import back.fcz.domain.openai.moderation.dto.CapsuleModerationBlockedPayload;
+import back.fcz.domain.openai.moderation.dto.ModerationField;
+import back.fcz.domain.openai.moderation.dto.OpenAiModerationResult;
+import back.fcz.domain.openai.moderation.entity.ModerationActionType;
+import back.fcz.domain.openai.moderation.entity.ModerationAuditLog;
+import back.fcz.domain.openai.moderation.entity.ModerationDecision;
 import back.fcz.domain.openai.moderation.repository.ModerationAuditLogRepository;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.HexFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CapsuleModerationService {
 
-    private final ObjectProvider<OpenAiModerationClient> clientProvider;
+    private final OpenAiModerationClient openAiModerationClient;
     private final ModerationAuditLogRepository auditLogRepository;
     private final ObjectMapper objectMapper;
 
-    @Value("${openai.moderation.model:omni-moderation-2024-09-26}")
-    private String model;
-
-    // ✅ 지금 요구사항: "일단 통과" => 기본 false
-    @Value("${openai.moderation.block-flagged:false}")
-    private boolean blockFlagged;
-
-    // ✅ OpenAI 장애 시에도 통과시키고 기록 남기기
-    @Value("${openai.moderation.fail-open:true}")
-    private boolean failOpen;
-
     /**
-     * @return 생성 시 auditLogId(attachCapsuleId 용). 업데이트는 capsuleId 이미 있으니 null 허용.
+     * @return auditId (PASS/SKIPPED일 때 attach 위해 반환)
      */
+    @Transactional
     public Long validateCapsuleText(
             Long actorMemberId,
             ModerationActionType actionType,
-            String capsuleUuid,
-            Long capsuleId,
             String title,
             String content,
             String receiverNickname,
             String locationName,
             String address
     ) {
-        String input = buildInput(title, content, receiverNickname, locationName, address);
-        String inputHash = sha256(input);
-        String preview = truncate(input, 1000);
+        LinkedHashMap<ModerationField, String> fields = new LinkedHashMap<>();
+        fields.put(ModerationField.TITLE, title);
+        fields.put(ModerationField.CONTENT, content);
+        fields.put(ModerationField.RECEIVER_NICKNAME, receiverNickname);
+        fields.put(ModerationField.LOCATION_NAME, locationName);
+        fields.put(ModerationField.ADDRESS, address);
 
-        OpenAiModerationClient client = clientProvider.getIfAvailable();
+        String combinedInput = buildCombinedInput(fields);
+        String inputHash = sha256Hex(combinedInput);
 
-        // 클라이언트 미주입(또는 api-key 미설정) 대비: 스킵 로그 남김
-        if (client == null) {
-            ModerationAuditLog saved = auditLogRepository.save(
-                    ModerationAuditLog.builder()
-                            .capsuleId(capsuleId)
-                            .capsuleUuid(capsuleUuid)
-                            .actorMemberId(actorMemberId)
-                            .actionType(actionType)
-                            .decision(ModerationDecision.SKIP_NO_CLIENT)
-                            .model(model)
-                            .inputHash(inputHash)
-                            .inputPreview(preview)
-                            .flagged(false)
-                            .errorMessage("OpenAiModerationClient not available")
-                            .build()
+        // 입력이 사실상 없으면 SKIPPED
+        if (combinedInput.isBlank()) {
+            ModerationAuditLog logEntity = ModerationAuditLog.skipped(
+                    actorMemberId,
+                    actionType,
+                    null,
+                    openAiModerationClient.getModel(),
+                    inputHash,
+                    "empty input"
             );
-            return saved.getId();
+            return auditLogRepository.save(logEntity).getId();
         }
 
         try {
-            OpenAiModerationResponse resp = client.moderate(model, input);
-            OpenAiModerationResponse.Result r = (resp.getResults() != null && !resp.getResults().isEmpty())
-                    ? resp.getResults().get(0)
-                    : null;
+            // 1) 전체 검사
+            OpenAiModerationResult overall = openAiModerationClient.moderateText(combinedInput);
 
-            boolean flagged = r != null && r.isFlagged();
-
-            ModerationDecision decision =
-                    flagged && blockFlagged ? ModerationDecision.BLOCK : ModerationDecision.ALLOW;
-
-            String categoriesJson = (r == null) ? null : objectMapper.writeValueAsString(r.getCategories());
-            String scoresJson = (r == null) ? null : objectMapper.writeValueAsString(r.getCategoryScores());
-
-            ModerationAuditLog saved = auditLogRepository.save(
-                    ModerationAuditLog.builder()
-                            .capsuleId(capsuleId)
-                            .capsuleUuid(capsuleUuid)
-                            .actorMemberId(actorMemberId)
-                            .actionType(actionType)
-                            .decision(decision)
-                            .model(model)
-                            .inputHash(inputHash)
-                            .inputPreview(preview)
-                            .flagged(flagged)
-                            .categoriesJson(categoriesJson)
-                            .categoryScoresJson(scoresJson)
-                            .openaiModerationId(resp.getId())
-                            .build()
-            );
-
-            if (flagged && blockFlagged) {
-                throw new BusinessException(ErrorCode.CAPSULE_CONTENT_BLOCKED);
+            if (!overall.flagged()) {
+                ModerationAuditLog logEntity = ModerationAuditLog.success(
+                        actorMemberId,
+                        actionType,
+                        null,
+                        openAiModerationClient.getModel(),
+                        false,
+                        ModerationDecision.PASS,
+                        inputHash,
+                        openAiModerationClient.toRawJson(overall.raw())
+                );
+                return auditLogRepository.save(logEntity).getId();
             }
 
-            return saved.getId();
+            // 2) flagged → 필드별 재검사(어느 필드가 문제인지)
+            List<CapsuleModerationBlockedPayload.Violation> violations = new ArrayList<>();
 
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            // OpenAI 에러/네트워크 장애 등
-            ModerationDecision decision = failOpen ? ModerationDecision.FAIL_OPEN : ModerationDecision.BLOCK;
+            ObjectNode combinedRaw = objectMapper.createObjectNode();
+            combinedRaw.set("overall", overall.raw());
 
-            ModerationAuditLog saved = auditLogRepository.save(
-                    ModerationAuditLog.builder()
-                            .capsuleId(capsuleId)
-                            .capsuleUuid(capsuleUuid)
-                            .actorMemberId(actorMemberId)
-                            .actionType(actionType)
-                            .decision(decision)
-                            .model(model)
-                            .inputHash(inputHash)
-                            .inputPreview(preview)
-                            .flagged(false)
-                            .errorMessage(e.getMessage())
-                            .build()
-            );
+            ObjectNode byFieldRaw = objectMapper.createObjectNode();
 
-            if (!failOpen) {
-                throw new BusinessException(ErrorCode.OPENAI_MODERATION_FAILED);
+            for (Map.Entry<ModerationField, String> entry : fields.entrySet()) {
+                String v = normalize(entry.getValue());
+                if (v.isBlank()) continue;
+
+                OpenAiModerationResult perField = openAiModerationClient.moderateText(v);
+                byFieldRaw.set(entry.getKey().name(), perField.raw());
+
+                if (perField.flagged()) {
+                    violations.add(CapsuleModerationBlockedPayload.Violation.builder()
+                            .field(entry.getKey())
+                            .categories(perField.categories())
+                            .build());
+                }
             }
 
-            return saved.getId();
+            combinedRaw.set("byField", byFieldRaw);
+
+            // 희박하게 overall만 flagged이고 필드가 안 잡힐 수 있음 → fallback
+            if (violations.isEmpty()) {
+                violations.add(CapsuleModerationBlockedPayload.Violation.builder()
+                        .field(ModerationField.CONTENT)
+                        .categories(overall.categories())
+                        .build());
+            }
+
+            ModerationAuditLog logEntity = ModerationAuditLog.success(
+                    actorMemberId,
+                    actionType,
+                    null,
+                    openAiModerationClient.getModel(),
+                    true,
+                    ModerationDecision.FLAGGED,
+                    inputHash,
+                    openAiModerationClient.toRawJson(combinedRaw)
+            );
+            Long auditId = auditLogRepository.save(logEntity).getId();
+
+            CapsuleModerationBlockedPayload payload = CapsuleModerationBlockedPayload.builder()
+                    .auditId(auditId)
+                    .violations(violations)
+                    .build();
+
+            String message = buildBlockedMessage(violations);
+            throw new BusinessException(ErrorCode.CAPSULE_CONTENT_BLOCKED, message, payload);
+
+        } catch (RestClientException e) {
+            ModerationAuditLog logEntity = ModerationAuditLog.error(
+                    actorMemberId,
+                    actionType,
+                    null,
+                    openAiModerationClient.getModel(),
+                    inputHash,
+                    e.getMessage()
+            );
+            Long auditId = auditLogRepository.save(logEntity).getId();
+
+            Map<String, Object> payload = Map.of(
+                    "auditId", auditId,
+                    "reason", "OPENAI_CALL_FAILED"
+            );
+            throw new BusinessException(ErrorCode.OPENAI_MODERATION_FAILED, payload);
         }
     }
 
-    public void attachCapsuleId(Long auditLogId, Long capsuleId) {
-        if (auditLogId == null || capsuleId == null) return;
-        auditLogRepository.attachCapsuleId(auditLogId, capsuleId);
+    @Transactional
+    public void attachCapsuleId(Long auditId, Long capsuleId) {
+        if (auditId == null || capsuleId == null) return;
+        auditLogRepository.attachCapsuleId(auditId, capsuleId);
     }
 
-    private String buildInput(String title, String content, String receiverNickname, String locationName, String address) {
+    private String buildBlockedMessage(List<CapsuleModerationBlockedPayload.Violation> violations) {
+        String fields = violations.stream()
+                .map(v -> v.getField().name())
+                .distinct()
+                .collect(Collectors.joining(", "));
+        return "유해한 내용이 감지되어 캡슐을 저장할 수 없습니다. 문제가 된 항목: " + fields;
+    }
+
+    private String buildCombinedInput(LinkedHashMap<ModerationField, String> fields) {
         StringBuilder sb = new StringBuilder();
+        for (Map.Entry<ModerationField, String> e : fields.entrySet()) {
+            String v = normalize(e.getValue());
+            if (v.isBlank()) continue;
 
-        append(sb, "title", title);
-        append(sb, "content", content);
-        append(sb, "receiverNickname", receiverNickname);
-        append(sb, "locationName", locationName);
-        append(sb, "address", address);
-
-        return sb.toString().trim();
-    }
-
-    private void append(StringBuilder sb, String key, String value) {
-        if (value == null) return;
-        String v = value.trim();
-        if (v.isEmpty()) return;
-        sb.append(key).append(": ").append(v).append("\n");
-    }
-
-    private String sha256(String s) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] out = md.digest(s.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(out);
-        } catch (Exception e) {
-            // 해싱 실패는 시스템 에러로 보는 게 맞음
-            throw new BusinessException(ErrorCode.HASHING_FAILED);
+            if (!sb.isEmpty()) sb.append("\n");
+            sb.append(e.getKey().name()).append(": ").append(v);
         }
+        return sb.toString();
     }
 
-    private String truncate(String s, int max) {
-        if (s == null) return null;
-        return s.length() <= max ? s : s.substring(0, max);
+    private String normalize(String s) {
+        return s == null ? "" : s.trim();
+    }
+
+    private String sha256Hex(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+
+            StringBuilder hex = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                String h = Integer.toHexString(0xff & b);
+                if (h.length() == 1) hex.append('0');
+                hex.append(h);
+            }
+            return hex.toString();
+        } catch (Exception e) {
+            log.warn("sha256Hex failed: {}", e.getMessage());
+            return "HASH_FAILED";
+        }
     }
 }
