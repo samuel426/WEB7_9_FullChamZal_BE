@@ -5,6 +5,7 @@ import back.fcz.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,5 +61,10 @@ public class Storytrack extends BaseEntity {
     public void addStep(StorytrackStep step) {
         steps.add(step);
         step.setStorytrack(this);
+    }
+
+    public void softDelete() {
+        this.isDeleted = 1;
+        this.deletedAt = LocalDateTime.now();
     }
 }

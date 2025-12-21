@@ -63,7 +63,7 @@ public class StorytrackService {
         }
 
         // 삭제 - 소프트딜리트
-        targetStorytrack.markDeleted();
+        targetStorytrack.softDelete();
 
         // 스토리트랙 단계 삭제
         List<StorytrackStep> targetSteps = storytrackStepRepository.findAllByStorytrack_StorytrackId(storytrackId);
