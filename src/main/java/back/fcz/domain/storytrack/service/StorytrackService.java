@@ -198,11 +198,18 @@ public class StorytrackService {
         return JoinStorytrackResponse.from(storytrack, participant);
     }
 
+    private Pageable createPageable(int page, int size, Sort sort) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 50); // max 50
+
+        return PageRequest.of(safePage, safeSize, sort);
+    }
+
     // 조회 -> 조회 페이징 필요!
     // 전체 스토리 트랙 목록 조회
     public PageResponse<TotalStorytrackResponse> readTotalStorytrack(int page, int size) {
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = createPageable(page, size, null);
 
         Page<Storytrack> storytrackPage =
                 storytrackRepository.findByIsPublic(1, pageable);
@@ -229,7 +236,7 @@ public class StorytrackService {
         int completeProgress = storytrackProgressRepository.countByStorytrack_StorytrackIdAndCompletedAtIsNotNull(storytrackId);
 
         // 스토리트랙 경로
-        Pageable pageable = PageRequest.of(
+        Pageable pageable = createPageable(
                 page,
                 size,
                 Sort.by(Sort.Direction.ASC, "stepOrder")
@@ -261,7 +268,7 @@ public class StorytrackService {
                 .findByStorytrackIdAndIsDeleted(storytrackId, 0)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND));
 
-        Pageable pageable = PageRequest.of(
+        Pageable pageable = createPageable(
                 page,
                 size,
                 Sort.by(Sort.Direction.ASC, "stepOrder")
@@ -290,17 +297,10 @@ public class StorytrackService {
             int size
     ) {
 
-        Pageable pageable = PageRequest.of(
-                page,
-                size
-        );
+        Pageable pageable = createPageable(page, size, null);
 
         Page<Storytrack> storytracks =
                 storytrackRepository.findByMember_MemberId(memberId, pageable);
-
-        if (storytracks.isEmpty()) {
-            throw new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND);
-        }
 
         Page<CreaterStorytrackListResponse> responsePage =
                 storytracks.map(CreaterStorytrackListResponse::from);
@@ -315,17 +315,11 @@ public class StorytrackService {
             int size
     ) {
 
-        Pageable pageable = PageRequest.of(
-                page,
-                size
+        Pageable pageable = createPageable(page, size, null
         );
 
         Page<StorytrackProgress> progresses =
                 storytrackProgressRepository.findProgressesByMemberId(memberId, pageable);
-
-        if (progresses.isEmpty()) {
-            throw new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND);
-        }
 
         Page<ParticipantStorytrackListResponse> responsePage =
                 progresses.map(progress -> ParticipantStorytrackListResponse.from(

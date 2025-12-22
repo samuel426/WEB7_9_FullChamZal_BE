@@ -133,7 +133,7 @@ public class StorytrackController {
     @ApiErrorCodeExample({})
     @GetMapping("/List")
     public ResponseEntity<ApiResponse<PageResponse<TotalStorytrackResponse>>> readStorytrackList (
-            @RequestParam(defaultValue ="1") int page,
+            @RequestParam(defaultValue ="0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
         PageResponse<TotalStorytrackResponse> response = storytrackService.readTotalStorytrack(page, size);
@@ -149,7 +149,7 @@ public class StorytrackController {
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<StorytrackDashBoardResponse>> dashboard(
             @RequestParam Long storytrackId,
-            @RequestParam(defaultValue ="1") int page,
+            @RequestParam(defaultValue ="0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         StorytrackDashBoardResponse response = storytrackService.storytrackDashboard(storytrackId, page, size);
@@ -167,7 +167,7 @@ public class StorytrackController {
     @GetMapping("/path")
     public ResponseEntity<ApiResponse<StorytrackPathResponse>> storytrackPath(
             @RequestParam Long storytrackId,
-            @RequestParam(defaultValue ="1") int page,
+            @RequestParam(defaultValue ="0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
         StorytrackPathResponse response = storytrackService.storytrackPath(storytrackId, page, size);
@@ -184,7 +184,7 @@ public class StorytrackController {
     })
     @GetMapping("/creater/storytrackList")
     public ResponseEntity<ApiResponse<PageResponse<CreaterStorytrackListResponse>>> createdStorytrackList(
-            @RequestParam(defaultValue ="1") int page,
+            @RequestParam(defaultValue ="0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
         Long loginMember = currentUserContext.getCurrentUser().memberId();
@@ -203,7 +203,7 @@ public class StorytrackController {
     })
     @GetMapping("/participant/joinedList")
     public ResponseEntity<ApiResponse<PageResponse<ParticipantStorytrackListResponse>>> joinedStorytrackList(
-            @RequestParam(defaultValue ="1") int page,
+            @RequestParam(defaultValue ="0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
         Long loginMember = currentUserContext.getCurrentUser().memberId();
