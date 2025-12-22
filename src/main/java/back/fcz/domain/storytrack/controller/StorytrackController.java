@@ -2,7 +2,6 @@ package back.fcz.domain.storytrack.controller;
 
 import back.fcz.domain.capsule.DTO.request.CapsuleConditionRequestDTO;
 import back.fcz.domain.capsule.DTO.response.CapsuleConditionResponseDTO;
-import back.fcz.domain.capsule.service.CapsuleReadService;
 import back.fcz.domain.member.service.CurrentUserContext;
 import back.fcz.domain.storytrack.dto.request.CreateStorytrackRequest;
 import back.fcz.domain.storytrack.dto.request.JoinStorytrackRequest;
@@ -30,9 +29,6 @@ public class StorytrackController {
 
     // 스토리트랙 서비스
     private final StorytrackService storytrackService;
-
-    // 캡슐 오픈 서비스
-    private final CapsuleReadService capsuleReadService;
 
     //삭제
     // 작성자 - 스토리트랙 삭제
@@ -161,8 +157,7 @@ public class StorytrackController {
     // 스토리트랙 경로 조회
     @Operation(summary = "스토리트랙 경로 조회", description = "스토리트랙의 캡슐 순서와 해당 캡슐의 간단한 내용을 조회할 수 있습니다.")
     @ApiErrorCodeExample({
-            ErrorCode.STORYTRACK_NOT_FOUND,
-            ErrorCode. STORYTRACK_PAHT_NOT_FOUND
+            ErrorCode.STORYTRACK_NOT_FOUND
     })
     @GetMapping("/path")
     public ResponseEntity<ApiResponse<StorytrackPathResponse>> storytrackPath(
@@ -179,8 +174,7 @@ public class StorytrackController {
     @Operation(summary = "생성한 스토리트랙 조회", description = "본인이 생성한 스토리트랙을 조회할 수 있습니다.")
     @ApiErrorCodeExample({
             ErrorCode.MEMBER_NOT_FOUND,
-            ErrorCode.MEMBER_NOT_ACTIVE,
-            ErrorCode.STORYTRACK_NOT_FOUND
+            ErrorCode.MEMBER_NOT_ACTIVE
     })
     @GetMapping("/creater/storytrackList")
     public ResponseEntity<ApiResponse<PageResponse<CreaterStorytrackListResponse>>> createdStorytrackList(
@@ -198,8 +192,7 @@ public class StorytrackController {
     @Operation(summary = "참여한 스토리트랙 조회", description = "본인이 참여한 스토리트랙 내역을 조회할 수 있습니다.")
     @ApiErrorCodeExample({
             ErrorCode.MEMBER_NOT_FOUND,
-            ErrorCode.MEMBER_NOT_ACTIVE,
-            ErrorCode.PARTICIPANT_NOT_FOUND
+            ErrorCode.MEMBER_NOT_ACTIVE
     })
     @GetMapping("/participant/joinedList")
     public ResponseEntity<ApiResponse<PageResponse<ParticipantStorytrackListResponse>>> joinedStorytrackList(
