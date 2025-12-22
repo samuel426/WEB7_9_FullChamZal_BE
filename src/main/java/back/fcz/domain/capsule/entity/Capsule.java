@@ -77,6 +77,10 @@ public class Capsule extends BaseEntity {
     @Column(name = "is_protected")
     private int isProtected = 0;      // 보호 여부(보호 : 1, 미보호 : 0)
 
+    @Column(name = "like_count")
+    private int likeCount = 0;      //캡슐의 좋아요 수
+
+
     public void setMemberId(Member member){
         this.memberId = member;
     }
@@ -107,5 +111,9 @@ public class Capsule extends BaseEntity {
 
     public void setIsDeleted(int i) {
         this.isDeleted = i;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
     }
 }

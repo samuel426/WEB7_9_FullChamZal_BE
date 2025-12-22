@@ -143,4 +143,11 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
     long countByMemberId_MemberIdAndIsDeleted(Long memberId, int isDeleted);
     long countByMemberId_MemberIdAndIsDeletedAndIsProtected(Long memberId, int isDeleted, int isProtected);
 
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Capsule c SET c.likeCount = c.likeCount + 1 WHERE c.capsuleId = :id")
+    void incrementLikeCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Capsule c SET c.likeCount = c.likeCount - 1 WHERE c.capsuleId = :id AND c.likeCount > 0")
+    void decrementLikeCount(@Param("id") Long id);
 }
