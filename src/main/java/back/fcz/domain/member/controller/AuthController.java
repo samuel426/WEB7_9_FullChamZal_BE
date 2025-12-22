@@ -169,6 +169,14 @@ public class AuthController {
         }
     }
 
+    @Operation(
+            summary = "사용자 로그인 아이디 찾기",
+            description = "사용자 로그인 아이디를 찾기 위한 API입니다. 전화번호 인증(purpose: FIND_ID)이 전제되어야 합니다."
+    )
+    @ApiErrorCodeExample({
+            ErrorCode.PHONE_NOT_VERIFIED,
+            ErrorCode.MEMBER_NOT_FOUND
+    })
     @PostMapping("/findUserId")
     public ResponseEntity<ApiResponse<MemberLoginIdResponse>> findUserId(
             @RequestBody MemberLoginIdRequest memberLoginIdRequest
@@ -177,6 +185,14 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @Operation(
+            summary = "사용자 비밀번호 찾기",
+            description = "사용자 비밀번호를 찾기 위한 API입니다. 사용자의 전화번호와 변경할 비밀번호가 필요합니다. 전화번호 인증(purpose: FIND_PW)이 전제되어야 합니다."
+    )
+    @ApiErrorCodeExample({
+            ErrorCode.PHONE_NOT_VERIFIED,
+            ErrorCode.MEMBER_NOT_FOUND
+    })
     @PutMapping("findPassword")
     public ResponseEntity<ApiResponse<Void>> findPassword(
             @RequestBody MemberLoginPwRequest memberLoginPwRequest
