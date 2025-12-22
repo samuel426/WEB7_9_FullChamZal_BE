@@ -24,6 +24,9 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
     // uuid로 캡슐 찾기
     Optional<Capsule> findByUuid(String uuid);
 
+    // capsuleId로 캡슐 찾기
+    Optional<Capsule> findByCapsuleId(Long capsuleId);
+
     // 선착순
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
@@ -143,4 +146,11 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
     long countByMemberId_MemberIdAndIsDeleted(Long memberId, int isDeleted);
     long countByMemberId_MemberIdAndIsDeletedAndIsProtected(Long memberId, int isDeleted, int isProtected);
 
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Capsule c SET c.likeCount = c.likeCount + 1 WHERE c.capsuleId = :id")
+    void incrementLikeCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Capsule c SET c.likeCount = c.likeCount - 1 WHERE c.capsuleId = :id AND c.likeCount > 0")
+    void decrementLikeCount(@Param("id") Long id);
 }

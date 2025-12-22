@@ -76,13 +76,18 @@ public enum ErrorCode {
     CAPSULE_RECIPIENT_NOT_FOUND("CPS008", HttpStatus.NOT_FOUND, "캡슐 수신자를 찾을 수 없습니다."),
     RECIPIENT_NOT_FOUND("CPS009", HttpStatus.NOT_FOUND, "수신자 정보를 찾을수 없습니다."),
     RECEIVERNICKNAME_IS_REQUIRED("CP010", HttpStatus.BAD_REQUEST, "수신자 닉네임을 입력해주세요."),
+
     CAPSULE_CONTENT_BLOCKED("CPS011", HttpStatus.BAD_REQUEST, "유해한 내용이 감지되어 캡슐을 저장할 수 없습니다."),
     CAPSULE_PASSWORD_REQUIRED("CP012", HttpStatus.BAD_REQUEST, "캡슐 비밀번호 입력이 필요합니다."),
     CAPSULE_ALREADY_SAVED("CP013", HttpStatus.CONFLICT, "이미 저장된 캡슐입니다."),
     PUBLIC_CAPSULE_CANNOT_BE_SAVED("CP014", HttpStatus.BAD_REQUEST, "공개 캡슐은 저장할 수 없습니다."),
     CAPSULE_OPEN_LOG_NOT_FOUND("CP015", HttpStatus.INTERNAL_SERVER_ERROR, "열람 기록을 찾을 수 없습니다."),
-    NICKNAME_REQUIRED("CP016", HttpStatus.BAD_REQUEST, "캡슐 생성에 발신자 닉네임이 필요합니다."),
-    PHONENUMBER_REQUIRED("CP017", HttpStatus.BAD_REQUEST, "캡슐 생성에 전화번호가 필요합니다."),
+    DUPLICATE_LIKE_REQUEST("CPS016", HttpStatus.BAD_REQUEST, "중복으로 좋아요를 누를수 없습니다."),
+    SELF_LIKE_NOT_ALLOWED("CPS017", HttpStatus.BAD_REQUEST, "자신의 캡슐에 좋아요를 누를수 없습니다."),
+    LIKE_DECREASED_FAIL("CPS018", HttpStatus.BAD_REQUEST, "좋아요를 누른적이 없어서 좋아요를 해제할 수 없습니다."),
+    NOT_SELF_CAPSULE("CPS019", HttpStatus.BAD_REQUEST, "자신이 작성한 캡슐이 아닙니다."),
+    NICKNAME_REQUIRED("CP020", HttpStatus.BAD_REQUEST, "캡슐 생성에 발신자 닉네임이 필요합니다."),
+    PHONENUMBER_REQUIRED("CP021", HttpStatus.BAD_REQUEST, "캡슐 생성에 전화번호가 필요합니다."),
 
     // ========== 북마크 에러 ==========
     BOOKMARK_ALREADY_EXISTS("BMK001", HttpStatus.CONFLICT, "이미 북마크된 캡슐입니다."),
