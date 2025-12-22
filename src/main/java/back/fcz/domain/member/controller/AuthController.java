@@ -1,8 +1,11 @@
 package back.fcz.domain.member.controller;
 
+import back.fcz.domain.member.dto.request.MemberLoginIdRequest;
+import back.fcz.domain.member.dto.request.MemberLoginPwRequest;
 import back.fcz.domain.member.dto.request.MemberLoginRequest;
 import back.fcz.domain.member.dto.request.MemberSignupRequest;
 import back.fcz.domain.member.dto.response.LoginTokensResponse;
+import back.fcz.domain.member.dto.response.MemberLoginIdResponse;
 import back.fcz.domain.member.dto.response.MemberSignupResponse;
 import back.fcz.domain.member.service.AuthService;
 import back.fcz.global.config.swagger.ApiErrorCodeExample;
@@ -24,10 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -167,5 +167,21 @@ public class AuthController {
             log.warn("토큰 재발급 실패: errorCode={}, message={}", e.getErrorCode(), e.getMessage());
             throw e;
         }
+    }
+
+    @PostMapping("/findUserId")
+    public ResponseEntity<ApiResponse<MemberLoginIdResponse>> findUserId(
+            @RequestBody MemberLoginIdRequest memberLoginIdRequest
+            ) {
+        MemberLoginIdResponse response = authService.findUserId(memberLoginIdRequest.phoneNum());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PutMapping("findPassword")
+    public ResponseEntity<ApiResponse<Void>> findPassword(
+            @RequestBody MemberLoginPwRequest memberLoginPwRequest
+            ) {
+        authService.findPassword(memberLoginPwRequest);
+        return ResponseEntity.ok(ApiResponse.success());
     }
 }
