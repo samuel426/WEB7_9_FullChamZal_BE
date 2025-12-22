@@ -179,7 +179,7 @@ public class AuthController {
     })
     @PostMapping("/findUserId")
     public ResponseEntity<ApiResponse<MemberLoginIdResponse>> findUserId(
-            @RequestBody MemberLoginIdRequest memberLoginIdRequest
+            @Valid @RequestBody MemberLoginIdRequest memberLoginIdRequest
             ) {
         MemberLoginIdResponse response = authService.findUserId(memberLoginIdRequest.phoneNum());
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -195,7 +195,7 @@ public class AuthController {
     })
     @PutMapping("findPassword")
     public ResponseEntity<ApiResponse<Void>> findPassword(
-            @RequestBody MemberLoginPwRequest memberLoginPwRequest
+            @Valid @RequestBody MemberLoginPwRequest memberLoginPwRequest
             ) {
         authService.findPassword(memberLoginPwRequest);
         return ResponseEntity.ok(ApiResponse.success());
