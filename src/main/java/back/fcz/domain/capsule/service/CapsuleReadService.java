@@ -44,6 +44,32 @@ public class CapsuleReadService {
     private final MemberService memberService;
     private final CurrentUserContext currentUserContext;
 
+    public CapsuleConditionResponseDTO capsuleRead(Long capsuleId){
+        //자신이 작성한 캡슐이면 검증 없이 읽기
+        Capsule capsule = capsuleRepository.findById(capsuleId).orElseThrow(() -> new BusinessException(ErrorCode.CAPSULE_NOT_FOUND));
+        Long currentMemberId = currentUserContext.getCurrentMemberId();
+        //본인이 작성한 캡슐인지 확인
+        System.out.println("currentMemberId : " + currentMemberId);
+        System.out.println("capsule.getMemberId().getMemberId() : " + capsule.getMemberId().getMemberId());
+
+
+        if(!currentMemberId.equals(capsule.getMemberId().getMemberId())){
+            System.out.println("본인이 작성한 캡슐이 아님");
+            throw new BusinessException(ErrorCode.NOT_SELF_CAPSULE);
+        }
+
+        if(capsule.getVisibility().equals("PUBLIC")){
+            System.out.println("공개 캡슐임");
+            boolean viewStatus = publicCapsuleRecipientRepository
+                    .existsByCapsuleId_CapsuleIdAndMemberId(capsule.getCapsuleId(), currentMemberId);
+
+            return CapsuleConditionResponseDTO.from(capsule, viewStatus);
+        }else{
+            System.out.println("비공개 캡슐임");
+            return CapsuleConditionResponseDTO.from(capsule);
+        }
+    }
+
     //조건 확인하고 검증됐다면 읽기
     @Transactional
     public CapsuleConditionResponseDTO conditionAndRead(CapsuleConditionRequestDTO requestDto) {

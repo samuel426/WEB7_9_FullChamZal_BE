@@ -33,6 +33,19 @@ public class CapsuleReadController {
     private final CapsuleDashBoardService  capsuleDashBoardService;
     private final CapsuleSaveButtonService  capsuleSaveButtonService;
 
+    //캡슐 읽기
+    @Operation(summary = "수신자 캡슐 조회",
+            description = "사용자가 보낸 캡슐의 내용을 조건 없이 보여줍니다. "
+    )
+    @ApiErrorCodeExample({
+
+    })
+    @GetMapping("/readSendCapsule")
+    public ResponseEntity<ApiResponse<CapsuleConditionResponseDTO>> readSendCapsule(
+            @RequestParam  Long capsuleId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(capsuleReadService.capsuleRead(capsuleId)));
+    }
 
     //캡슐의 비밀번호 존재 여부
     @Operation(summary = "캡슐의 비밀번호 존재 여부",
