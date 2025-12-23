@@ -2,7 +2,6 @@ package back.fcz.domain.storytrack.controller;
 
 import back.fcz.domain.capsule.DTO.request.CapsuleConditionRequestDTO;
 import back.fcz.domain.capsule.DTO.response.CapsuleConditionResponseDTO;
-import back.fcz.domain.capsule.service.CapsuleReadService;
 import back.fcz.domain.member.service.CurrentUserContext;
 import back.fcz.domain.storytrack.dto.request.CreateStorytrackRequest;
 import back.fcz.domain.storytrack.dto.request.JoinStorytrackRequest;
@@ -10,16 +9,14 @@ import back.fcz.domain.storytrack.dto.request.UpdatePathRequest;
 import back.fcz.domain.storytrack.dto.response.*;
 import back.fcz.domain.storytrack.service.StorytrackService;
 import back.fcz.global.config.swagger.ApiErrorCodeExample;
+import back.fcz.global.dto.PageResponse;
 import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "스토리트랙 API", description = "스토리트랙 관련 API")
 @RestController
@@ -32,9 +29,6 @@ public class StorytrackController {
 
     // 스토리트랙 서비스
     private final StorytrackService storytrackService;
-
-    // 캡슐 오픈 서비스
-    private final CapsuleReadService capsuleReadService;
 
     //삭제
     // 작성자 - 스토리트랙 삭제
@@ -134,11 +128,11 @@ public class StorytrackController {
     @Operation(summary = "공개 스토리트랙 목록 조회", description = "PUBLIC 상태인 스토리트랙 목록을 조회할 수 있습니다.")
     @ApiErrorCodeExample({})
     @GetMapping("/List")
-    public ResponseEntity<ApiResponse<Page<TotalStorytrackResponse>>> readStorytrackList (
-            @RequestParam(defaultValue ="1") int page,
+    public ResponseEntity<ApiResponse<PageResponse<TotalStorytrackResponse>>> readStorytrackList (
+            @RequestParam(defaultValue ="0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
-        Page<TotalStorytrackResponse> response = storytrackService.readTotalStorytrack(page, size);
+        PageResponse<TotalStorytrackResponse> response = storytrackService.readTotalStorytrack(page, size);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -150,9 +144,11 @@ public class StorytrackController {
     })
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<StorytrackDashBoardResponse>> dashboard(
-            @RequestParam Long storytrackId
+            @RequestParam Long storytrackId,
+            @RequestParam(defaultValue ="0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        StorytrackDashBoardResponse response = storytrackService.storytrackDashboard(storytrackId);
+        StorytrackDashBoardResponse response = storytrackService.storytrackDashboard(storytrackId, page, size);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -161,14 +157,15 @@ public class StorytrackController {
     // 스토리트랙 경로 조회
     @Operation(summary = "스토리트랙 경로 조회", description = "스토리트랙의 캡슐 순서와 해당 캡슐의 간단한 내용을 조회할 수 있습니다.")
     @ApiErrorCodeExample({
-            ErrorCode.STORYTRACK_NOT_FOUND,
-            ErrorCode. STORYTRACK_PAHT_NOT_FOUND
+            ErrorCode.STORYTRACK_NOT_FOUND
     })
     @GetMapping("/path")
     public ResponseEntity<ApiResponse<StorytrackPathResponse>> storytrackPath(
-            @RequestParam Long storytrackId
+            @RequestParam Long storytrackId,
+            @RequestParam(defaultValue ="0") int page,
+            @RequestParam(defaultValue = "10") int size
     ){
-        StorytrackPathResponse response = storytrackService.storytrackPath(storytrackId);
+        StorytrackPathResponse response = storytrackService.storytrackPath(storytrackId, page, size);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -177,14 +174,16 @@ public class StorytrackController {
     @Operation(summary = "생성한 스토리트랙 조회", description = "본인이 생성한 스토리트랙을 조회할 수 있습니다.")
     @ApiErrorCodeExample({
             ErrorCode.MEMBER_NOT_FOUND,
-            ErrorCode.MEMBER_NOT_ACTIVE,
-            ErrorCode.STORYTRACK_NOT_FOUND
+            ErrorCode.MEMBER_NOT_ACTIVE
     })
     @GetMapping("/creater/storytrackList")
-    public ResponseEntity<ApiResponse<List<CreaterStorytrackListResponse>>> createdStorytrackList(){
+    public ResponseEntity<ApiResponse<PageResponse<CreaterStorytrackListResponse>>> createdStorytrackList(
+            @RequestParam(defaultValue ="0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
         Long loginMember = currentUserContext.getCurrentUser().memberId();
 
-        List<CreaterStorytrackListResponse> response = storytrackService.createdStorytrackList(loginMember);
+        PageResponse<CreaterStorytrackListResponse> response = storytrackService.createdStorytrackList(loginMember, page, size);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -193,14 +192,16 @@ public class StorytrackController {
     @Operation(summary = "참여한 스토리트랙 조회", description = "본인이 참여한 스토리트랙 내역을 조회할 수 있습니다.")
     @ApiErrorCodeExample({
             ErrorCode.MEMBER_NOT_FOUND,
-            ErrorCode.MEMBER_NOT_ACTIVE,
-            ErrorCode.PARTICIPANT_NOT_FOUND
+            ErrorCode.MEMBER_NOT_ACTIVE
     })
     @GetMapping("/participant/joinedList")
-    public ResponseEntity<ApiResponse<List<ParticipantStorytrackListResponse>>> joinedStorytrackList(){
+    public ResponseEntity<ApiResponse<PageResponse<ParticipantStorytrackListResponse>>> joinedStorytrackList(
+            @RequestParam(defaultValue ="0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
         Long loginMember = currentUserContext.getCurrentUser().memberId();
 
-        List<ParticipantStorytrackListResponse> response = storytrackService.joinedStorytrackList(loginMember);
+        PageResponse<ParticipantStorytrackListResponse> response = storytrackService.joinedStorytrackList(loginMember, page, size);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

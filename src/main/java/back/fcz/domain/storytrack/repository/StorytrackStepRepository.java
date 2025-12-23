@@ -2,6 +2,8 @@ package back.fcz.domain.storytrack.repository;
 
 import back.fcz.domain.storytrack.entity.StorytrackStep;
 import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -20,8 +22,9 @@ public interface StorytrackStepRepository extends JpaRepository<StorytrackStep, 
     where s.storytrack.storytrackId = :storytrackId
     order by s.stepOrder asc
 """)
-    List<StorytrackStep> findStepsWithCapsule(
-            @Param("storytrackId") Long storytrackId
+    Page<StorytrackStep> findStepsWithCapsule(
+            @Param("storytrackId") Long storytrackId,
+            Pageable pagable
     );
 
     Optional<StorytrackStep> findByCapsule_CapsuleIdAndStorytrack_StorytrackId(Long capsuleId, Long storytrackId);

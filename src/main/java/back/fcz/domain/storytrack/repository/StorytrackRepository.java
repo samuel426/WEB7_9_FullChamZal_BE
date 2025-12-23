@@ -5,14 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface StorytrackRepository extends JpaRepository<Storytrack, Long> {
 
-    Page<Storytrack> findByIsPublic(int isPublic, Pageable pagealble);
+    Page<Storytrack> findByIsPublic(int isPublic, Pageable pageable);
 
     Optional<Storytrack> findByStorytrackIdAndIsDeleted(Long id, int isDeleted);
 
-    List<Storytrack> findByMember_MemberId(Long memberId);
+    Page<Storytrack> findByMember_MemberId(Long memberId, Pageable pageable);
 }
