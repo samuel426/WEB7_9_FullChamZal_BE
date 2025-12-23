@@ -1,5 +1,6 @@
 package back.fcz.domain.capsule.service;
 
+import back.fcz.domain.bookmark.repository.BookmarkRepository;
 import back.fcz.domain.capsule.DTO.request.CapsuleConditionRequestDTO;
 import back.fcz.domain.capsule.DTO.response.CapsuleConditionResponseDTO;
 import back.fcz.domain.capsule.DTO.response.CapsuleReadResponse;
@@ -43,6 +44,7 @@ public class CapsuleReadService {
     private final CapsuleOpenLogRepository capsuleOpenLogRepository;
     private final MemberService memberService;
     private final CurrentUserContext currentUserContext;
+    private final BookmarkRepository bookmarkRepository;
 
     public CapsuleConditionResponseDTO capsuleRead(Long capsuleId){
         //자신이 작성한 캡슐이면 검증 없이 읽기
@@ -63,10 +65,11 @@ public class CapsuleReadService {
             boolean viewStatus = publicCapsuleRecipientRepository
                     .existsByCapsuleId_CapsuleIdAndMemberId(capsule.getCapsuleId(), currentMemberId);
 
-            return CapsuleConditionResponseDTO.from(capsule, viewStatus);
+            return CapsuleConditionResponseDTO.from(capsule, viewStatus, false);
         }else{
             System.out.println("비공개 캡슐임");
-            return CapsuleConditionResponseDTO.from(capsule);
+
+            return CapsuleConditionResponseDTO.from(capsule, false);
         }
     }
 
@@ -293,7 +296,14 @@ public class CapsuleReadService {
             capsule.increasedViewCount();
         }
 
-        return CapsuleConditionResponseDTO.from(capsule, viewStatus);
+        Long currentMemberId = currentUserContext.getCurrentMemberId();
+
+        boolean isBookmarked = bookmarkRepository.existsByMemberIdAndCapsuleIdAndDeletedAtIsNull(
+                currentMemberId,
+                capsule.getCapsuleId()
+        );
+
+        return CapsuleConditionResponseDTO.from(capsule, viewStatus, isBookmarked);
 
     }
 
@@ -324,7 +334,12 @@ public class CapsuleReadService {
             }
         }
 
-        return CapsuleConditionResponseDTO.from(capsule);
+        boolean isBookmarked = bookmarkRepository.existsByMemberIdAndCapsuleIdAndDeletedAtIsNull(
+                currentMemberId,
+                capsule.getCapsuleId()
+        );
+
+        return CapsuleConditionResponseDTO.from(capsule, recipient, isBookmarked);
     }
 
     // 개인 캡슐 읽기 - isProtected=0, 로그인 상태 (CapsuleRecipient 없음)
@@ -353,7 +368,12 @@ public class CapsuleReadService {
             capsule.increasedViewCount();
         }
 
-        return CapsuleConditionResponseDTO.from(capsule);
+        boolean isBookmarked = bookmarkRepository.existsByMemberIdAndCapsuleIdAndDeletedAtIsNull(
+                currentMemberId,
+                capsule.getCapsuleId()
+        );
+
+        return CapsuleConditionResponseDTO.from(capsule, isBookmarked);
     }
 
     //개인 캡슐 읽기 - 수신자가 비회원인 경우(로그만 남김)
