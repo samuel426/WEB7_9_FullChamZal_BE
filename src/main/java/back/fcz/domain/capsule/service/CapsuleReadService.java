@@ -69,7 +69,7 @@ public class CapsuleReadService {
         }else{
             System.out.println("비공개 캡슐임");
 
-            return CapsuleConditionResponseDTO.from(capsule, false);
+            return CapsuleConditionResponseDTO.from(capsule);
         }
     }
 
@@ -339,7 +339,7 @@ public class CapsuleReadService {
                 capsule.getCapsuleId()
         );
 
-        return CapsuleConditionResponseDTO.from(capsule, recipient, isBookmarked);
+        return CapsuleConditionResponseDTO.from(capsule, isBookmarked);
     }
 
     // 개인 캡슐 읽기 - isProtected=0, 로그인 상태 (CapsuleRecipient 없음)

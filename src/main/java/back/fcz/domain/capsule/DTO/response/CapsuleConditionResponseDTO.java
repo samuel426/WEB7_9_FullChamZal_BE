@@ -1,7 +1,6 @@
 package back.fcz.domain.capsule.DTO.response;
 
 import back.fcz.domain.capsule.entity.Capsule;
-import back.fcz.domain.capsule.entity.CapsuleRecipient;
 
 import java.time.LocalDateTime;
 
@@ -29,14 +28,14 @@ public record CapsuleConditionResponseDTO(
         String result // 해제 성공 여부
 ) {
     //개인 캡슐이며 수신자가 회원인 경우
-    public static CapsuleConditionResponseDTO from(Capsule capsule, CapsuleRecipient recipient, boolean isBookmarked) {
+    public static CapsuleConditionResponseDTO from(Capsule capsule, boolean isBookmarked) {
         return new CapsuleConditionResponseDTO(
                 // 캡슐 정보
                 capsule.getCapsuleId(),
                 capsule.getCapsuleColor(),
                 capsule.getCapsulePackingColor(),
-                recipient.getRecipientName(),
                 capsule.getNickname(),
+                capsule.getReceiverNickname(),
                 capsule.getTitle(),
                 capsule.getContent(),
                 capsule.getCreatedAt(),
@@ -63,8 +62,8 @@ public record CapsuleConditionResponseDTO(
                 capsule.getCapsuleId(),
                 capsule.getCapsuleColor(),
                 capsule.getCapsulePackingColor(),
-                capsule.getReceiverNickname(),
                 capsule.getNickname(),
+                capsule.getReceiverNickname(),
                 capsule.getTitle(),
                 capsule.getContent(),
                 capsule.getCreatedAt(),
@@ -84,34 +83,6 @@ public record CapsuleConditionResponseDTO(
         );
     }
 
-    // 비공개 캡슐의 경우(url + password)
-    public static CapsuleConditionResponseDTO from(Capsule capsule, boolean isBookmarked) {
-        return new CapsuleConditionResponseDTO(
-                // 캡슐 정보
-                capsule.getCapsuleId(),
-                capsule.getCapsuleColor(),
-                capsule.getCapsulePackingColor(),
-                capsule.getReceiverNickname(),
-                capsule.getNickname(),
-                capsule.getTitle(),
-                capsule.getContent(),
-                capsule.getCreatedAt(),
-                capsule.getCurrentViewCount() > 0,
-
-                capsule.getUnlockType(),
-
-                capsule.getUnlockAt(),
-                capsule.getUnlockUntil(),
-                capsule.getLocationName(),
-                capsule.getLocationLat(),
-                capsule.getLocationLng(),
-                capsule.getLocationRadiusM(),
-
-                isBookmarked,
-                "SUCCESS"
-        );
-    }
-
     //공개 캡슐의 경우(수신자 없음)
     public static CapsuleConditionResponseDTO from(Capsule capsule, boolean viewStatus, boolean isBookmarked) {
         return new CapsuleConditionResponseDTO(
@@ -120,7 +91,7 @@ public record CapsuleConditionResponseDTO(
                 capsule.getCapsuleColor(),
                 capsule.getCapsulePackingColor(),
                 null,
-                capsule.getNickname(),
+                capsule.getReceiverNickname(),
                 capsule.getTitle(),
                 capsule.getContent(),
                 capsule.getCreatedAt(),
