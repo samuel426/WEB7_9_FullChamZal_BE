@@ -12,6 +12,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@Table(name = "capsule", indexes = {
+        @Index(name = "idx_capsule_uuid", columnList = "uuid", unique = true)
+})
 public class Capsule extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,7 +25,7 @@ public class Capsule extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member memberId;            // 회원 고유 ID
 
-    @Column(name = "uuid", nullable = false)
+    @Column(name = "uuid", nullable = false, unique = true, length = 36)
     private String uuid;              // URL용 UUIDv4(난수화)
 
     @Column(name = "nickname", nullable = false)
@@ -74,6 +77,10 @@ public class Capsule extends BaseEntity {
     @Column(name = "is_protected")
     private int isProtected = 0;      // 보호 여부(보호 : 1, 미보호 : 0)
 
+    @Column(name = "like_count")
+    private int likeCount = 0;      //캡슐의 좋아요 수
+
+
     public void setMemberId(Member member){
         this.memberId = member;
     }
@@ -104,5 +111,9 @@ public class Capsule extends BaseEntity {
 
     public void setIsDeleted(int i) {
         this.isDeleted = i;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
     }
 }

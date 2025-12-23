@@ -27,7 +27,7 @@ public abstract class BaseEntity {
 
     // soft delete 시 markDeleted() 호출 시, 삭제 시간 기록
     public void markDeleted() {
-        this.deletedAt = LocalDateTime.now();
+        this.deletedAt = java.time.LocalDateTime.now();
     }
 
     // deletedAt을 null로 변경하기 위한 메서드 - soft delete 복구

@@ -1,13 +1,12 @@
 package back.fcz.domain.storytrack.dto.response;
 
 import back.fcz.domain.storytrack.dto.PathResponse;
-
-import java.util.List;
+import back.fcz.global.dto.PageResponse;
 
 public record StorytrackPathResponse(
         Long storytrackId,
         String title,
         String description,
         int totalStep,
-        List<PathResponse> paths
+        PageResponse<PathResponse> paths
 ) {}

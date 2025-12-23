@@ -1,6 +1,6 @@
 package back.fcz.domain.capsule.DTO.request;
 
-public record CapsuleReadRequest(
+public record CapsuleLikeRequest(
         Long capsuleId
 ) {
 }

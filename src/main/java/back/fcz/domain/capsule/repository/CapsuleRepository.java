@@ -21,6 +21,12 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
     // visibility 필터 (PUBLIC / PRIVATE)
     Page<Capsule> findByIsDeletedFalseAndVisibility(String visibility, Pageable pageable);
 
+    // uuid로 캡슐 찾기
+    Optional<Capsule> findByUuid(String uuid);
+
+    // capsuleId로 캡슐 찾기
+    Optional<Capsule> findByCapsuleId(Long capsuleId);
+
     // 선착순
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
@@ -81,7 +87,7 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
             Pageable pageable
     );
 
-    // ✅ 관리자 캡슐 검색/필터
+    // 관리자 캡슐 검색/필터
     @Query("""
         select c
         from Capsule c
@@ -110,10 +116,10 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
             Pageable pageable
     );
 
-    // ✅ 회원 최근 캡슐 5개(미삭제)
+    // 회원 최근 캡슐 5개(미삭제)
     List<Capsule> findTop5ByMemberId_MemberIdAndIsDeletedOrderByCreatedAtDesc(Long memberId, int isDeleted);
 
-    // ✅ 회원별 "미삭제 캡슐 수" 배치 집계
+    // 회원별 "미삭제 캡슐 수" 배치 집계
     @Query("""
         select c.memberId.memberId, count(c)
         from Capsule c
@@ -123,7 +129,7 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
     """)
     List<Object[]> countActiveByMemberIds(@Param("memberIds") List<Long> memberIds);
 
-    // ✅ 회원별 "보호(블라인드) 캡슐 수" 배치 집계 (보호:1)
+    // 회원별 "보호(블라인드) 캡슐 수" 배치 집계 (보호:1)
     @Query("""
         select c.memberId.memberId, count(c)
         from Capsule c
@@ -140,4 +146,11 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
     long countByMemberId_MemberIdAndIsDeleted(Long memberId, int isDeleted);
     long countByMemberId_MemberIdAndIsDeletedAndIsProtected(Long memberId, int isDeleted, int isProtected);
 
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Capsule c SET c.likeCount = c.likeCount + 1 WHERE c.capsuleId = :id")
+    void incrementLikeCount(@Param("id") Long id);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Capsule c SET c.likeCount = c.likeCount - 1 WHERE c.capsuleId = :id AND c.likeCount > 0")
+    void decrementLikeCount(@Param("id") Long id);
 }

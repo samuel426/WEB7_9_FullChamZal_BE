@@ -18,6 +18,11 @@ import back.fcz.domain.sms.entity.PhoneVerification;
 import back.fcz.domain.sms.entity.PhoneVerificationPurpose;
 import back.fcz.domain.sms.entity.PhoneVerificationStatus;
 import back.fcz.domain.sms.repository.PhoneVerificationRepository;
+import back.fcz.domain.storytrack.entity.Storytrack;
+import back.fcz.domain.storytrack.entity.StorytrackProgress;
+import back.fcz.domain.storytrack.entity.StorytrackStep;
+import back.fcz.domain.storytrack.repository.StorytrackProgressRepository;
+import back.fcz.domain.storytrack.repository.StorytrackRepository;
 import back.fcz.global.crypto.PhoneCrypto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +52,8 @@ public class BaseInitData implements CommandLineRunner {
     private final CapsuleRecipientRepository capsuleRecipientRepository;
     private final PublicCapsuleRecipientRepository publicCapsuleRecipientRepository;
     private final ReportRepository reportRepository;
+    private final StorytrackRepository storytrackRepository;
+    private final StorytrackProgressRepository storytrackProgressRepository;
 
     @Override
     @Transactional
@@ -67,6 +74,10 @@ public class BaseInitData implements CommandLineRunner {
 
         if (capsuleRepository.count() == 0) {
             createTestCapsules();
+        }
+
+        if (storytrackRepository.count() == 0) {
+            createTestStorytracks();
         }
 
         createFirstComeTestCapsule();
@@ -236,7 +247,6 @@ public class BaseInitData implements CommandLineRunner {
             Report r = Report.builder()
                     .capsule(target)
                     .reporter(reporter)
-                    .reporterPhone(null)
                     .reasonType(ReportReasonType.SPAM)
                     .reasonDetail("광고/홍보성 내용이 포함되어 있어요.")
                     .status(ReportStatus.PENDING)
@@ -258,7 +268,6 @@ public class BaseInitData implements CommandLineRunner {
             Report r = Report.builder()
                     .capsule(target)
                     .reporter(null)
-                    .reporterPhone(encryptedGuestPhone)
                     .reasonType(ReportReasonType.OBSCENITY)
                     .reasonDetail("음란/선정적 표현이 포함된 것 같습니다.")
                     .status(ReportStatus.REVIEWING)
@@ -278,7 +287,6 @@ public class BaseInitData implements CommandLineRunner {
             Report r = Report.builder()
                     .capsule(target)
                     .reporter(reporter)
-                    .reporterPhone(null)
                     .reasonType(ReportReasonType.HATE)
                     .reasonDetail("혐오/비하 표현이 포함되어 있습니다.")
                     .status(ReportStatus.ACCEPTED)
@@ -300,7 +308,6 @@ public class BaseInitData implements CommandLineRunner {
             Report r = Report.builder()
                     .capsule(target)
                     .reporter(null)
-                    .reporterPhone(encryptedGuestPhone)
                     .reasonType(ReportReasonType.ETC)
                     .reasonDetail("그냥 기분이 나빠요.")
                     .status(ReportStatus.REJECTED)
@@ -687,7 +694,7 @@ public class BaseInitData implements CommandLineRunner {
     private void createFirstComeTestMembers() {
 
         // 이미 생성되어 있으면 다시 만들지 않음
-        boolean exists = memberRepository.existsByUserId("testuser1");
+        boolean exists = memberRepository.existsByUserId("testuser");
         if (exists) {
             return;
         }
@@ -750,5 +757,103 @@ public class BaseInitData implements CommandLineRunner {
 
         capsuleRepository.save(capsule);
     }
+
+    private void createTestStorytracks() {
+
+        List<Member> members = memberRepository.findAll().stream()
+                .filter(m -> m.getRole() == MemberRole.USER)
+                .toList();
+
+        if (members.size() < 2) return;
+
+        Member creator = members.get(0);
+        Member participant = members.get(1);
+
+        // PUBLIC 캡슐 최소 3개만 있으면 생성
+        List<Capsule> publicCapsules = capsuleRepository.findAll().stream()
+                .filter(c -> "PUBLIC".equals(c.getVisibility()))
+                .toList();
+
+        if (publicCapsules.size() < 3) return;
+
+    /* ======================
+       SEQUENTIAL 스토리트랙 (앞 3개)
+       ====================== */
+        Storytrack sequential = Storytrack.builder()
+                .member(creator)
+                .title("테스트 스토리트랙")
+                .description("SEQUENTIAL 테스트")
+                .trackType("SEQUENTIAL")
+                .isPublic(1)
+                .price(0)
+                .isDeleted(0)
+                .build();
+
+        storytrackRepository.save(sequential);
+
+        int order = 1;
+        for (Capsule capsule : publicCapsules.subList(0, 3)) {
+            StorytrackStep step = StorytrackStep.builder()
+                    .capsule(capsule)
+                    .stepOrder(order++)
+                    .build();
+            sequential.addStep(step);
+        }
+
+        sequential.setTotalSteps(sequential.getSteps().size());
+        storytrackRepository.save(sequential);
+
+        storytrackProgressRepository.save(
+                StorytrackProgress.builder()
+                        .member(participant)
+                        .storytrack(sequential)
+                        .completedSteps(1)
+                        .lastCompletedStep(1)
+                        .build()
+        );
+
+    /* ======================
+       FREE 스토리트랙 (남은 캡슐 최대 3개)
+       ====================== */
+        if (publicCapsules.size() < 4) return; // FREE는 최소 1개 이상일 때만
+
+        Storytrack free = Storytrack.builder()
+                .member(creator)
+                .title("자유형 스토리트랙")
+                .description("FREE 타입 테스트")
+                .trackType("FREE")
+                .isPublic(1)
+                .price(0)
+                .isDeleted(0)
+                .build();
+
+        storytrackRepository.save(free);
+
+        order = 1;
+        int fromIndex = 3;
+        int toIndex = Math.min(publicCapsules.size(), 6); // 최대 3개
+
+        for (Capsule capsule : publicCapsules.subList(fromIndex, toIndex)) {
+            StorytrackStep step = StorytrackStep.builder()
+                    .capsule(capsule)
+                    .stepOrder(order++)
+                    .build();
+            free.addStep(step);
+        }
+
+        free.setTotalSteps(free.getSteps().size());
+        storytrackRepository.save(free);
+
+        storytrackProgressRepository.save(
+                StorytrackProgress.builder()
+                        .member(participant)
+                        .storytrack(free)
+                        .completedSteps(0)
+                        .lastCompletedStep(0)
+                        .build()
+        );
+    }
+
+
 
 }
