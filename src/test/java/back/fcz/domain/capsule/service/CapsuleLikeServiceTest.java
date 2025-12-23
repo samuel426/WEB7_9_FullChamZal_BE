@@ -55,6 +55,7 @@ public class CapsuleLikeServiceTest {
         // 3. 캡슐 생성
         this.capsule = Capsule.builder()
                 .likeCount(10)
+                .visibility("PUBLIC")
                 .build();
 
         // 캡슐의 PK 설정

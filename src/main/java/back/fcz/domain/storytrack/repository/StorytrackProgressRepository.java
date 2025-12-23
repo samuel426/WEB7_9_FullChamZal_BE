@@ -1,11 +1,12 @@
 package back.fcz.domain.storytrack.repository;
 
 import back.fcz.domain.storytrack.entity.StorytrackProgress;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface StorytrackProgressRepository extends JpaRepository<StorytrackProgress, Long> {
@@ -34,7 +35,7 @@ public interface StorytrackProgressRepository extends JpaRepository<StorytrackPr
     join fetch sp.storytrack s
     where sp.member.memberId = :memberId
 """)
-    List<StorytrackProgress> findProgressesByMemberId(Long memberId);
+    Page<StorytrackProgress> findProgressesByMemberId(Long memberId, Pageable pageable);
 
     Optional<StorytrackProgress> findByStorytrack_StorytrackIdAndMember_MemberId(Long storytrackId, Long memberId);
 
