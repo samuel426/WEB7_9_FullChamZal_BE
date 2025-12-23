@@ -16,6 +16,8 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
     Optional<Bookmark> findByMemberIdAndCapsuleIdAndDeletedAtIsNull(Long memberId, Long capsuleId);
 
+    boolean existsByMemberIdAndCapsuleIdAndDeletedAtIsNull(Long memberId, Long capsuleId);
+    
     @Query("""
     SELECT new back.fcz.domain.bookmark.dto.BookmarkWithCapsule(
         b.id,
