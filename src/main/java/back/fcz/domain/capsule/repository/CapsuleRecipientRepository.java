@@ -44,4 +44,12 @@ public interface CapsuleRecipientRepository extends JpaRepository<CapsuleRecipie
         where cr.capsuleId.capsuleId in :capsuleIds
     """)
     List<CapsuleRecipient> findAllByCapsuleIds(@Param("capsuleIds") List<Long> capsuleIds);
+
+
+    @Query("SELECT c FROM CapsuleRecipient c WHERE c.capsuleId.capsuleId = :capsuleId")
+    Optional<CapsuleRecipient> findByCapsuleId(@Param("capsuleId") Long capsuleId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from CapsuleRecipient cr where cr.capsuleId.capsuleId in :capsuleIds")
+    int deleteByCapsuleIds(@Param("capsuleIds") List<Long> capsuleIds);
 }
