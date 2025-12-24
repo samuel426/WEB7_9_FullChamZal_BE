@@ -3,6 +3,7 @@ package back.fcz.global.exception;
 import back.fcz.global.response.ApiResponse;
 import back.fcz.global.response.ResponseCode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -85,5 +86,11 @@ public class GlobalExceptionHandler {
 
         ApiResponse<Void> response = ApiResponse.error(ErrorCode.INTERNAL_ERROR);
         return new ResponseEntity<>(response, ErrorCode.INTERNAL_ERROR.getStatus());
+    }
+
+    @ExceptionHandler(ClientAbortException.class)
+    public ResponseEntity<Void> handleClientAbort(ClientAbortException e) {
+        log.debug("Client aborted connection");
+        return ResponseEntity.noContent().build();
     }
 }
