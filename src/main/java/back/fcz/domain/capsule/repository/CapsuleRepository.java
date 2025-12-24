@@ -160,4 +160,18 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
             "WHERE c.memberId.memberId = :memberId AND year(c.createdAt) = :year " +
             "GROUP BY month(c.createdAt)")
     List<Object[]> countMonthlySendCapsules(@Param("memberId") Long memberId, @Param("year") int year);
+           
+    @Query("""
+    SELECT c FROM Capsule c
+    WHERE c.memberId.memberId = :memberId
+      AND c.visibility = :isPublic
+      AND (c.unlockType = :type1 OR c.unlockType = :type2)
+""")
+    Page<Capsule> findMyCapsulesLocationType(
+            @Param("memberId") Long memberId,
+            @Param("isPublic") String isPublic,
+            @Param("type1") String type1,
+            @Param("type2") String type2,
+            Pageable pageable
+    );
 }
