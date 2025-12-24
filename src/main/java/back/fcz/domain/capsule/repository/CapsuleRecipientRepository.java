@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,4 +56,15 @@ public interface CapsuleRecipientRepository extends JpaRepository<CapsuleRecipie
             "AND cr.deletedAt IS NULL " +                // 삭제되지 않은 것만
             "GROUP BY month(cr.createdAt)")
     List<Object[]> countMonthlyReceiveCapsules(@Param("phoneHash") String phoneHash, @Param("year") int year);
+
+    @Query("SELECT cr FROM CapsuleRecipient cr " +
+            "JOIN FETCH cr.capsuleId c " +
+            "WHERE cr.recipientPhoneHash = :phoneHash " +
+            "AND c.unlockAt BETWEEN :startOfDay AND :endOfDay " +
+            "AND cr.deletedAt IS NULL")
+    List<CapsuleRecipient> findTodayUnlockedCapsules(
+            @Param("phoneHash") String phoneHash,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
+    );
 }

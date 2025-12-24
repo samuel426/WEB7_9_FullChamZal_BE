@@ -1,7 +1,9 @@
 package back.fcz.domain.capsule.service;
 
 import back.fcz.domain.capsule.DTO.response.CapsuleDashBoardResponse;
+import back.fcz.domain.capsule.DTO.response.DailyUnlockedCapsuleResponse;
 import back.fcz.domain.capsule.DTO.response.MonthlyCapsuleStat;
+import back.fcz.domain.capsule.DTO.response.UnlockedCapsuleResponse;
 import back.fcz.domain.capsule.entity.Capsule;
 import back.fcz.domain.capsule.entity.CapsuleRecipient;
 import back.fcz.domain.capsule.repository.CapsuleRecipientRepository;
@@ -15,6 +17,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,5 +87,21 @@ public class CapsuleDashBoardService {
 
         return stats;
 
+    }
+
+    public DailyUnlockedCapsuleResponse dailyUnlockedCapsule(Long memberId) {
+        String phoneHash = memberRepository.findById(memberId).orElseThrow(() ->
+                new BusinessException(ErrorCode.MEMBER_NOT_FOUND)).getPhoneHash();  // 사용자의 해시된 폰 번호
+
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+
+        List<CapsuleRecipient> todayUnlockedCapsules = capsuleRecipientRepository.findTodayUnlockedCapsules(phoneHash, startOfDay, endOfDay);
+        List<UnlockedCapsuleResponse> list = todayUnlockedCapsules.stream()
+                .map(UnlockedCapsuleResponse::new)
+                .toList();
+
+
+        return new DailyUnlockedCapsuleResponse(list);
     }
 }

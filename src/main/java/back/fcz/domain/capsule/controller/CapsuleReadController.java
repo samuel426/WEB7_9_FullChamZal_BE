@@ -134,7 +134,7 @@ public class CapsuleReadController {
     @Operation(summary = "연간 송수신 캡슐 조회",
             description = "사용자가 연간 송수신 한 캡슐들의 수를 조회합니다.")
     @ApiErrorCodeExample({
-
+            ErrorCode.MEMBER_NOT_FOUND
     })
     @GetMapping("/showYearlyCapsule/")
     public ResponseEntity<ApiResponse<YearlyCapsuleResponse>> showYearlyCapsule(
@@ -143,6 +143,19 @@ public class CapsuleReadController {
     ) {
         List<MonthlyCapsuleStat> yearlyCapsule = capsuleDashBoardService.readYearlyCapsule(memberId, year);
         YearlyCapsuleResponse response = new YearlyCapsuleResponse(yearlyCapsule);
+        return  ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @Operation(summary = "오늘 해제 될 캡슐 조회",
+            description = "사용자가 받은 캡슐 중 오늘 해제될 캡슐들을 반환합니다.")
+    @ApiErrorCodeExample({
+
+    })
+    @GetMapping("/dailyUnlockedCapsule/")
+    public ResponseEntity<ApiResponse<DailyUnlockedCapsuleResponse>> dailyUnlockedCapsule(
+            @AuthenticationPrincipal Long memberId
+    ) {
+        DailyUnlockedCapsuleResponse response= capsuleDashBoardService.dailyUnlockedCapsule(memberId);
         return  ResponseEntity.ok(ApiResponse.success(response));
     }
 
