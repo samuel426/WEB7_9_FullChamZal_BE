@@ -6,6 +6,7 @@ import back.fcz.domain.capsule.entity.CapsuleRecipient;
 import back.fcz.domain.capsule.repository.CapsuleRecipientRepository;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
 import back.fcz.domain.member.repository.MemberRepository;
+import back.fcz.global.dto.PageResponse;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -73,9 +74,7 @@ public class CapsuleDashBoardService {
     }
 
     // 스토리트랙용 캡슐 목록 조회(내가 만든 캡슐, 공개 ,장소 기반)
-
-    List<String> types = List.of("LOCATION", "TIME_AND_LOCATION");
-    public Page<CapsuleDashBoardResponse> MyPublicLocationCapsule (Long memberId, int page, int size){
+    public PageResponse<CapsuleDashBoardResponse> myPublicLocationCapsule (Long memberId, int page, int size){
         Pageable pageable = createPageable(
                 page,
                 size,
@@ -86,6 +85,6 @@ public class CapsuleDashBoardService {
 
         Page<CapsuleDashBoardResponse> responsePage = capsulePage.map(CapsuleDashBoardResponse::new);
 
-        return responsePage;
+        return new PageResponse<>(responsePage);
     }
 }
