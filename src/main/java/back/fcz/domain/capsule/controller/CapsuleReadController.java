@@ -136,7 +136,7 @@ public class CapsuleReadController {
     @ApiErrorCodeExample({
             ErrorCode.MEMBER_NOT_FOUND
     })
-    @GetMapping("/showYearlyCapsule/")
+    @GetMapping("/showYearlyCapsule")
     public ResponseEntity<ApiResponse<YearlyCapsuleResponse>> showYearlyCapsule(
             @AuthenticationPrincipal Long memberId,
             @RequestParam int year
@@ -151,7 +151,7 @@ public class CapsuleReadController {
     @ApiErrorCodeExample({
 
     })
-    @GetMapping("/dailyUnlockedCapsule/")
+    @GetMapping("/dailyUnlockedCapsule")
     public ResponseEntity<ApiResponse<DailyUnlockedCapsuleResponse>> dailyUnlockedCapsule(
             @AuthenticationPrincipal Long memberId
     ) {
