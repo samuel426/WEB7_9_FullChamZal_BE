@@ -15,10 +15,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Aspect
 @Component
@@ -26,7 +24,8 @@ import java.util.Set;
 public class DuplicateRequestAspect {
     private final CurrentUserContext currentUserContext;
 
-    private Set<String> requestSet = Collections.synchronizedSet(new HashSet());
+    private final Map<String, Long> requestMap = new ConcurrentHashMap<>();
+    private static final long COOLDOWN_MS = 2000; // 2초
 
     @Pointcut("within(*..*Controller)")
     public void onRequest() {}
@@ -51,7 +50,6 @@ public class DuplicateRequestAspect {
 
         // 회원 여부에 따라 memebrId / null로 값이 다름
         Optional<InServerMemberResponse> optionalUser = tryGetCurrentUser();
-
         String requestId;
 
         if(optionalUser.isPresent()){ // 로그인 상태
@@ -69,22 +67,29 @@ public class DuplicateRequestAspect {
                             request.getRequestURI();
         }
 
-        if (requestSet.contains(requestId)) {
-            // 중복 요청인 경우
+        long now = System.currentTimeMillis();
+
+        // requestId(요청을 구분하기 위한 식별자)를 선점 시도
+        Long prev = requestMap.putIfAbsent(requestId, now);
+
+        // 같은 requestId 요청이 쿨타임 내에 다시 들어 왔을 때 -> 중복된 요청임을 표시해야함
+        if (prev != null && now - prev < COOLDOWN_MS) {
             return handleDuplicateRequest();
         }
-        requestSet.add(requestId);
-        try {
-            // 핵심 로직 실행
-            return joinPoint.proceed();
-        } finally {
-            // 실행 완료 후 삭제
-            requestSet.remove(requestId);
+
+        // 같은 requstId가 새로 들어 왔을 때, 가장 마지막 요청으로부터 쿨다운 시간만큼 지났는지 확인
+        if (prev != null && now - prev >= COOLDOWN_MS) {
+            requestMap.put(requestId, now);
         }
+
+        // 핵심 로직 실행
+        return joinPoint.proceed();
     }
 
     private ResponseEntity<Object> handleDuplicateRequest() {
         // 중복 요청에 대한 응답 처리
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("중복된 요청 입니다");
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body("중복된 요청 입니다.");
     }
 }
