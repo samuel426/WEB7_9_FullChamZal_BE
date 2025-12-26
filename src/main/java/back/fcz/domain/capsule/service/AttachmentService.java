@@ -1,5 +1,6 @@
 package back.fcz.domain.capsule.service;
 
+import back.fcz.domain.capsule.DTO.response.CapsuleAttachmentViewResponse;
 import back.fcz.domain.capsule.entity.CapsuleAttachment;
 import back.fcz.domain.capsule.entity.CapsuleAttachmentStatus;
 import back.fcz.domain.capsule.repository.CapsuleAttachmentRepository;
@@ -23,14 +24,12 @@ public class AttachmentService {
 
 
     @Transactional(readOnly = true)
-    public String presignedDownload(Long memberId, Long attachmentId){
+    public CapsuleAttachmentViewResponse presignedDownload(Long memberId, Long attachmentId){
         CapsuleAttachment attachment = capsuleAttachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new IllegalArgumentException("첨부파일을 찾을 수 없습니다."));
 
-        return presignedUrlProvider.presignGet(
-                attachment.getS3Key(),
-                GET_EXPIRES
-        );
+        String presignedUrl = presignedUrlProvider.presignGet(attachment.getS3Key(),GET_EXPIRES);
+        return new CapsuleAttachmentViewResponse(presignedUrl,attachment.getId());
     }
 
     @Transactional

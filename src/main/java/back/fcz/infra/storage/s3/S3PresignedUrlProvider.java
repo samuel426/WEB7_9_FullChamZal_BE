@@ -3,7 +3,6 @@ package back.fcz.infra.storage.s3;
 import back.fcz.infra.storage.PresignedUrlProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -13,7 +12,7 @@ import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
-@Profile("prod")
+
 public class S3PresignedUrlProvider implements PresignedUrlProvider {
 
     private final S3Presigner s3Presigner;
