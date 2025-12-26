@@ -3,6 +3,7 @@ package back.fcz.domain.backup.controller;
 import back.fcz.domain.backup.dto.response.GoogleDriveConnectionResponse;
 import back.fcz.domain.backup.service.BackupService;
 import back.fcz.global.config.swagger.ApiErrorCodeExample;
+import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,7 +37,12 @@ public class BackupController {
                     "### [주의사항]\n" +
                     "* 구글 로그인 사용자는 최초 로그인 시 연동이 진행되지만, " +
                     "최초 동의가 이루어지지 않았거나 권한이 만료/유실된 경우 NEED_CONNECT가 발생할 수 있습니다.")
-    @ApiErrorCodeExample({})
+    @ApiErrorCodeExample({
+            ErrorCode.ONLY_RECIPIENT_CAN_BACKUP,
+            ErrorCode.GOOGLE_DRIVE_UPLOAD_FAIL,
+            ErrorCode.GOOGLE_TOKEN_UPDATE_FAIL,
+            ErrorCode.CAPSULE_NOT_FOUND
+    })
     @PostMapping("/{capsuleId}")
     public ResponseEntity<ApiResponse<GoogleDriveConnectionResponse>> capsuleBackup(
             @PathVariable Long capsuleId,
@@ -46,10 +52,9 @@ public class BackupController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    /**
-     * 사용자가 구글 드라이브 연동 후,
-     * 구글에서 해당 api로 리다이렉트
-     */
+    @Operation(summary = "구글 -> 백엔드 서버 리다이렉트 api",
+            description = "사용자가 구글 드라이브 연동을 마치면, 구글에서 해당 api로 연동 정보를 보내줍니다. " +
+                    "백엔드 서버는 연동 정보를 DB에 저장한 뒤, 대시보드 페이지로 리다이렉트 합니다.")
     @GetMapping("/connect/callback")
     public void callback(
             @RequestParam String code,
