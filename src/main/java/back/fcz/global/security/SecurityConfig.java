@@ -1,6 +1,8 @@
 package back.fcz.global.security;
 
 import back.fcz.domain.member.service.GoogleOAuth2Service;
+import back.fcz.global.security.filter.IpBlockFilter;
+import back.fcz.global.security.filter.RateLimitFilter;
 import back.fcz.global.security.jwt.filter.JwtAuthenticationFilter;
 import back.fcz.global.security.oauth.GoogleOAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final IpBlockFilter ipBlockFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final GoogleOAuth2Service googleOAuth2Service;
     private final GoogleOAuth2SuccessHandler googleOAuth2SuccessHandler;
 
@@ -90,6 +94,8 @@ public class SecurityConfig {
 
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
+                .addFilterBefore(ipBlockFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
