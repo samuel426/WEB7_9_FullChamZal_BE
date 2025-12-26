@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Repository
@@ -28,4 +29,5 @@ public interface CapsuleLikeRepository extends JpaRepository<CapsuleLike, Long> 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from CapsuleLike cl where cl.capsuleId.capsuleId in :capsuleIds")
     int deleteByCapsuleIds(@Param("capsuleIds") List<Long> capsuleIds);
+    Optional<CapsuleLike> findByCapsuleId_CapsuleIdAndMemberId_MemberId(Long capsuleId, Long memberId);
 }
