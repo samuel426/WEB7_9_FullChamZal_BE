@@ -45,8 +45,8 @@ spring:
               - https://www.googleapis.com/auth/drive.file
         provider:
           google:
-            # google 인증 시, refresh 토큰도 발급하도록 access_type=offline, prompt=consent 설정
-            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent
+            # google 인증 시, refresh 토큰도 발급하도록 access_type=offline 설정
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?access_type=offline
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
@@ -78,4 +78,4 @@ google:
   drive:
     client-id: ${GOOGLE_OAUTH_ID}
     client-secret: ${GOOGLE_OAUTH_SECRET}
-    redirect-uri: http://localhost:8080/api/v1/backup/google-drive/connect/callback
+    redirect-uri: ${GOOGLE_DRIVE_LOCAL_REDIRECT}

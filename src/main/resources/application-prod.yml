@@ -47,7 +47,7 @@ spring:
               - https://www.googleapis.com/auth/drive.file
         provider:
           google:
-            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?access_type=offline
 
 logging:
   level:
@@ -103,4 +103,4 @@ google:
   drive:
     client-id: ${GOOGLE_OAUTH_ID}
     client-secret: ${GOOGLE_OAUTH_SECRET}
-    redirect-uri: https://api.dear4u.cloud/api/v1/backup/google-drive/connect/callback
+    redirect-uri: ${GOOGLE_DRIVE_REDIRECT}
