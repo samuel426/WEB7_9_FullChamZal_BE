@@ -75,6 +75,11 @@ dependencies {
 
     // 10. OAuth (OAuth 로그인)
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // s3
+    implementation 'software.amazon.awssdk:s3:2.25.0'
+    implementation 'software.amazon.awssdk:auth:2.25.0'
+    implementation 'software.amazon.awssdk:regions:2.25.0'
 }
 
 // CI 테스트 제외
