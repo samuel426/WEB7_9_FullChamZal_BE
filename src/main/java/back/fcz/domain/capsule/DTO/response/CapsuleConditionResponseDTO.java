@@ -1,7 +1,6 @@
 package back.fcz.domain.capsule.DTO.response;
 
 import back.fcz.domain.capsule.entity.Capsule;
-import back.fcz.domain.capsule.entity.CapsuleRecipient;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +12,7 @@ public record CapsuleConditionResponseDTO(
         String senderNickname,               // 송신자 이름
         String title,                // 제목
         String content,              // 내용 // 내용은 일정 글자수 넘어가면 ...으로 처리
-        LocalDateTime createAt,      // 보낸 날짜
+        LocalDateTime createdAt,      // 보낸 날짜
         boolean viewStatus,          // 조회 여부
 
         String unlockType,        // 해제 조건
@@ -23,18 +22,20 @@ public record CapsuleConditionResponseDTO(
         String locationName,       // 장소 이름(별명)
         Double locationLat,        // 해제 세부 조건(위도) : 위치 기반 해제 일시
         Double locationLng,         // 해제 세부 조건(경도) : 위치 기반 해제 일시
+        int locationRadiusM,
 
+        boolean isBookmarked, // 북마크 여부
         String result // 해제 성공 여부
 ) {
     //개인 캡슐이며 수신자가 회원인 경우
-    public static CapsuleConditionResponseDTO from(Capsule capsule, CapsuleRecipient recipient) {
+    public static CapsuleConditionResponseDTO from(Capsule capsule, boolean isBookmarked) {
         return new CapsuleConditionResponseDTO(
                 // 캡슐 정보
                 capsule.getCapsuleId(),
                 capsule.getCapsuleColor(),
                 capsule.getCapsulePackingColor(),
-                recipient.getRecipientName(),
                 capsule.getNickname(),
+                capsule.getReceiverNickname(),
                 capsule.getTitle(),
                 capsule.getContent(),
                 capsule.getCreatedAt(),
@@ -47,20 +48,22 @@ public record CapsuleConditionResponseDTO(
                 capsule.getLocationName(),
                 capsule.getLocationLat(),
                 capsule.getLocationLng(),
+                capsule.getLocationRadiusM(),
 
+                isBookmarked,
                 "SUCCESS"
         );
     }
 
-    //개인 캡슐이며 수신자가 회원인 경우
+    // 비공개 캡슐의 경우(phonenum)
     public static CapsuleConditionResponseDTO from(Capsule capsule) {
         return new CapsuleConditionResponseDTO(
                 // 캡슐 정보
                 capsule.getCapsuleId(),
                 capsule.getCapsuleColor(),
                 capsule.getCapsulePackingColor(),
-                capsule.getReceiverNickname(),
                 capsule.getNickname(),
+                capsule.getReceiverNickname(),
                 capsule.getTitle(),
                 capsule.getContent(),
                 capsule.getCreatedAt(),
@@ -73,20 +76,22 @@ public record CapsuleConditionResponseDTO(
                 capsule.getLocationName(),
                 capsule.getLocationLat(),
                 capsule.getLocationLng(),
+                capsule.getLocationRadiusM(),
 
+                false,
                 "SUCCESS"
         );
     }
 
     //공개 캡슐의 경우(수신자 없음)
-    public static CapsuleConditionResponseDTO from(Capsule capsule, boolean viewStatus) {
+    public static CapsuleConditionResponseDTO from(Capsule capsule, boolean viewStatus, boolean isBookmarked) {
         return new CapsuleConditionResponseDTO(
                 // 캡슐 정보
                 capsule.getCapsuleId(),
                 capsule.getCapsuleColor(),
                 capsule.getCapsulePackingColor(),
                 null,
-                capsule.getNickname(),
+                capsule.getReceiverNickname(),
                 capsule.getTitle(),
                 capsule.getContent(),
                 capsule.getCreatedAt(),
@@ -99,7 +104,9 @@ public record CapsuleConditionResponseDTO(
                 capsule.getLocationName(),
                 capsule.getLocationLat(),
                 capsule.getLocationLng(),
+                capsule.getLocationRadiusM(),
 
+                isBookmarked,
                 "SUCCESS"
         );
     }
@@ -123,7 +130,9 @@ public record CapsuleConditionResponseDTO(
                 capsule.getLocationName(),
                 capsule.getLocationLat(),
                 capsule.getLocationLng(),
+                capsule.getLocationRadiusM(),
 
+                false,
                 "FAIL"
         );
     }

@@ -18,6 +18,7 @@ import back.fcz.domain.storytrack.entity.StorytrackStep;
 import back.fcz.domain.storytrack.repository.StorytrackProgressRepository;
 import back.fcz.domain.storytrack.repository.StorytrackRepository;
 import back.fcz.domain.storytrack.repository.StorytrackStepRepository;
+import back.fcz.global.dto.PageResponse;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,7 +65,8 @@ public class StorytrackService {
         }
 
         // 삭제 - 소프트딜리트
-        targetStorytrack.softDelete();
+        targetStorytrack.setIsDeleted(1);
+        targetStorytrack.markDeleted();
 
         // 스토리트랙 단계 삭제
         List<StorytrackStep> targetSteps = storytrackStepRepository.findAllByStorytrack_StorytrackId(storytrackId);
@@ -196,24 +199,38 @@ public class StorytrackService {
         return JoinStorytrackResponse.from(storytrack, participant);
     }
 
+    private Pageable createPageable(int page, int size, Sort sort) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 50); // max 50
+
+        return PageRequest.of(safePage, safeSize, sort);
+    }
+
     // 조회 -> 조회 페이징 필요!
     // 전체 스토리 트랙 목록 조회
-    public Page<TotalStorytrackResponse> readTotalStorytrack(int page, int size) {
+    public PageResponse<TotalStorytrackResponse> readTotalStorytrack(int page, int size) {
 
-        Pageable pageable = PageRequest.of(
+        Pageable pageable = createPageable(
                 page,
-                size
+                size,
+                Sort.by(Sort.Direction.ASC, "storytrackId") // 생성한 순서대로 조회
         );
 
-        Page<Storytrack> storytracks = storytrackRepository.findByIsPublic(1, pageable);
+        Page<Storytrack> storytrackPage =
+                storytrackRepository.findByIsPublic(1, pageable);
 
-        return storytracks.map(TotalStorytrackResponse::from);
+        Page<TotalStorytrackResponse> responsePage =
+                storytrackPage.map(TotalStorytrackResponse::from);
+
+        return new PageResponse<>(responsePage);
     }
 
     // 스토리트랙 조회 -> 스토리트랙에 대한 간략한 조회
     // 대략적인 경로(순서), 총 인원 수, 완료한 인원 수, 스토리트랙 제작자(닉네임)
     public StorytrackDashBoardResponse storytrackDashboard(
-            Long storytrackId
+            Long storytrackId,
+            int page,
+            int size
     ) {
         // 스토리트랙
         Storytrack storytrack = storytrackRepository
@@ -224,16 +241,20 @@ public class StorytrackService {
         int completeProgress = storytrackProgressRepository.countByStorytrack_StorytrackIdAndCompletedAtIsNotNull(storytrackId);
 
         // 스토리트랙 경로
-        // TODO: 스토리트랙 경로 페이징 필요
-        List<PathResponse> paths =
-                storytrackStepRepository.findStepsWithCapsule(storytrackId)
-                        .stream()
-                        .map(PathResponse::from)
-                        .toList();
+        Pageable pageable = createPageable(
+                page,
+                size,
+                Sort.by(Sort.Direction.ASC, "stepOrder")
+        );
+
+        Page<StorytrackStep> paths = storytrackStepRepository.findStepsWithCapsule(storytrackId, pageable);
+
+        Page<PathResponse> responsePage =
+                paths.map(PathResponse::from);
 
         return StorytrackDashBoardResponse.of(
                 storytrack,
-                paths,
+                responsePage,
                 totalParticipant,
                 completeProgress
         );
@@ -242,64 +263,84 @@ public class StorytrackService {
 
     // 생성, 참여 : 스토리트랙 경로 조회
     // 단계, 각 단계의 캡슐 조회
-    public StorytrackPathResponse storytrackPath(Long storytrackId) {
+    public StorytrackPathResponse storytrackPath(
+            Long storytrackId,
+            int page,
+            int size
+    ) {
 
         Storytrack storytrack = storytrackRepository
                 .findByStorytrackIdAndIsDeleted(storytrackId, 0)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND));
 
-        List<StorytrackStep> steps =
-                storytrackStepRepository.findStepsWithCapsule(storytrackId);
+        Pageable pageable = createPageable(
+                page,
+                size,
+                Sort.by(Sort.Direction.ASC, "stepOrder")
+        );
 
-        if (steps.isEmpty()) {
-            throw new BusinessException(ErrorCode. STORYTRACK_PAHT_NOT_FOUND);
-        }
+        Page<StorytrackStep> steps =
+                storytrackStepRepository.findStepsWithCapsule(storytrackId, pageable);
 
-        List<PathResponse> paths = steps.stream()
-                .map(PathResponse::from)
-                .toList();
+        Page<PathResponse> responsePage =
+                steps.map(PathResponse::from);
 
         return new StorytrackPathResponse(
                 storytrack.getStorytrackId(),
                 storytrack.getTitle(),
                 storytrack.getDescription(),
                 storytrack.getTotalSteps(),
-                paths
+                new PageResponse<> (responsePage)
         );
     }
 
 
     // 생성자 : 생성한 스토리트랙 목록 조회
-    public List<CreaterStorytrackListResponse> createdStorytrackList(Long memberId) {
+    public PageResponse<CreaterStorytrackListResponse> createdStorytrackList(
+            Long memberId,
+            int page,
+            int size
+    ) {
 
-        List<Storytrack> storytracks =
-                storytrackRepository.findByMember_MemberId(memberId);
+        Pageable pageable = createPageable(
+                page,
+                size,
+                Sort.by(Sort.Direction.ASC, "storytrackId") // 생성한 순서대로 조회
+        );
 
-        if (storytracks.isEmpty()) {
-            throw new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND);
-        }
+        Page<Storytrack> storytracks =
+                storytrackRepository.findByMember_MemberId(memberId, pageable);
 
-        return storytracks.stream()
-                .map(CreaterStorytrackListResponse::from)
-                .toList();
+        Page<CreaterStorytrackListResponse> responsePage =
+                storytracks.map(CreaterStorytrackListResponse::from);
+
+        return new PageResponse<> (responsePage);
     }
 
     // 참여자 : 참여한 스토리트랙 목록 조회
-    public List<ParticipantStorytrackListResponse> joinedStorytrackList(Long memberId) {
+    public PageResponse<ParticipantStorytrackListResponse> joinedStorytrackList(
+            Long memberId,
+            int page,
+            int size
+    ) {
 
-        List<StorytrackProgress> progresses =
-                storytrackProgressRepository.findProgressesByMemberId(memberId);
+        Pageable pageable = createPageable(
+                page,
+                size,
+                Sort.by(Sort.Direction.ASC, "id") // 참여한 순서대로 조회
+        );
 
-        if (progresses.isEmpty()) {
-            throw new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND);
-        }
+        Page<StorytrackProgress> progresses =
+                storytrackProgressRepository.findProgressesByMemberId(memberId, pageable);
 
-        return progresses.stream()
-                .map(progress -> ParticipantStorytrackListResponse.from(
-                        progress,
-                        progress.getStorytrack()
-                ))
-                .toList();
+        Page<ParticipantStorytrackListResponse> responsePage =
+                progresses.map(progress -> ParticipantStorytrackListResponse.from(
+                progress,
+                progress.getStorytrack()
+                        )
+                );
+
+        return new PageResponse<> (responsePage);
     }
 
     // 참여자 : 스토리트랙 진행 상세 조회
