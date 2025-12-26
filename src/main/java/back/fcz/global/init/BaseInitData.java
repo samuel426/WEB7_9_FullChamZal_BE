@@ -58,7 +58,7 @@ public class BaseInitData implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        if (memberRepository.count() == 0) {
+        if (!memberRepository.existsByUserId("testuser")) {
             createTestMembers();
         }
 
@@ -89,17 +89,6 @@ public class BaseInitData implements CommandLineRunner {
     }
 
     private void createTestMembers() {
-        // 시스템 관리자 (memberId = 1로 가장 먼저 생성)
-        createMember(
-                "SYSTEM",
-                UUID.randomUUID().toString(), // 랜덤 비밀번호 (로그인 불가)
-                "시스템",
-                "SYSTEM",
-                "00000000000",
-                MemberStatus.ACTIVE,
-                MemberRole.ADMIN
-        );
-
         // 관리자
         createMember(
                 "admin",
@@ -710,7 +699,7 @@ public class BaseInitData implements CommandLineRunner {
     private void createFirstComeTestMembers() {
 
         // 이미 생성되어 있으면 다시 만들지 않음
-        boolean exists = memberRepository.existsByUserId("testuser");
+        boolean exists = memberRepository.existsByUserId("testuser1");
         if (exists) {
             return;
         }

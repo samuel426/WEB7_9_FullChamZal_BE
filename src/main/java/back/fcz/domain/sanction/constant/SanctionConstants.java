@@ -2,9 +2,7 @@ package back.fcz.domain.sanction.constant;
 
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
-import org.springframework.stereotype.Component;
 
-@Component
 public class SanctionConstants  {
 
     public static final String SYSTEM_ADMIN_USER_ID = "SYSTEM";

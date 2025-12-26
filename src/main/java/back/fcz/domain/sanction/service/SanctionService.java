@@ -24,7 +24,6 @@ public class SanctionService {
 
     private final MemberRepository memberRepository;
     private final MemberSanctionHistoryRepository sanctionHistoryRepository;
-    private final SanctionConstants sanctionConstants;
 
     // 자동 정지 처리 수행
     @Transactional
