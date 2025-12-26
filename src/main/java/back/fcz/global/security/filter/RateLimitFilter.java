@@ -1,6 +1,8 @@
 package back.fcz.global.security.filter;
 
 import back.fcz.domain.sanction.service.RateLimitService;
+import back.fcz.global.exception.ErrorCode;
+import back.fcz.global.response.ApiResponse;
 import back.fcz.global.security.jwt.JwtProvider;
 import back.fcz.global.security.jwt.util.CookieUtil;
 import back.fcz.global.util.RequestInfoExtractor;
@@ -11,7 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -76,19 +77,25 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     // Rate Limit 초과 응답 전송
     private void sendRateLimitResponse(HttpServletResponse response, long remainingSeconds) throws IOException {
-        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value()); // 429 반환
+        ErrorCode errorCode = ErrorCode.RATE_LIMIT_COOLDOWN;
+
+        response.setStatus(errorCode.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Retry-After", String.valueOf(remainingSeconds));
 
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("success", false);
-        errorResponse.put("code", "RATE_LIMIT_EXCEEDED");
-        errorResponse.put("message", "요청 횟수 제한을 초과했습니다.");
-        errorResponse.put("detail", "잠시 후 다시 시도해주세요.");
-        errorResponse.put("retryAfterSeconds", remainingSeconds);
+        // 재시도 시간 포함
+        Map<String, Object> data = new HashMap<>();
+        data.put("retryAfterSeconds", remainingSeconds);
+        data.put("retryAfterMinutes", Math.ceil(remainingSeconds / 60.0));
 
-        String json = objectMapper.writeValueAsString(errorResponse);
+        ApiResponse<Map<String, Object>> apiResponse = new ApiResponse<>(
+                errorCode.getCode(),
+                errorCode.getMessage(),
+                data
+        );
+
+        String json = objectMapper.writeValueAsString(apiResponse);
         response.getWriter().write(json);
     }
 }

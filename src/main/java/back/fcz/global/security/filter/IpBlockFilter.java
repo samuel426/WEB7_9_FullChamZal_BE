@@ -1,6 +1,8 @@
 package back.fcz.global.security.filter;
 
 import back.fcz.domain.sanction.service.IpBlockService;
+import back.fcz.global.exception.ErrorCode;
+import back.fcz.global.response.ApiResponse;
 import back.fcz.global.util.RequestInfoExtractor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -41,7 +43,7 @@ public class IpBlockFilter extends OncePerRequestFilter {
             log.warn("차단된 IP의 접근 시도: {} (사유: {})", clientIp, reason);
 
             // 403 Forbidden 응답
-            sendBlockedResponse(response, clientIp, reason);
+            sendBlockedResponse(response, reason);
             return;
         }
 
@@ -50,18 +52,23 @@ public class IpBlockFilter extends OncePerRequestFilter {
     }
 
     // IP 차단 응답 전송
-    private void sendBlockedResponse(HttpServletResponse response, String ip, String reason) throws IOException {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+    private void sendBlockedResponse(HttpServletResponse response, String reason) throws IOException {
+        ErrorCode errorCode = ErrorCode.IP_BLOCKED;
+
+        response.setStatus(errorCode.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("success", false);
-        errorResponse.put("code", "IP_BLOCKED");
-        errorResponse.put("message", "접근이 차단된 IP 주소입니다.");
-        errorResponse.put("detail", reason != null ? reason : "보안 정책에 의해 차단되었습니다.");
+        Map<String, String> data = new HashMap<>();
+        data.put("blockReason", reason != null ? reason : "보안 정책에 의해 차단되었습니다.");
 
-        String json = objectMapper.writeValueAsString(errorResponse);
+        ApiResponse<Map<String, String>> apiResponse = new ApiResponse<>(
+                errorCode.getCode(),
+                errorCode.getMessage(),
+                data
+        );
+
+        String json = objectMapper.writeValueAsString(apiResponse);
         response.getWriter().write(json);
     }
 }

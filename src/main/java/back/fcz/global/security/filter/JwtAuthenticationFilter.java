@@ -2,6 +2,7 @@ package back.fcz.global.security.filter;
 
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
+import back.fcz.global.response.ApiResponse;
 import back.fcz.global.security.jwt.JwtProvider;
 import back.fcz.global.security.jwt.UserType;
 import back.fcz.global.security.jwt.service.TokenBlacklistService;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,9 +23,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -96,32 +96,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // 400 에러 - 비즈니스 예외
     private void handleAuthenticationException(HttpServletResponse response, BusinessException e) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json;charset=UTF-8");
+        ErrorCode errorCode = e.getErrorCode();
 
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("success", false);
-        errorResponse.put("errorCode", e.getErrorCode().name());
-        errorResponse.put("message", e.getMessage());
-        errorResponse.put("timestamp", System.currentTimeMillis());
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
 
-        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        ApiResponse<Object> apiResponse = ApiResponse.error(errorCode);
+
+        String json = objectMapper.writeValueAsString(apiResponse);
+        response.getWriter().write(json);
 
         log.info("인증 예외 응답 전송 완료 - ErrorCode: {}", e.getErrorCode());
     }
 
     // 500 에러 - 서버 오류
     private void handleUnexpectedException(HttpServletResponse response, Exception e) throws IOException {
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        response.setContentType("application/json;charset=UTF-8");
+        ErrorCode errorCode = ErrorCode.INTERNAL_ERROR;
 
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("success", false);
-        errorResponse.put("errorCode", "INTERNAL_ERROR");
-        errorResponse.put("message", "인증 처리 중 오류가 발생했습니다.");
-        errorResponse.put("timestamp", System.currentTimeMillis());
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
 
-        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        ApiResponse<Object> apiResponse = ApiResponse.error(errorCode);
+
+        String json = objectMapper.writeValueAsString(apiResponse);
+        response.getWriter().write(json);
 
         log.error("예상치 못한 예외 응답 전송 완료");
     }

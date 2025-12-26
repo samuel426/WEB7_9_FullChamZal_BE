@@ -15,6 +15,11 @@ public enum ErrorCode {
     UNAUTHORIZED("CMN006", HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
     TOO_MANY_REQUEST("CMN007", HttpStatus.TOO_MANY_REQUESTS, "현재 많은 사용자가 접속 중입니다. 잠시 후 다시 시도해 주세요."),
 
+    // ========== 보안 및 제재 에러 ==========
+    IP_BLOCKED("SEC001", HttpStatus.FORBIDDEN, "접근이 차단된 IP 주소입니다."),
+    RATE_LIMIT_EXCEEDED("SEC002", HttpStatus.TOO_MANY_REQUESTS, "요청 횟수 제한을 초과했습니다."),
+    RATE_LIMIT_COOLDOWN("SEC003", HttpStatus.TOO_MANY_REQUESTS, "잠시 후 다시 시도해 주세요."),
+
     // ========== 암호화 에러 ==========
     ENCRYPTION_FAILED("CRY001", HttpStatus.INTERNAL_SERVER_ERROR, "데이터 암호화에 실패했습니다."),
     DECRYPTION_FAILED("CRY002", HttpStatus.INTERNAL_SERVER_ERROR, "데이터 복호화에 실패했습니다."),
