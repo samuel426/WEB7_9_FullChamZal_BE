@@ -1,4 +1,4 @@
-package back.fcz.global.security.jwt.filter;
+package back.fcz.global.security.filter;
 
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
