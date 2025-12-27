@@ -6,11 +6,13 @@ import back.fcz.domain.capsule.DTO.response.*;
 import back.fcz.domain.capsule.service.CapsuleDashBoardService;
 import back.fcz.domain.capsule.service.CapsuleReadService;
 import back.fcz.domain.capsule.service.CapsuleSaveButtonService;
+import back.fcz.domain.sanction.util.RequestInfoExtractor;
 import back.fcz.global.config.swagger.ApiErrorCodeExample;
 import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -21,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -80,9 +83,25 @@ public class CapsuleReadController {
     })
     @PostMapping("/read")
     public ResponseEntity<ApiResponse<CapsuleConditionResponseDTO>> conditionAndReadCapsule(
-            @RequestBody CapsuleConditionRequestDTO capsuleConditionRequestDto
+            @RequestBody CapsuleConditionRequestDTO capsuleConditionRequestDto,
+            HttpServletRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.success(capsuleReadService.conditionAndRead(capsuleConditionRequestDto)));
+        String ipAddress = RequestInfoExtractor.extractIp(request);
+        String userAgent = RequestInfoExtractor.extractUserAgent(request);
+
+        LocalDateTime clientTime = capsuleConditionRequestDto.unlockAt();
+
+        CapsuleConditionRequestDTO plusDto = new CapsuleConditionRequestDTO(
+                capsuleConditionRequestDto.capsuleId(),
+                capsuleConditionRequestDto.unlockAt(),
+                capsuleConditionRequestDto.locationLat(),
+                capsuleConditionRequestDto.locationLng(),
+                capsuleConditionRequestDto.password(),
+                userAgent,
+                ipAddress,
+                clientTime
+        );
+        return ResponseEntity.ok(ApiResponse.success(capsuleReadService.conditionAndRead(plusDto)));
     }
 
     //캡슐 저장 버튼(비회원이 CapsuleRecipient기록을 남길때 호출됩니다.)
