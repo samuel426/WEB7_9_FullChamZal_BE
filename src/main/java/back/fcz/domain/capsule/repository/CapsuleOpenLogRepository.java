@@ -30,4 +30,10 @@ public interface CapsuleOpenLogRepository extends JpaRepository<CapsuleOpenLog, 
             Long capsuleId,
             String ipAddress
     );
+
+    // 회원의 특정 캡슐 조회 이력 존재 여부 (재조회 판별용)
+    boolean existsByCapsuleId_CapsuleIdAndMemberId_MemberId(Long capsuleId, Long memberId);
+
+    // 특정 IP의 캡슐 조회 이력 여부 (재조회 판별용)
+    boolean existsByCapsuleId_CapsuleIdAndIpAddress(Long capsuleId, String ipAddress);
 }

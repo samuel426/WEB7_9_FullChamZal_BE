@@ -32,7 +32,7 @@ public class MonitoringService {
 
     // 회원의 의심 점수 증가
     public void incrementSuspicionScore(Long memberId, int score) {
-        String key = SUSPICION_KEY_PREFIX_IP + memberId;
+        String key = SUSPICION_KEY_PREFIX_MEMBER + memberId;
         incrementScore(key, score, "회원 " + memberId);
 
         // 임계값 확인 및 제재 적용

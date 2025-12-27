@@ -1,5 +1,6 @@
 package back.fcz.global.security.filter;
 
+import back.fcz.domain.sanction.service.MonitoringService;
 import back.fcz.domain.sanction.service.RateLimitService;
 import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.response.ApiResponse;
@@ -34,6 +35,29 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final RateLimitService rateLimitService;
     private final JwtProvider jwtProvider;
     private final ObjectMapper objectMapper;
+    private final MonitoringService monitoringService;
+
+    private static final String[] EXCLUDED_PATHS = {
+            "/h2-console",
+            "/actuator/health",
+            "/v3/api-docs",
+            "/swagger-ui",
+            "/swagger-resources",
+            "/webjars"
+    };
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        for (String excludedPath : EXCLUDED_PATHS) {
+            if (path.startsWith(excludedPath)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     @Override
     protected void doFilterInternal(
@@ -71,6 +95,35 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Rate Limit 카운팅
+        int riskLevel = 0;
+        if (memberId != null) {
+            int suspicionScore = monitoringService.getSuspicionScore(memberId);
+            if (suspicionScore >= 100) {
+                riskLevel = 2; // 고위험
+            } else if (suspicionScore >= 50) {
+                riskLevel = 1; // 의심
+            }
+
+            if (rateLimitService.isRateLimitExceeded(memberId, riskLevel)) {
+                log.warn("Rate Limit 초과: 회원 {}", memberId);
+                sendRateLimitResponse(response, 60); // 1분 대기
+                return;
+            }
+        } else {
+            int suspicionScore = monitoringService.getSuspicionScoreByIp(clientIp);
+            if (suspicionScore >= 100) {
+                riskLevel = 2;
+            } else if (suspicionScore >= 50) {
+                riskLevel = 1;
+            }
+
+            if (rateLimitService.isRateLimitExceededByIp(clientIp, riskLevel)) {
+                log.warn("Rate Limit 초과: IP {}", clientIp);
+                sendRateLimitResponse(response, 60);
+                return;
+            }
+        }
         // 정상 요청은 다음 필터로 진행
         filterChain.doFilter(request, response);
     }

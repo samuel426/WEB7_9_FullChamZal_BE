@@ -20,9 +20,9 @@ public class RateLimitService {
     private static final String RATE_LIMIT_PREFIX_MEMBER = "ratelimit:member:";
     private static final String RATE_LIMIT_PREFIX_IP = "ratelimit:ip:";
 
-    // 일반 사용자 기본 제한: 10분에 10회
-    private static final int DEFAULT_MAX_REQUESTS = 10;
-    private static final Duration DEFAULT_WINDOW = Duration.ofMinutes(10);
+    // 일반 사용자 기본 제한: 1분에 20회
+    private static final int DEFAULT_MAX_REQUESTS = 20;
+    private static final Duration DEFAULT_WINDOW = Duration.ofMinutes(1);
 
     // 의심 사용자 엄격한 제한: 10분에 5회
     private static final int SUSPICIOUS_MAX_REQUESTS = 5;

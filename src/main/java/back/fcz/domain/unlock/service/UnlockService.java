@@ -78,6 +78,19 @@ public class UnlockService {
         return UnlockValidationResult.conditionFailed();
     }
 
+    // 재조회 시에만 사용하는 검증 메서드
+    public AnomalyType detectAnomalyOnly(
+            Capsule capsule,
+            Double currentLat,
+            Double currentLng,
+            LocalDateTime serverTime,
+            LocalDateTime clientTime,
+            Long memberId,
+            String ipAddress
+    ) {
+        return detectAnomaly(capsule, currentLat, currentLng, serverTime, clientTime, memberId, ipAddress);
+    }
+
     /*
     시간 해제 조건 검증
 
