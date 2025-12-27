@@ -13,4 +13,5 @@ public interface CapsuleAttachmentRepository extends JpaRepository<CapsuleAttach
     Optional<CapsuleAttachment> findByIdAndUploaderId(Long id, Long uploaderId);
 
     List<CapsuleAttachment> findAllByCapsule_CapsuleIdAndStatus(Long capsuleId, CapsuleAttachmentStatus status);
+
 }

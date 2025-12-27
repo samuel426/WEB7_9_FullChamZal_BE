@@ -40,7 +40,7 @@ public class AttachmentService {
         if (attachment.getStatus() != CapsuleAttachmentStatus.TEMP){
             throw new IllegalStateException("임시 첨부파일만 삭제할 수 있습니다.");
         }
-        fileStorage.delete(attachment.getS3Key());
+        // fileStorage.delete(attachment.getS3Key()); // delete 요청마다 s3 접근 비용이 발생하여 보류, 추후 배치로 처리
         attachment.markDeleted();
         capsuleAttachmentRepository.save(attachment);
     }

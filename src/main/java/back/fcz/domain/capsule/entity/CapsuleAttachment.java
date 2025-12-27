@@ -74,4 +74,9 @@ public class CapsuleAttachment {
         this.status = CapsuleAttachmentStatus.DELETED;
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void attachToCapsule(Capsule capsule) {
+        this.capsule = capsule;
+        this.status = CapsuleAttachmentStatus.USED;
+    }
 }
