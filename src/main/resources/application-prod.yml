@@ -44,6 +44,10 @@ spring:
             scope:
               - profile
               - email
+              - https://www.googleapis.com/auth/drive.file
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?access_type=offline
 
 logging:
   level:
@@ -100,3 +104,10 @@ app:
     bucket-name: ${S3_BUCKET_NAME}
     prefix: capsules
     region: ${S3_REGION}
+
+
+google:
+  drive:
+    client-id: ${GOOGLE_OAUTH_ID}
+    client-secret: ${GOOGLE_OAUTH_SECRET}
+    redirect-uri: ${GOOGLE_DRIVE_REDIRECT}

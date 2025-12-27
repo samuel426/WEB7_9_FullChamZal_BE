@@ -34,6 +34,10 @@ spring:
             scope:
               - profile
               - email
+              - dummy-uri
+        provider:
+          google:
+            authorization-uri: dummy-uri
 
 security:
   encryption:
@@ -73,3 +77,9 @@ app:
     bucket: test-bucket
     prefix: capsules
     region: us-east-1
+
+google:
+  drive:
+    client-id: dummy-google-client-id
+    client-secret: dummy-google-client-secret
+    redirect-uri: dummy-google-drive-redirect-uri
