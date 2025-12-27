@@ -28,6 +28,7 @@ SELECT new back.fcz.domain.storytrack.dto.response.TotalStorytrackResponse(
     s.isPublic,
     s.price,
     s.totalSteps,
+    s.createdAt,
     COUNT(sp)
 )
 FROM Storytrack s

@@ -1,6 +1,8 @@
 package back.fcz.domain.storytrack.dto.response;
 
 
+import java.time.LocalDateTime;
+
 public record TotalStorytrackResponse(
         Long storytrackId,
         String createrName,
@@ -10,5 +12,6 @@ public record TotalStorytrackResponse(
         int isPublic,
         int price,
         int totalSteps,
+        LocalDateTime createdAt,
         Long totalMemberCount
 ){ }
