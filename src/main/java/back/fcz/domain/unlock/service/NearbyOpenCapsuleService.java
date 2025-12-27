@@ -4,6 +4,7 @@ import back.fcz.domain.capsule.entity.Capsule;
 import back.fcz.domain.capsule.repository.CapsuleLikeRepository;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
 import back.fcz.domain.capsule.repository.PublicCapsuleRecipientRepository;
+import back.fcz.domain.unlock.dto.UnlockValidationResult;
 import back.fcz.domain.unlock.dto.request.NearbyOpenCapsuleRequest;
 import back.fcz.domain.unlock.dto.response.NearbyOpenCapsuleResponse;
 import back.fcz.global.exception.BusinessException;
@@ -67,9 +68,11 @@ public class NearbyOpenCapsuleService {
                     boolean isViewed = viewedCapsuleIds.contains(capsule.getCapsuleId());
 
                     // 사용자가 해당 캡슐을 열람할 수 있는 지, 확인 (열람할 수 있다면 true, 열람 불가하다면 false)
-                    boolean isUnlockable = unlockService.validateTimeAndLocationConditions(
-                            capsule, currentTime, currentLat, currentLng
+                    UnlockValidationResult validationResult = unlockService.validateTimeAndLocationConditions(
+                            capsule, currentTime, currentLat, currentLng, currentTime, memberId, null
                     );
+
+                    boolean isUnlockable = validationResult.isSuccess();
 
                     // 사용자가 해당 캡슐에 좋아요를 눌렀는 지, 확인 (좋아요 했다면 true, 좋아요 안했다면 false)
                     boolean isLiked = likedCapsuleIds.contains(capsule.getCapsuleId());
