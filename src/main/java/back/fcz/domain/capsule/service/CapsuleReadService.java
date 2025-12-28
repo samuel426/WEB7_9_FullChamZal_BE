@@ -2,6 +2,7 @@ package back.fcz.domain.capsule.service;
 
 import back.fcz.domain.bookmark.repository.BookmarkRepository;
 import back.fcz.domain.capsule.DTO.request.CapsuleConditionRequestDTO;
+import back.fcz.domain.capsule.DTO.response.CapsuleAttachmentViewResponse;
 import back.fcz.domain.capsule.DTO.response.CapsuleConditionResponseDTO;
 import back.fcz.domain.capsule.DTO.response.CapsuleReadResponse;
 import back.fcz.domain.capsule.entity.*;
@@ -9,6 +10,8 @@ import back.fcz.domain.capsule.repository.CapsuleOpenLogRepository;
 import back.fcz.domain.capsule.repository.CapsuleRecipientRepository;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
 import back.fcz.domain.capsule.repository.PublicCapsuleRecipientRepository;
+import back.fcz.domain.capsule.entity.*;
+import back.fcz.domain.capsule.repository.*;
 import back.fcz.domain.member.dto.response.MemberDetailResponse;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
@@ -23,12 +26,16 @@ import back.fcz.global.crypto.PhoneCrypto;
 import back.fcz.global.dto.InServerMemberResponse;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
+import back.fcz.infra.storage.PresignedUrlProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +53,8 @@ public class CapsuleReadService {
     private final CurrentUserContext currentUserContext;
     private final BookmarkRepository bookmarkRepository;
     private final MonitoringService monitoringService;
+    private final CapsuleAttachmentRepository capsuleAttachmentRepository;
+    private final PresignedUrlProvider presignedUrlProvider;
 
     public CapsuleConditionResponseDTO capsuleRead(Long capsuleId){
         //자신이 작성한 캡슐이면 검증 없이 읽기
@@ -56,14 +65,14 @@ public class CapsuleReadService {
         if(!currentMemberId.equals(capsule.getMemberId().getMemberId())){
             throw new BusinessException(ErrorCode.NOT_SELF_CAPSULE);
         }
-
+        var attachments = buildAttachmentViews(capsule.getCapsuleId());
         if(capsule.getVisibility().equals("PUBLIC")){
             boolean viewStatus = publicCapsuleRecipientRepository
                     .existsByCapsuleId_CapsuleIdAndMemberId(capsule.getCapsuleId(), currentMemberId);
 
-            return CapsuleConditionResponseDTO.from(capsule, viewStatus, false);
+            return CapsuleConditionResponseDTO.from(capsule, viewStatus, false, attachments);
         }else{
-            return CapsuleConditionResponseDTO.from(capsule);
+            return CapsuleConditionResponseDTO.from(capsule, attachments);
         }
     }
 
@@ -578,8 +587,8 @@ public class CapsuleReadService {
                 currentMemberId,
                 capsule.getCapsuleId()
         );
-
-        return CapsuleConditionResponseDTO.from(capsule, viewStatus, isBookmarked);
+        var attachments = buildAttachmentViews(capsule.getCapsuleId());
+        return CapsuleConditionResponseDTO.from(capsule, viewStatus, isBookmarked, attachments);
 
     }
 
@@ -601,8 +610,8 @@ public class CapsuleReadService {
                 currentMemberId,
                 capsule.getCapsuleId()
         );
-
-        return CapsuleConditionResponseDTO.from(capsule, isBookmarked);
+        var attachments = buildAttachmentViews(capsule.getCapsuleId());
+        return CapsuleConditionResponseDTO.from(capsule, isBookmarked, attachments);
     }
 
     // 개인 캡슐 읽기 - isProtected=0, 로그인 상태 (CapsuleRecipient 없음)
@@ -621,8 +630,8 @@ public class CapsuleReadService {
                 currentMemberId,
                 capsule.getCapsuleId()
         );
-
-        return CapsuleConditionResponseDTO.from(capsule, isBookmarked);
+        var attachments = buildAttachmentViews(capsule.getCapsuleId());
+        return CapsuleConditionResponseDTO.from(capsule, isBookmarked, attachments);
     }
 
     //개인 캡슐 읽기 - 수신자가 비회원인 경우(로그만 남김)
@@ -634,8 +643,8 @@ public class CapsuleReadService {
         if (shouldIncrement) {
             capsule.increasedViewCount();
         }
-
-        return CapsuleConditionResponseDTO.from(capsule);
+        var attachments = buildAttachmentViews(capsule.getCapsuleId());
+        return CapsuleConditionResponseDTO.from(capsule, attachments);
     }
 
     // 사용자 로그인 여부
@@ -760,5 +769,18 @@ public class CapsuleReadService {
             case "TIME_AND_LOCATION" -> CapsuleOpenStatus.FAIL_BOTH;
             default -> CapsuleOpenStatus.FAIL_BOTH;
         };
+    }
+
+    // 캡슐 첨부파일 Presigned URL 생성
+    private List<CapsuleAttachmentViewResponse> buildAttachmentViews(Long capsuleId) {
+        var list = capsuleAttachmentRepository
+                .findAllByCapsule_CapsuleIdAndStatus(capsuleId, CapsuleAttachmentStatus.USED);
+
+        return list.stream()
+                .map(a -> new CapsuleAttachmentViewResponse(
+                        presignedUrlProvider.presignGet(a.getS3Key(), Duration.ofMinutes(15)),
+                        a.getId()
+                ))
+                .toList();
     }
 }
