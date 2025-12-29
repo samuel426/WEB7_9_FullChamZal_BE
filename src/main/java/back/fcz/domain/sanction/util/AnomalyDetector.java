@@ -74,8 +74,16 @@ public class AnomalyDetector {
 
         double distance = calculateDistance(previousLat, previousLng, currentLat, currentLng);
 
-        if (distance < 0.05) {  // 50m 미만
-            return 0;  // GPS 오차로 간주하여 검증 안 함
+        // 일반 GPS 오차(5-10m) + 실내 오차(~50m) 고려
+        if (distance < 0.05) {  // 50m
+            log.debug("이동 거리 {}km는 GPS 오차 범위 내로 판단", distance);
+            return 0;
+        }
+
+        // 짧은 시간 + 짧은 거리는 추가로 관대하게
+        if (timeDiffSeconds < 60 && distance < 0.2) {  // 1분 & 200m
+            log.debug("짧은 시간 이동({}초, {}km)은 정상으로 판단", timeDiffSeconds, distance);
+            return 0;
         }
 
         double speed = calculateSpeed(distance, timeDiffSeconds);
