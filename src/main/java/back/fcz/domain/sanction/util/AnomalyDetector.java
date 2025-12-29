@@ -73,6 +73,11 @@ public class AnomalyDetector {
         }
 
         double distance = calculateDistance(previousLat, previousLng, currentLat, currentLng);
+
+        if (distance < 0.05) {  // 50m 미만
+            return 0;  // GPS 오차로 간주하여 검증 안 함
+        }
+
         double speed = calculateSpeed(distance, timeDiffSeconds);
 
         // 시간 간격에 따라 임계값 조정
