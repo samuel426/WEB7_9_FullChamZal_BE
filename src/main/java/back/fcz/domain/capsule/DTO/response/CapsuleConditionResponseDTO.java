@@ -96,7 +96,7 @@ public record CapsuleConditionResponseDTO(
                 capsule.getCapsuleColor(),
                 capsule.getCapsulePackingColor(),
                 null,
-                capsule.getReceiverNickname(),
+                capsule.getNickname(),
                 capsule.getTitle(),
                 capsule.getContent(),
                 capsule.getCreatedAt(),
