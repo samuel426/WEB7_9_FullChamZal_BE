@@ -17,9 +17,12 @@ import java.time.LocalDateTime;
 @Table(
         name = "capsule_openLog",
         indexes = {
-                @Index(name = "idx_col_member_time", columnList = "member_id, opened_at"),
-                @Index(name = "idx_col_ip_time", columnList = "ip_address, opened_at"),
-                @Index(name = "idx_col_status", columnList = "status")
+                @Index(name = "idx_col_capsule_member_time",
+                        columnList = "capsule_id, member_id, opened_at"),
+                @Index(name = "idx_col_capsule_ip_time",
+                        columnList = "capsule_id, ip_address, opened_at"),
+                @Index(name = "idx_col_status",
+                        columnList = "status")
         }
 )
 public class CapsuleOpenLog {

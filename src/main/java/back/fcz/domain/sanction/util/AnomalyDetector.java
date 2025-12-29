@@ -75,7 +75,7 @@ public class AnomalyDetector {
         double distance = calculateDistance(previousLat, previousLng, currentLat, currentLng);
 
         // 일반 GPS 오차(5-10m) + 실내 오차(~50m) 고려
-        if (distance < 0.05) {  // 50m
+        if (distance < 0.1) {  // 100m
             log.debug("이동 거리 {}km는 GPS 오차 범위 내로 판단", distance);
             return 0;
         }
@@ -93,12 +93,16 @@ public class AnomalyDetector {
         double adjustedHighThreshold = HIGH_SPEED_KMH;
         double adjustedSuspiciousThreshold = SUSPICIOUS_SPEED_KMH;
 
-        if (timeDiffSeconds < SHORT_INTERVAL_SEC) {
-            // 5분 이내 이동: 더 엄격하게
+        if (timeDiffSeconds < 300) {  // 5분 미만
+            adjustedSuspiciousThreshold = 80.0;
+        } else if (timeDiffSeconds < 600) {  // 10분 미만
+            adjustedSuspiciousThreshold = 100.0;
+        } else if (timeDiffSeconds < 1800) {  // 30분 미만
             adjustedSuspiciousThreshold = 120.0;
-        } else if (timeDiffSeconds > MEDIUM_INTERVAL_SEC) {
-            // 1시간 이상 간격: 약간 관대하게
-            adjustedHighThreshold = 400.0;
+        } else if (timeDiffSeconds < 3600) {  // 1시간 미만
+            adjustedSuspiciousThreshold = 140.0;
+        } else {  // 1시간 이상
+            adjustedSuspiciousThreshold = 150.0;
         }
 
         log.debug("이동 분석 - 거리: {}km, 시간: {}초, 속도: {}km/h",

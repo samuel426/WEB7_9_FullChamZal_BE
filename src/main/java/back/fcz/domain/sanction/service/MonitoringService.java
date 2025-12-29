@@ -33,20 +33,18 @@ public class MonitoringService {
     // 회원의 의심 점수 증가
     public void incrementSuspicionScore(Long memberId, int score) {
         String key = SUSPICION_KEY_PREFIX_MEMBER + memberId;
-        incrementScore(key, score, "회원 " + memberId);
+        int currentScore = incrementScore(key, score, "회원 " + memberId);
 
         // 임계값 확인 및 제재 적용
-        int currentScore = getSuspicionScore(memberId);
         checkAndApplySanction(memberId, null, currentScore);
     }
 
     //  비회원(IP)의 의심 점수 증가
     public void incrementSuspicionScoreByIp(String ipAddress, int score) {
         String key = SUSPICION_KEY_PREFIX_IP + ipAddress;
-        incrementScore(key, score, "IP " + ipAddress);
+        int currentScore = incrementScore(key, score, "IP " + ipAddress);
 
         // 임계값 확인
-        int currentScore = getSuspicionScoreByIp(ipAddress);
         if (currentScore >= BLOCK_THRESHOLD) {
             log.error("IP 차단 필요: {} (점수: {}점)", ipAddress, currentScore);
             ipBlockService.blockIp(
@@ -120,15 +118,21 @@ public class MonitoringService {
     }
 
     // 공통 점수 증가 로직
-    private void incrementScore(String key, int score, String identifier) {
+    private int incrementScore(String key, int score, String identifier) {
         try {
             Long newScore = redisTemplate.opsForValue().increment(key, score);
             redisTemplate.expire(key, SUSPICION_TTL);
-            log.debug("의심 점수 증가: {} → {}점 (+{}점)", identifier, newScore, score);
+
+            if (newScore != null) {
+                log.debug("의심 점수 증가: {} → {}점 (+{}점)", identifier, newScore, score);
+                return newScore.intValue();
+            }
         } catch (Exception e) {
             log.error("Redis 점수 증가 실패: {}", identifier, e);
             // Redis 장애 시에도 서비스는 계속 동작하도록 예외를 삼킴
         }
+
+        return 0;
     }
 
     // 공통 점수 조회 로직
