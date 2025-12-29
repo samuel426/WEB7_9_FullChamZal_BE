@@ -8,6 +8,7 @@ import back.fcz.domain.backup.service.GoogleDriveService;
 import back.fcz.domain.capsule.entity.Capsule;
 import back.fcz.domain.capsule.repository.CapsuleRecipientRepository;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
+import back.fcz.domain.capsule.repository.PublicCapsuleRecipientRepository;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.global.crypto.PhoneCrypto;
@@ -44,6 +45,8 @@ public class BackupServiceTest {
     @Mock
     private CapsuleRecipientRepository capsuleRecipientRepository;
     @Mock
+    private PublicCapsuleRecipientRepository publicCapsuleRecipientRepository;
+    @Mock
     private BackupRepository backupRepository;
     @Mock
     private GoogleDriveService googleDriveService;
@@ -78,13 +81,13 @@ public class BackupServiceTest {
     }
 
     @Test
-    @DisplayName("수신받은 캡슐이 아닐 경우, 구글 드라이브 백업 예외 발생")
+    @DisplayName("수신받은 캡슐 또는 조회한 공개 캡슐이 아닐 경우, 구글 드라이브 백업 예외 발생")
     void backup_fail_if_not_recipient() {
         // given
         given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
         given(backupRepository.findByMemberId(MEMBER_ID)).willReturn(Optional.of(backup));
-
         given(capsuleRecipientRepository.existsByCapsuleId_CapsuleIdAndRecipientPhoneHash(CAPSULE_ID, PHONE_HASH)).willReturn(false);
+        given(publicCapsuleRecipientRepository.existsByCapsuleId_CapsuleIdAndMemberId(CAPSULE_ID, MEMBER_ID)).willReturn(false);
 
         // when
         BusinessException exception = assertThrows(BusinessException.class, () -> {
@@ -112,12 +115,31 @@ public class BackupServiceTest {
     }
 
     @Test
-    @DisplayName("모든 조건 충족 시, 업로드 수행 및 SUCCESS를 반환")
-    void backup_success() throws Exception {
+    @DisplayName("수신받은 캡슐일 경우, 업로드 수행 및 SUCCESS를 반환")
+    void backup_received_capsule_success() throws Exception {
         // given
         given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
         given(backupRepository.findByMemberId(MEMBER_ID)).willReturn(Optional.of(backup));
         given(capsuleRecipientRepository.existsByCapsuleId_CapsuleIdAndRecipientPhoneHash(CAPSULE_ID, PHONE_HASH)).willReturn(true);
+        given(publicCapsuleRecipientRepository.existsByCapsuleId_CapsuleIdAndMemberId(CAPSULE_ID, MEMBER_ID)).willReturn(false);
+        given(capsuleRepository.findById(CAPSULE_ID)).willReturn(Optional.of(capsule));
+
+        // when
+        GoogleDriveConnectionResponse response = backupService.backupCapsule(MEMBER_ID, CAPSULE_ID);
+
+        // then
+        assertEquals("SUCCESS", response.status());
+        verify(googleDriveService, times(1)).uploadCapsule(any(), any());
+    }
+
+    @Test
+    @DisplayName("조회한 공개 캡슐일 경우, 업로드 수행 및 SUCCESS를 반환")
+    void backup_received_public_capsule_success() throws Exception {
+        // given
+        given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
+        given(backupRepository.findByMemberId(MEMBER_ID)).willReturn(Optional.of(backup));
+        given(capsuleRecipientRepository.existsByCapsuleId_CapsuleIdAndRecipientPhoneHash(CAPSULE_ID, PHONE_HASH)).willReturn(false);
+        given(publicCapsuleRecipientRepository.existsByCapsuleId_CapsuleIdAndMemberId(CAPSULE_ID, MEMBER_ID)).willReturn(true);
         given(capsuleRepository.findById(CAPSULE_ID)).willReturn(Optional.of(capsule));
 
         // when
