@@ -77,7 +77,8 @@ public class StorytrackService {
             step.markDeleted();
         }
 
-        storytrackRepository.save(targetStorytrack);
+        // 트랜잭션으로 인해 삭제 후 다시 DB 저장 문제 해결을 위해 삭제
+        // storytrackRepository.save(targetStorytrack);
         return new DeleteStorytrackResponse(
                 storytrackId,
                 storytrackId + "번 스토리트랙이 삭제 되었습니다."
@@ -95,7 +96,8 @@ public class StorytrackService {
         // 삭제 - 소프트딜리트
         targetMember.markDeleted();
 
-        storytrackProgressRepository.save(targetMember);
+        // 트랜잭션으로 인해 삭제 후 다시 DB 저장 문제 해결을 위해 삭제
+        // storytrackProgressRepository.save(targetMember);
 
         return new DeleteParticipantResponse(
                 "스토리트랙 참여를 종료했습니다."
@@ -189,6 +191,11 @@ public class StorytrackService {
         // 스토리트랙 상태 확인
         if (storytrack.getIsPublic() == 0) {
             throw new BusinessException(ErrorCode.STORYTRACK_NOT_PUBLIC);
+        }
+
+        // 스토리트랙 참여자 존재 확인 -> 존재하면 이미 존재 중이라고 예외 처리
+        if(!storytrackProgressRepository.existsByMember_MemberIdAndStorytrack_StorytrackId(memberId, request.storytrackId())){
+            throw new BusinessException(ErrorCode.PARTICIPANT_ALREADY_JOIN);
         }
 
         // 참여자 생성
