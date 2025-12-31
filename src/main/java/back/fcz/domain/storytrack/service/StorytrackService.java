@@ -221,7 +221,7 @@ public class StorytrackService {
     }
 
     // 조회
-    // 전체 스토리 트랙 목록 조회
+    // 전체 스토리 트랙 목록 조회 -> 삭제된 스토리트랙(isDelete = 1)은 조회에서 제외
     public PageResponse<TotalStorytrackResponse> readTotalStorytrack(Long memberId, int page, int size) {
 
         Pageable pageable = createPageable(
@@ -236,7 +236,7 @@ public class StorytrackService {
         return new PageResponse<>(responsePage);
     }
 
-    // 스토리트랙 조회 -> 스토리트랙에 대한 간략한 조회
+    // 스토리트랙 조회 -> 스토리트랙에 대한 간략한 조회 : 삭제된 스토리트랙은 미조회
     // 대략적인 경로(순서), 총 인원 수, 완료한 인원 수, 스토리트랙 제작자(닉네임)
     public StorytrackDashBoardResponse storytrackDashboard(
             Long memberId,
@@ -310,7 +310,7 @@ public class StorytrackService {
     }
 
 
-    // 생성, 참여 : 스토리트랙 경로 조회
+    // 생성, 참여 : 스토리트랙 경로 조회 -> 삭제된 스토리트랙 미조회
     // 단계, 각 단계의 캡슐 조회
     public StorytrackPathResponse storytrackPath(
             Long storytrackId,
@@ -344,7 +344,7 @@ public class StorytrackService {
     }
 
 
-    // 생성자 : 생성한 스토리트랙 목록 조회
+    // 생성자 : 생성한 스토리트랙 목록 조회 -> 삭제된 스토리트랙 미조회
     public PageResponse<CreaterStorytrackListResponse> createdStorytrackList(
             Long memberId,
             int page,
@@ -366,7 +366,7 @@ public class StorytrackService {
         return new PageResponse<> (responsePage);
     }
 
-    // 참여자 : 참여한 스토리트랙 목록 조회
+    // 참여자 : 참여한 스토리트랙 목록 조회 -> 삭제된 스토리트랙 목록 미조회 추가
     public PageResponse<ParticipantStorytrackListResponse> joinedStorytrackList(
             Long memberId,
             int page,
@@ -386,7 +386,7 @@ public class StorytrackService {
         return new PageResponse<> (responsePage);
     }
 
-    // 참여자 : 스토리트랙 진행 상세 조회
+    // 참여자 : 스토리트랙 진행 상세 조회 -> 삭제된 스토리트랙 미조회 추가
     public ParticipantProgressResponse storytrackProgress(Long storytrackId, Long memberId) {
 
         StorytrackProgress progress =

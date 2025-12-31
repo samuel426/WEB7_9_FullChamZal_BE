@@ -38,6 +38,7 @@ public interface StorytrackProgressRepository extends JpaRepository<StorytrackPr
     from StorytrackProgress sp
     join fetch sp.storytrack s
     where sp.member.memberId = :memberId
+    and sp.deletedAt IS NULL
 """)
     Page<StorytrackProgress> findProgressesByMemberId(Long memberId, Pageable pageable);
 
@@ -69,6 +70,7 @@ JOIN p.storytrack s
 LEFT JOIN StorytrackProgress sp2
     ON sp2.storytrack = s
 WHERE m.memberId = :memberId
+AND p.deletedAt IS NULL
 GROUP BY p, m, s
 """)
     Page<ParticipantStorytrackListResponse> findJoinedStorytracksWithMemberCount(
