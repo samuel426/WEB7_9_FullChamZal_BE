@@ -196,7 +196,7 @@ public class StorytrackService {
         }
 
         // 스토리트랙 참여자 존재 확인 -> 존재하면 이미 존재 중이라고 예외 처리
-        if(!storytrackProgressRepository.existsByMember_MemberIdAndStorytrack_StorytrackId(memberId, request.storytrackId())){
+        if(storytrackProgressRepository.existsByMember_MemberIdAndStorytrack_StorytrackId(memberId, request.storytrackId())){
             throw new BusinessException(ErrorCode.PARTICIPANT_ALREADY_JOIN);
         }
 
