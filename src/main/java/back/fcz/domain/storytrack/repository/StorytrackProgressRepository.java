@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface StorytrackProgressRepository extends JpaRepository<StorytrackProgress, Long> {
@@ -44,7 +45,7 @@ public interface StorytrackProgressRepository extends JpaRepository<StorytrackPr
 
     Optional<StorytrackProgress> findByStorytrack_StorytrackIdAndMember_MemberId(Long storytrackId, Long memberId);
 
-    boolean existsByMember_MemberIdAndStorytrack_StorytrackId(Long memberId, Long storytrackId);
+    boolean existsByMember_MemberIdAndStorytrack_StorytrackIdAndDeletedAt(Long memberId, Long storytrackId, LocalDateTime deleteAt);
 
     @Query("""
 SELECT new back.fcz.domain.storytrack.dto.response.ParticipantStorytrackListResponse(
@@ -77,4 +78,6 @@ GROUP BY p, m, s
             @Param("memberId") Long memberId,
             Pageable pageable
     );
+
+    boolean existsByMember_MemberIdAndStorytrack_StorytrackId(Long memberId, Long storytrackId);
 }
