@@ -584,7 +584,7 @@ public class CapsuleReadService {
 
             if (recipient.getUnlockedAt() == null) {
                 recipient.setUnlockedAt(requestDto.unlockAt());
-                capsuleRecipientRepository.save(recipient);
+                capsuleRepository.incrementViewCount(capsule.getCapsuleId());
             }
         }
 
@@ -606,6 +606,7 @@ public class CapsuleReadService {
         // 첫 조회일 때만 조회수 증가
         if (shouldIncrement) {
             capsule.increasedViewCount();
+            capsuleRepository.incrementViewCount(capsule.getCapsuleId());
         }
 
         boolean isBookmarked = bookmarkRepository.existsByMemberIdAndCapsuleIdAndDeletedAtIsNull(

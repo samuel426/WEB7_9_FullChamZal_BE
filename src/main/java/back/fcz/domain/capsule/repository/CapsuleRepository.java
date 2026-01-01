@@ -204,4 +204,8 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
             @Param("types") List<String> types,
             Pageable pageable
     );
+
+    @Modifying
+    @Query("UPDATE Capsule c SET c.currentViewCount = c.currentViewCount + 1 WHERE c.capsuleId = :id")
+    void incrementViewCount(@Param("id") Long capsuleId);
 }

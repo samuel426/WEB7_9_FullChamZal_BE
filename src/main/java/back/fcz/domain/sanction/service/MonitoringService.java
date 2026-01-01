@@ -75,7 +75,7 @@ public class MonitoringService {
             // 제재 후 점수 초기화
             resetSuspicionScore(memberId);
         } else if (currentScore >= thresholds.getWarning()) {
-            // 제한 수준: Rate limiting 적용
+            // 제한S 수준: Rate limiting 적용
             log.warn("Rate Limiting 적용 대상: 회원 {} (점수: {}점)", memberId, currentScore);
             int cooldownMinutes =
                     sanctionProperties.getRateLimit()
