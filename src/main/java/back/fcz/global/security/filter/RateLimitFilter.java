@@ -1,12 +1,11 @@
 package back.fcz.global.security.filter;
 
+import back.fcz.domain.member.service.CurrentUserContext;
 import back.fcz.domain.sanction.service.MonitoringService;
 import back.fcz.domain.sanction.service.RateLimitService;
+import back.fcz.domain.sanction.util.RequestInfoExtractor;
 import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.response.ApiResponse;
-import back.fcz.global.security.jwt.JwtProvider;
-import back.fcz.global.security.jwt.util.CookieUtil;
-import back.fcz.domain.sanction.util.RequestInfoExtractor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,7 +20,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Rate Limit 검증 필터
@@ -33,9 +31,9 @@ import java.util.Optional;
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimitService rateLimitService;
-    private final JwtProvider jwtProvider;
     private final ObjectMapper objectMapper;
     private final MonitoringService monitoringService;
+    private final CurrentUserContext currentUserContext;
 
     private static final String[] EXCLUDED_PATHS = {
             "/h2-console",
@@ -65,29 +63,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
-        // 쿠키에서 Access Token 추출
-        Optional<String> tokenOptional = CookieUtil.getCookieValue(request, CookieUtil.ACCESS_TOKEN_COOKIE);
-        Long memberId = null;
-
-        if (tokenOptional.isPresent()) {
-            try {
-                String token = tokenOptional.get();
-                memberId = jwtProvider.extractMemberId(token);
-            } catch (Exception e) {
-                log.debug("토큰 파싱 실패 (Rate Limit 필터에서는 무시): {}", e.getMessage());
-            }
-        }
-
-        // 회원 쿨다운 확인
-        if (memberId != null && rateLimitService.isInCooldown(memberId)) {
-            long remainingSeconds = rateLimitService.getRemainingCooldown(memberId);
-            log.warn("쿨다운 중인 회원의 접근 시도: {} (남은 시간: {}초)", memberId, remainingSeconds);
-            sendRateLimitResponse(response, remainingSeconds);
-            return;
-        }
-
-        // IP 쿨다운 확인
+        // IP는 항상 추출 (비회원/회원 공통)
         String clientIp = RequestInfoExtractor.extractIp(request);
+
+        // 1) IP 쿨다운 확인
         if (rateLimitService.isInCooldownByIp(clientIp)) {
             long remainingSeconds = rateLimitService.getRemainingCooldownByIp(clientIp);
             log.warn("쿨다운 중인 IP의 접근 시도: {} (남은 시간: {}초)", clientIp, remainingSeconds);
@@ -95,22 +74,38 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Rate Limit 카운팅
-        int riskLevel = 0;
-        if (memberId != null) {
-            int suspicionScore = monitoringService.getSuspicionScore(memberId);
-            if (suspicionScore >= 100) {
-                riskLevel = 2; // 고위험
-            } else if (suspicionScore >= 50) {
-                riskLevel = 1; // 의심
-            }
+        // 2) 인증된 사용자 여부 확인 (JWT 필터 결과 이용)
+        if (currentUserContext.isAuthenticated()) {
+            Long memberId = currentUserContext.getCurrentMemberId();
 
-            if (rateLimitService.isRateLimitExceeded(memberId, riskLevel)) {
-                log.warn("Rate Limit 초과: 회원 {}", memberId);
-                sendRateLimitResponse(response, 60); // 1분 대기
+            // 2-1) 회원 쿨다운 확인
+            if (rateLimitService.isInCooldown(memberId)) {
+                long remainingSeconds = rateLimitService.getRemainingCooldown(memberId);
+                log.warn("쿨다운 중인 회원의 접근 시도: {} (남은 시간: {}초)", memberId, remainingSeconds);
+                sendRateLimitResponse(response, remainingSeconds);
                 return;
             }
-        } else {
+
+            // 2-2) 위험도 산정 (회원 기준)
+            int riskLevel = 0;
+            int suspicionScore = monitoringService.getSuspicionScore(memberId);
+            if (suspicionScore >= 100) {
+                riskLevel = 2;
+            } else if (suspicionScore >= 50) {
+                riskLevel = 1;
+            }
+
+            // 2-3) 회원 기준 rate Limit
+            if (rateLimitService.isRateLimitExceeded(memberId, riskLevel)) {
+                log.warn("Rate Limit 초과: 회원 {}", memberId);
+                sendRateLimitResponse(response, 60); // 정책 1분
+                return;
+            }
+        }
+
+        // 3) 비인증 사용자(= IP 기준) 위험도 산정
+        else {
+            int riskLevel = 0;
             int suspicionScore = monitoringService.getSuspicionScoreByIp(clientIp);
             if (suspicionScore >= 100) {
                 riskLevel = 2;
@@ -118,12 +113,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 riskLevel = 1;
             }
 
+            // 3-1) IP 기준 rate Limit
             if (rateLimitService.isRateLimitExceededByIp(clientIp, riskLevel)) {
-                log.warn("Rate Limit 초과: IP {}", clientIp);
-                sendRateLimitResponse(response, 60);
+                log.warn("Rate Limit 초과: 회원 IP {}", clientIp);
+                sendRateLimitResponse(response, 60); // 정책 1분
                 return;
             }
         }
+
         // 정상 요청은 다음 필터로 진행
         filterChain.doFilter(request, response);
     }
