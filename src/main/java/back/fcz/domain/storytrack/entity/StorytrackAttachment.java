@@ -41,4 +41,8 @@ public class StorytrackAttachment {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    public void markDeleted(){
+        this.deletedAt = java.time.LocalDateTime.now();
+    }
 }

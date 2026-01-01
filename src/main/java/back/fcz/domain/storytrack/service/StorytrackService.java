@@ -14,8 +14,10 @@ import back.fcz.domain.storytrack.dto.request.JoinStorytrackRequest;
 import back.fcz.domain.storytrack.dto.request.UpdatePathRequest;
 import back.fcz.domain.storytrack.dto.response.*;
 import back.fcz.domain.storytrack.entity.Storytrack;
+import back.fcz.domain.storytrack.entity.StorytrackAttachment;
 import back.fcz.domain.storytrack.entity.StorytrackProgress;
 import back.fcz.domain.storytrack.entity.StorytrackStep;
+import back.fcz.domain.storytrack.repository.StorytrackAttachmentRepository;
 import back.fcz.domain.storytrack.repository.StorytrackProgressRepository;
 import back.fcz.domain.storytrack.repository.StorytrackRepository;
 import back.fcz.domain.storytrack.repository.StorytrackStepRepository;
@@ -46,6 +48,7 @@ public class StorytrackService {
     private final StorytrackStepRepository storytrackStepRepository;
     private final CapsuleRepository capsuleRepository;
     private final MemberRepository memberRepository;
+    private final StorytrackAttachmentRepository storytrackAttachmentRepository;
 
     private final CapsuleReadService capsuleReadService;
 
@@ -77,6 +80,13 @@ public class StorytrackService {
 
         for (StorytrackStep step : targetSteps) {
             step.markDeleted();
+        }
+
+        // 스토리트랙 이미지 삭제
+        List<StorytrackAttachment> targetImage = storytrackAttachmentRepository.findByStorytrack_StorytrackIdAndDeletedAtIsNull(storytrackId);
+
+        for (StorytrackAttachment image : targetImage){
+            image.markDeleted();
         }
 
         // 트랜잭션으로 인해 삭제 후 다시 DB 저장 문제 해결을 위해 삭제
@@ -151,8 +161,6 @@ public class StorytrackService {
                 .isDeleted(0)
                 .build();
 
-        storytrackRepository.save(storytrack);
-
         int stepOrder = 1;
 
         // 스토리트랙 스탭 생성
@@ -174,6 +182,8 @@ public class StorytrackService {
 
             storytrack.addStep(step);
         }
+
+        storytrackRepository.save(storytrack);
 
         return CreateStorytrackResponse.from(storytrack);
     }
