@@ -52,9 +52,9 @@ public class UnlockService {
 
         // 1. 기본 조건 검증
         boolean conditionMet = switch (unlockType) {
-            case "TIME" -> isTimeConditionMet(capsule.getCapsuleId(), currentTime);
-            case "LOCATION" -> isLocationConditionMet(capsule.getCapsuleId(), currentLat, currentLng);
-            case "TIME_AND_LOCATION" -> isTimeAndLocationConditionMet(capsule.getCapsuleId(), currentTime, currentLat, currentLng);
+            case "TIME" -> isTimeConditionMet(capsule, currentTime);
+            case "LOCATION" -> isLocationConditionMet(capsule, currentLat, currentLng);
+            case "TIME_AND_LOCATION" -> isTimeAndLocationConditionMet(capsule, currentTime, currentLat, currentLng);
             default -> throw new BusinessException(ErrorCode.CAPSULE_CONDITION_ERROR);
         };
 
@@ -100,11 +100,9 @@ public class UnlockService {
     2. unlockAt과 unlockUntil이 모두 설정된 경우
        - unlockAt부터 unlockUntil 사이의 기간 동안만 캡슐 해제가 가능하다.
      */
-    public boolean isTimeConditionMet(long capsuleId, LocalDateTime currentTime) {
+    public boolean isTimeConditionMet(Capsule capsule, LocalDateTime currentTime) {
         if(currentTime == null) {throw new BusinessException(ErrorCode.INVALID_UNLOCK_TIME);}
 
-        Capsule capsule = capsuleRepository.findById(capsuleId).orElseThrow(
-                () -> new BusinessException(ErrorCode.CAPSULE_NOT_FOUND));
         LocalDateTime capsuleUnlockAt = capsule.getUnlockAt();
         LocalDateTime capsuleUnlockUntil = capsule.getUnlockUntil();
 
@@ -131,13 +129,11 @@ public class UnlockService {
     }
 
     // 위치 해제 조건 검증
-    public boolean isLocationConditionMet(long capsuleId, double currentLat, double currentLng) {
+    public boolean isLocationConditionMet(Capsule capsule, double currentLat, double currentLng) {
         if(currentLat < -90 || currentLat > 90 || currentLng < -180 || currentLng > 180) {
             throw new BusinessException(ErrorCode.INVALID_LATITUDE_LONGITUDE);
         }
 
-        Capsule capsule = capsuleRepository.findById(capsuleId).orElseThrow(
-                () -> new BusinessException(ErrorCode.CAPSULE_NOT_FOUND));
         double capsuleLat = capsule.getLocationLat();
         double capsuleLng = capsule.getLocationLng();
         int radiusM = capsule.getLocationRadiusM();
@@ -149,9 +145,9 @@ public class UnlockService {
     }
 
     // 시간 + 위치 해제 조건 검증
-    public boolean isTimeAndLocationConditionMet(long capsuleId, LocalDateTime currentTime, double currentLat, double currentLng) {
-        boolean isTimeConditionMet = isTimeConditionMet(capsuleId, currentTime);
-        boolean isLocationConditionMet = isLocationConditionMet(capsuleId, currentLat, currentLng);
+    public boolean isTimeAndLocationConditionMet(Capsule capsule, LocalDateTime currentTime, double currentLat, double currentLng) {
+        boolean isTimeConditionMet = isTimeConditionMet(capsule, currentTime);
+        boolean isLocationConditionMet = isLocationConditionMet(capsule, currentLat, currentLng);
 
         return isTimeConditionMet && isLocationConditionMet;
     }
