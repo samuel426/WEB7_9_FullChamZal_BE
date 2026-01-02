@@ -56,6 +56,7 @@ public class CapsuleReadService {
     private final CapsuleAttachmentRepository capsuleAttachmentRepository;
     private final PresignedUrlProvider presignedUrlProvider;
     private final CapsuleOpenLogService capsuleOpenLogService;
+    private final SanctionConstants sanctionConstants;
 
     public CapsuleConditionResponseDTO capsuleRead(Long capsuleId){
         //자신이 작성한 캡슐이면 검증 없이 읽기
@@ -213,7 +214,7 @@ public class CapsuleReadService {
                 UnlockValidationResult anomalyResult = UnlockValidationResult.anomalyDetected(
                         true,
                         anomalyType,
-                        SanctionConstants.getScoreByAnomaly(anomalyType)
+                        sanctionConstants.getScoreByAnomaly(anomalyType)
                 );
 
                 detectAndHandleAnomaly(openLog, anomalyResult, currentMemberId, requestDto.ipAddress());
@@ -374,7 +375,7 @@ public class CapsuleReadService {
                 UnlockValidationResult anomalyResult = UnlockValidationResult.anomalyDetected(
                         true,
                         anomalyType,
-                        SanctionConstants.getScoreByAnomaly(anomalyType)
+                        sanctionConstants.getScoreByAnomaly(anomalyType)
                 );
 
                 detectAndHandleAnomaly(openLog, anomalyResult, currentMemberId, requestDto.ipAddress());
@@ -515,7 +516,7 @@ public class CapsuleReadService {
                 UnlockValidationResult anomalyResult = UnlockValidationResult.anomalyDetected(
                         true,
                         anomalyType,
-                        SanctionConstants.getScoreByAnomaly(anomalyType)
+                        sanctionConstants.getScoreByAnomaly(anomalyType)
                 );
 
                 detectAndHandleAnomaly(openLog, anomalyResult, memberId, requestDto.ipAddress());

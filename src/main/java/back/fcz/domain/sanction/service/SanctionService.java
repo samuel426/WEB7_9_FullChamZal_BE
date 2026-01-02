@@ -24,6 +24,7 @@ public class SanctionService {
 
     private final MemberRepository memberRepository;
     private final MemberSanctionHistoryRepository sanctionHistoryRepository;
+    private final SanctionConstants sanctionConstants;
 
     // 자동 정지 처리 수행
     @Transactional
@@ -42,8 +43,8 @@ public class SanctionService {
                 memberId, reason, days, sanctionUntil);
 
         // 시스템 관리자 ID 조회 후 제재 이력 저장
-        Long systemAdminId = SanctionConstants.getSystemAdminId(memberRepository);
-        String fullReason = SanctionConstants.buildAutoSanctionReason(reason);
+        Long systemAdminId = sanctionConstants.getSystemAdminId();
+        String fullReason = sanctionConstants.buildAutoSanctionReason(reason);
 
         MemberSanctionHistory history = MemberSanctionHistory.create(
                 memberId,                               // 제재 대상 회원
@@ -71,7 +72,7 @@ public class SanctionService {
         member.updateStatus(after);
 
         // 시스템 관리자 ID 조회
-        Long systemAdminId = SanctionConstants.getSystemAdminId(memberRepository);
+        Long systemAdminId = sanctionConstants.getSystemAdminId();
 
         // 복구 이력 저장
         MemberSanctionHistory history = MemberSanctionHistory.create(

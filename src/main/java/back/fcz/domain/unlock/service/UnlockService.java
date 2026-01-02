@@ -22,6 +22,7 @@ public class UnlockService {
     private static final double EARTH_RADIUS_M = 6371000; // 지구 반지름 (m)
     private final CapsuleRepository capsuleRepository;
     private final CapsuleOpenLogRepository capsuleOpenLogRepository;
+    private final SanctionConstants sanctionConstants;
 
     // 개인 캡슐
     public UnlockValidationResult validateUnlockConditionsForPrivate(
@@ -70,7 +71,7 @@ public class UnlockService {
         );
 
         // 3. 의심 점수 계산
-        int suspicionScore = SanctionConstants.getScoreByAnomaly(anomalyType);
+        int suspicionScore = sanctionConstants.getScoreByAnomaly(anomalyType);
 
         // 4. 결과 반환
         if (anomalyType != AnomalyType.NONE) {
