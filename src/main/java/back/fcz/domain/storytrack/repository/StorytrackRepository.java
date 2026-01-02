@@ -70,7 +70,8 @@ GROUP BY s, m, spMeActive
         s.price,
         s.totalSteps,
         s.createdAt,
-        COUNT(sp)
+        COUNT(sp),
+        null
     )
     FROM Storytrack s
     LEFT JOIN StorytrackProgress sp

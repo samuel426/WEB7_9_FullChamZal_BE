@@ -63,7 +63,8 @@ SELECT new back.fcz.domain.storytrack.dto.response.ParticipantStorytrackListResp
     p.startedAt,
     p.completedAt,
     s.createdAt,
-    COUNT(sp2)
+    COUNT(sp2),
+    null
 )
 FROM StorytrackProgress p
 JOIN p.member m
