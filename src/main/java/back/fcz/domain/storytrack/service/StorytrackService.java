@@ -34,8 +34,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -248,7 +250,27 @@ public class StorytrackService {
         Page<TotalStorytrackResponse> responsePage =
                 storytrackRepository.findPublicStorytracksWithMemberType(memberId, pageable);
 
-        return new PageResponse<>(responsePage);
+        // 스토리트랙 목록 추출
+        List<Long> storytrackIds = responsePage.getContent().stream()
+                .map(TotalStorytrackResponse::storytrackId)
+                .toList();
+
+        // 스토리트랙 당 image
+        Map<Long, String> imageUrlMap =
+                storytrackAttachmentRepository.findActiveImagesByStorytrackIds(storytrackIds)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                a -> a.getStorytrack().getStorytrackId(),
+                                StorytrackAttachment::getFileURL
+                        ));
+
+        // DTO에 이미지 url 넣기
+        Page<TotalStorytrackResponse> finalPage =
+                responsePage.map(dto ->
+                        dto.withImage(imageUrlMap.get(dto.storytrackId()))
+                );
+
+        return new PageResponse<>(finalPage);
     }
 
     // 스토리트랙 조회 -> 스토리트랙에 대한 간략한 조회 : 삭제된 스토리트랙은 미조회
