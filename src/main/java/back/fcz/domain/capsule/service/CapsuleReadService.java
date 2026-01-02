@@ -199,33 +199,6 @@ public class CapsuleReadService {
         );
         capsuleOpenLogService.saveLogInNewTransaction(openLog);
 
-        if (requestDto.locationLat() != null && requestDto.locationLng() != null) {
-            AnomalyType anomalyType = unlockService.detectAnomalyOnly(
-                    capsule,
-                    requestDto.locationLat(),
-                    requestDto.locationLng(),
-                    requestDto.unlockAt(),
-                    requestDto.serverTime(),
-                    currentMemberId,
-                    requestDto.ipAddress()
-            );
-
-            if (anomalyType != AnomalyType.NONE) {
-                UnlockValidationResult anomalyResult = UnlockValidationResult.anomalyDetected(
-                        true,
-                        anomalyType,
-                        sanctionConstants.getScoreByAnomaly(anomalyType)
-                );
-
-                detectAndHandleAnomaly(openLog, anomalyResult, currentMemberId, requestDto.ipAddress());
-
-                // 재조회 시에도 심각한 이상은 차단
-                if (anomalyType == AnomalyType.IMPOSSIBLE_MOVEMENT) {
-                    throw new BusinessException(ErrorCode.GPS_SPOOFING_SUSPECTED);
-                }
-            }
-        }
-
         log.info("공개 캡슐 재조회 완료");
         return readPublicCapsule(capsule, requestDto, true);
     }
@@ -360,32 +333,6 @@ public class CapsuleReadService {
         );
         capsuleOpenLogService.saveLogInNewTransaction(openLog);
 
-        if (requestDto.locationLat() != null && requestDto.locationLng() != null) {
-            AnomalyType anomalyType = unlockService.detectAnomalyOnly(
-                    capsule,
-                    requestDto.locationLat(),
-                    requestDto.locationLng(),
-                    requestDto.unlockAt(),
-                    requestDto.serverTime(),
-                    currentMemberId,
-                    requestDto.ipAddress()
-            );
-
-            if (anomalyType != AnomalyType.NONE) {
-                UnlockValidationResult anomalyResult = UnlockValidationResult.anomalyDetected(
-                        true,
-                        anomalyType,
-                        sanctionConstants.getScoreByAnomaly(anomalyType)
-                );
-
-                detectAndHandleAnomaly(openLog, anomalyResult, currentMemberId, requestDto.ipAddress());
-
-                if (anomalyType == AnomalyType.IMPOSSIBLE_MOVEMENT) {
-                    throw new BusinessException(ErrorCode.GPS_SPOOFING_SUSPECTED);
-                }
-            }
-        }
-
         log.info("보호된 캡슐 재조회 완료");
         return readMemberCapsule(capsule, requestDto, false, recipient);
     }
@@ -500,33 +447,6 @@ public class CapsuleReadService {
                 viewerType
         );
         capsuleOpenLogService.saveLogInNewTransaction(openLog);
-
-        if (requestDto.locationLat() != null && requestDto.locationLng() != null) {
-            AnomalyType anomalyType = unlockService.detectAnomalyOnly(
-                    capsule,
-                    requestDto.locationLat(),
-                    requestDto.locationLng(),
-                    requestDto.unlockAt(),
-                    requestDto.serverTime(),
-                    memberId,
-                    requestDto.ipAddress()
-            );
-
-            if (anomalyType != AnomalyType.NONE) {
-                UnlockValidationResult anomalyResult = UnlockValidationResult.anomalyDetected(
-                        true,
-                        anomalyType,
-                        sanctionConstants.getScoreByAnomaly(anomalyType)
-                );
-
-                detectAndHandleAnomaly(openLog, anomalyResult, memberId, requestDto.ipAddress());
-
-                if (anomalyType == AnomalyType.IMPOSSIBLE_MOVEMENT) {
-                    throw new BusinessException(ErrorCode.GPS_SPOOFING_SUSPECTED);
-                }
-            }
-        }
-
         log.info("비보호 캡슐 재조회 완료");
 
         boolean isLoggedIn = (memberId != null);
