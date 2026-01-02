@@ -299,6 +299,9 @@ public class StorytrackService {
                 Sort.by(Sort.Direction.ASC, "stepOrder")
         );
 
+        // 스토리트랙 이미지 조회
+        List<StorytrackAttachment> image = storytrackAttachmentRepository.findByStorytrack_StorytrackIdAndDeletedAtIsNull(storytrackId);
+
         Page<StorytrackStep> paths = storytrackStepRepository.findStepsWithCapsule(storytrackId, pageable);
 
         Page<PathResponse> responsePage =
@@ -310,13 +313,19 @@ public class StorytrackService {
                         memberId
                 );
 
+        String imageUrl = image.stream()
+                .findFirst()
+                .map(StorytrackAttachment::getFileURL)
+                .orElse(null);
+
         return StorytrackDashBoardResponse.of(
                 storytrack,
                 responsePage,
                 totalParticipant,
                 completeProgress,
                 memberType,
-                completedCapsuleIds
+                completedCapsuleIds,
+                imageUrl
         );
     }
 
