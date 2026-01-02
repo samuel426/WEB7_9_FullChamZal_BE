@@ -4,8 +4,10 @@ import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.entity.MemberRole;
 import back.fcz.domain.member.entity.MemberStatus;
 import back.fcz.domain.member.repository.MemberRepository;
+import back.fcz.domain.sanction.constant.SanctionConstants;
 import back.fcz.domain.sanction.entity.MemberSanctionHistory;
 import back.fcz.domain.sanction.entity.SanctionType;
+import back.fcz.domain.sanction.properties.SanctionProperties;
 import back.fcz.domain.sanction.repository.MemberSanctionHistoryRepository;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
@@ -34,11 +36,25 @@ class SanctionServiceTest {
     @Mock
     private MemberSanctionHistoryRepository sanctionHistoryRepository;
 
+    @Mock
+    private SanctionProperties sanctionProperties;
+
+    private SanctionConstants sanctionConstants;
     private SanctionService sanctionService;
 
     @BeforeEach
     void setUp() {
-        sanctionService = new SanctionService(memberRepository, sanctionHistoryRepository);
+        sanctionConstants = new SanctionConstants(sanctionProperties, memberRepository);
+
+        Member systemAdmin = createSystemAdmin();
+        lenient().when(memberRepository.findByUserId("SYSTEM"))
+                .thenReturn(Optional.of(systemAdmin));
+
+        sanctionService = new SanctionService(
+                memberRepository,
+                sanctionHistoryRepository,
+                sanctionConstants
+        );
     }
 
     // 테스트용 회원 생성
@@ -87,7 +103,6 @@ class SanctionServiceTest {
         Member systemAdmin = createSystemAdmin();
 
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
-        when(memberRepository.findByUserId("SYSTEM")).thenReturn(Optional.of(systemAdmin));
 
         // When
         sanctionService.applyAutoSuspension(memberId, reason, days);

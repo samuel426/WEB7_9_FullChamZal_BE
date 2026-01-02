@@ -12,9 +12,8 @@ import back.fcz.domain.member.entity.MemberStatus;
 import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.domain.member.service.CurrentUserContext;
 import back.fcz.domain.member.service.MemberService;
-import back.fcz.domain.capsule.repository.CapsuleAttachmentRepository;
-import back.fcz.domain.capsule.entity.CapsuleAttachmentStatus;
 import back.fcz.domain.sanction.constant.SanctionConstants;
+import back.fcz.domain.sanction.properties.SanctionProperties;
 import back.fcz.domain.sanction.service.MonitoringService;
 import back.fcz.domain.unlock.dto.UnlockValidationResult;
 import back.fcz.domain.unlock.service.FirstComeService;
@@ -23,13 +22,13 @@ import back.fcz.global.crypto.PhoneCrypto;
 import back.fcz.global.dto.InServerMemberResponse;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
+import back.fcz.infra.storage.PresignedUrlProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -91,15 +90,54 @@ class CapsuleReadServiceTest {
     @Mock
     private CapsuleOpenLogService capsuleOpenLogService;
 
-    @InjectMocks
-    private CapsuleReadService capsuleReadService;
+    @Mock
+    private SanctionConstants sanctionConstants;
 
+    @Mock
+    private SanctionProperties sanctionProperties;
+
+    @Mock
+    private PresignedUrlProvider presignedUrlProvider;
+
+    private CapsuleReadService capsuleReadService;
     private Member testMember;
 
     @BeforeEach
     void setUp() {
         // 테스트용 회원 생성
         testMember = createMember(1L, "testUser", "테스터");
+
+        lenient().when(sanctionConstants.getScoreByAnomaly(any(AnomalyType.class)))
+                .thenAnswer(invocation -> {
+                    AnomalyType type = invocation.getArgument(0);
+                    return switch (type) {
+                        case IMPOSSIBLE_MOVEMENT -> 50;
+                        case TIME_MANIPULATION -> 30;
+                        case RAPID_RETRY -> 20;
+                        case LOCATION_RETRY -> 15;
+                        case SUSPICIOUS_PATTERN -> 10;
+                        case NONE -> 0;
+                    };
+                });
+
+        capsuleReadService = new CapsuleReadService(
+                capsuleRepository,
+                capsuleRecipientRepository,
+                phoneCrypto,
+                unlockService,
+                firstComeService,
+                memberRepository,
+                publicCapsuleRecipientRepository,
+                capsuleOpenLogRepository,
+                memberService,
+                currentUserContext,
+                bookmarkRepository,
+                monitoringService,
+                capsuleAttachmentRepository,
+                presignedUrlProvider,
+                capsuleOpenLogService,
+                sanctionConstants
+        );
 
         lenient().when(capsuleAttachmentRepository.findAllByCapsule_CapsuleIdAndStatus(
                 anyLong(),
@@ -304,7 +342,7 @@ class CapsuleReadServiceTest {
             UnlockValidationResult anomalyResult = UnlockValidationResult.anomalyDetected(
                     false,
                     AnomalyType.IMPOSSIBLE_MOVEMENT,
-                    SanctionConstants.getScoreByAnomaly(AnomalyType.IMPOSSIBLE_MOVEMENT)
+                    sanctionConstants.getScoreByAnomaly(AnomalyType.IMPOSSIBLE_MOVEMENT)
             );
             when(unlockService.validateTimeAndLocationConditions(
                     eq(publicCapsule),
@@ -328,7 +366,7 @@ class CapsuleReadServiceTest {
 
             verify(monitoringService, times(1)).incrementSuspicionScore(
                     eq(1L),
-                    eq(SanctionConstants.getScoreByAnomaly(AnomalyType.IMPOSSIBLE_MOVEMENT))
+                    eq(50)
             );
 
             ArgumentCaptor<CapsuleOpenLog> logCaptor = ArgumentCaptor.forClass(CapsuleOpenLog.class);

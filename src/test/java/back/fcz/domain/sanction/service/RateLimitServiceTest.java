@@ -5,7 +5,6 @@ import back.fcz.domain.sanction.properties.SanctionProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -93,7 +92,7 @@ class RateLimitServiceTest {
     }
 
     @Test
-    void apply_요청수_초과하면_윈도우_expire후_쿨다운_expire로_덮어쓴다() {
+    void apply_요청수_초과하면_쿨다운_expire만_호출된다() {
         // given
         when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
         when(zSetOperations.zCard(anyString())).thenReturn(6L);
@@ -109,16 +108,14 @@ class RateLimitServiceTest {
         rateLimitService.apply(1L, RiskLevel.MEDIUM);
 
         // then
-        InOrder inOrder = inOrder(redisTemplate);
-
-        inOrder.verify(redisTemplate).expire(
-                eq("rate_limit:member:1"),
-                eq(Duration.ofSeconds(60))
-        );
-
-        inOrder.verify(redisTemplate).expire(
+        verify(redisTemplate, times(1)).expire(
                 eq("rate_limit:member:1"),
                 eq(Duration.ofSeconds(600))
+        );
+
+        verify(redisTemplate, never()).expire(
+                eq("rate_limit:member:1"),
+                eq(Duration.ofSeconds(60))
         );
     }
 

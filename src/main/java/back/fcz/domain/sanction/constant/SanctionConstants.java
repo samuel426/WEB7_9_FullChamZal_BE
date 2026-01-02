@@ -4,7 +4,6 @@ import back.fcz.domain.capsule.entity.AnomalyType;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.domain.sanction.properties.SanctionProperties;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,21 +20,22 @@ public class SanctionConstants  {
     public static final String AUTO_SANCTION_REASON_PREFIX = "자동 제재: ";
 
     // 캐싱된 시스템 관리자 ID (애플리케이션 시작 시 초기화)
-    private Long systemAdminIdCache;
+    private volatile Long systemAdminIdCache;
 
-    // 애플리케이션 시작 시 시스템 관리자 ID를 미리 조회하여 캐싱
-    @PostConstruct
-    public void initSystemAdminId() {
-        this.systemAdminIdCache = memberRepository.findByUserId(SYSTEM_ADMIN_USER_ID)
-                .map(Member::getMemberId)
-                .orElseThrow(() -> new IllegalStateException(
-                        "시스템 관리자 계정(SYSTEM)을 찾을 수 없습니다. 서버 초기화 실패"));
-
-        log.info("시스템 관리자 ID 초기화 완료: memberId={}", systemAdminIdCache);
-    }
-
-    // 시스템 관리자 memberId 조회
     public Long getSystemAdminId() {
+        if (systemAdminIdCache != null) {
+            return systemAdminIdCache;
+        }
+
+        synchronized (this) {
+            if (systemAdminIdCache == null) {
+                systemAdminIdCache = memberRepository.findByUserId(SYSTEM_ADMIN_USER_ID)
+                        .map(Member::getMemberId)
+                        .orElseThrow(() ->
+                                new IllegalStateException("SYSTEM 계정이 존재하지 않습니다."));
+                log.info("시스템 관리자 ID Lazy 초기화 완료: {}", systemAdminIdCache);
+            }
+        }
         return systemAdminIdCache;
     }
 
