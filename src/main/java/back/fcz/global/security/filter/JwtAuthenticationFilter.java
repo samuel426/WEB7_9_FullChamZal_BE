@@ -1,5 +1,7 @@
 package back.fcz.global.security.filter;
 
+import back.fcz.domain.member.entity.MemberStatus;
+import back.fcz.domain.member.service.MemberStatusCache;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
 import back.fcz.global.response.ApiResponse;
@@ -34,6 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
     private final TokenBlacklistService tokenBlacklistService;
     private final ObjectMapper objectMapper;
+    private final MemberStatusCache memberStatusCache;
 
     @Override
     protected void doFilterInternal(
@@ -49,7 +52,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             Optional<String> tokenOpt = CookieUtil.getCookieValue(request, CookieUtil.ACCESS_TOKEN_COOKIE);
-
 
             if (tokenOpt.isEmpty()) {
                 log.debug("Access Token이 없습니다. URI: {}", request.getRequestURI());
@@ -68,6 +70,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Long memberId = jwtProvider.extractMemberId(accessToken);
             String role = jwtProvider.extractRole(accessToken);
             UserType userType = jwtProvider.extractUserType(accessToken);
+
+            MemberStatus status = memberStatusCache.getStatus(memberId);
+
+            f (status == MemberStatus.STOP) {
+                log.warn("정지된 회원의 접근 시도: memberId={}, status=STOP, URI={}",
+                        memberId, request.getRequestURI());
+                throw new BusinessException(ErrorCode.MEMBER_SUSPENDED);
+            }
+
+            if (status == MemberStatus.EXIT) {
+                log.warn("탈퇴한 회원의 접근 시도: memberId={}, status=EXIT, URI={}",
+                        memberId, request.getRequestURI());
+                throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
+            }
 
             log.debug("JWT 인증 성공 - memberId: {}, role: {}, userType: {}", memberId, role, userType);
 

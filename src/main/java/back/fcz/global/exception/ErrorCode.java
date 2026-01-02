@@ -66,6 +66,7 @@ public enum ErrorCode {
     WITHDRAWN_USER_ID("AUTH007", HttpStatus.CONFLICT, "사용 불가능한 아이디입니다. 다른 아이디를 사용해 주세요."),
     WITHDRAWN_PHONE_NUMBER("AUTH008", HttpStatus.CONFLICT, "사용 불가능한 전화번호입니다. 다른 전화번호를 사용해 주세요."),
     PHONE_NOT_VERIFIED("AUTH009", HttpStatus.UNAUTHORIZED, "인증되지 않은 전화번호입니다."),
+    MEMBER_SUSPENDED("AUTH010", HttpStatus.FORBIDDEN,"정지된 회원입니다. 관리자에게 문의하세요."),
 
     // ========== 사용자 도메인 에러 ==========
     MEMBER_NOT_FOUND("MEM001", HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),

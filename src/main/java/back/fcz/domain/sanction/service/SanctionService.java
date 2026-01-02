@@ -3,6 +3,7 @@ package back.fcz.domain.sanction.service;
 import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.entity.MemberStatus;
 import back.fcz.domain.member.repository.MemberRepository;
+import back.fcz.domain.member.service.MemberStatusCache;
 import back.fcz.domain.sanction.constant.SanctionConstants;
 import back.fcz.domain.sanction.entity.MemberSanctionHistory;
 import back.fcz.domain.sanction.entity.SanctionType;
@@ -25,6 +26,7 @@ public class SanctionService {
     private final MemberRepository memberRepository;
     private final MemberSanctionHistoryRepository sanctionHistoryRepository;
     private final SanctionConstants sanctionConstants;
+    private final MemberStatusCache memberStatusCache;
 
     // 자동 정지 처리 수행
     @Transactional
@@ -57,6 +59,7 @@ public class SanctionService {
         );
 
         sanctionHistoryRepository.save(history);
+        memberStatusCache.invalidateCache(memberId);
     }
 
     // 자동 정지 해제
@@ -86,6 +89,7 @@ public class SanctionService {
         );
 
         sanctionHistoryRepository.save(history);
+        memberStatusCache.invalidateCache(memberId);
 
         log.info("자동 정지 해제: memberId={}", memberId);
     }
