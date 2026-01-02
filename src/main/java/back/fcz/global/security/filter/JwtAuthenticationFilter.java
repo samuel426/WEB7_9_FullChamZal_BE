@@ -73,7 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             MemberStatus status = memberStatusCache.getStatus(memberId);
 
-            f (status == MemberStatus.STOP) {
+            if (status == MemberStatus.STOP) {
                 log.warn("정지된 회원의 접근 시도: memberId={}, status=STOP, URI={}",
                         memberId, request.getRequestURI());
                 throw new BusinessException(ErrorCode.MEMBER_SUSPENDED);
