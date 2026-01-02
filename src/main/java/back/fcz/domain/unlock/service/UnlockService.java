@@ -50,6 +50,12 @@ public class UnlockService {
     ) {
         String unlockType = capsule.getUnlockType();
 
+        if ((unlockType.equals("LOCATION") || unlockType.equals("TIME_AND_LOCATION"))) {
+            if (currentLat == null || currentLng == null) {
+                throw new BusinessException(ErrorCode.LOCATION_REQUIRED);
+            }
+        }
+
         // 1. 기본 조건 검증
         boolean conditionMet = switch (unlockType) {
             case "TIME" -> isTimeConditionMet(capsule, currentTime);

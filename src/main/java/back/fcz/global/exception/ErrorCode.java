@@ -97,6 +97,7 @@ public enum ErrorCode {
     NICKNAME_REQUIRED("CP020", HttpStatus.BAD_REQUEST, "캡슐 생성에 발신자 닉네임이 필요합니다."),
     PHONENUMBER_REQUIRED("CP021", HttpStatus.BAD_REQUEST, "캡슐 생성에 전화번호가 필요합니다."),
     NOT_PUBLIC("CPS022", HttpStatus.BAD_REQUEST, "공개 캡슐이 아닙니다."),
+    LOCATION_REQUIRED("CPS023", HttpStatus.BAD_REQUEST, "위치 정보가 필요합니다."),
 
     // ========== 캡슐 파일 업로드 ==========
     CAPSULE_FILE_NOT_FOUND("CPSF001", HttpStatus.NOT_FOUND, "캡슐 업로드 파일을 찾을 수 없습니다."),

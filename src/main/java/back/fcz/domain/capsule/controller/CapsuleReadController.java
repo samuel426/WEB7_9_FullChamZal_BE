@@ -79,7 +79,8 @@ public class CapsuleReadController {
             ErrorCode.CAPSULE_PASSWORD_REQUIRED,
             ErrorCode.MEMBER_NOT_FOUND,
             ErrorCode.RECIPIENT_NOT_FOUND,
-            ErrorCode.UNAUTHORIZED
+            ErrorCode.UNAUTHORIZED,
+            ErrorCode.LOCATION_REQUIRED
     })
     @PostMapping("/read")
     public ResponseEntity<ApiResponse<CapsuleConditionResponseDTO>> conditionAndReadCapsule(
