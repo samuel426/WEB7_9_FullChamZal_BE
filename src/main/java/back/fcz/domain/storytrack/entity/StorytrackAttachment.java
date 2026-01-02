@@ -1,6 +1,5 @@
 package back.fcz.domain.storytrack.entity;
 
-import back.fcz.domain.capsule.entity.Capsule;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
@@ -18,7 +17,7 @@ public class StorytrackAttachment {
 
     @ManyToOne
     @JoinColumn(name = "storytrack_id", nullable = false)
-    private Capsule storytrack;
+    private Storytrack storytrack;
 
     @Column(name = "file_url", nullable = false)
     private String fileURL;
