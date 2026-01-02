@@ -82,11 +82,8 @@ public class MonitoringService {
         try {
             Long newScore = redisTemplate.opsForValue().increment(key, score);
 
-            Long ttlSeconds = redisTemplate.getExpire(key);
-            if (ttlSeconds == null || ttlSeconds == -1L || ttlSeconds == -2L) {
-                Duration ttl = sanctionProperties.getMonitoring().getSuspicionTtl();
-                redisTemplate.expire(key, ttl);
-            }
+            Duration ttl = sanctionProperties.getMonitoring().getSuspicionTtl();
+            redisTemplate.expire(key, ttl);
 
             return newScore != null ? newScore.intValue() : 0;
         } catch (Exception e) {
