@@ -25,6 +25,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -92,7 +93,7 @@ public class CapsuleReadController {
         String ipAddress = RequestInfoExtractor.extractIp(request);
         String userAgent = RequestInfoExtractor.extractUserAgent(request);
 
-        LocalDateTime serverTime = LocalDateTime.now();
+        LocalDateTime serverTime = LocalDateTime.now(ZoneOffset.UTC);
 
         CapsuleConditionRequestDTO plusDto = new CapsuleConditionRequestDTO(
                 capsuleConditionRequestDto.capsuleId(),
