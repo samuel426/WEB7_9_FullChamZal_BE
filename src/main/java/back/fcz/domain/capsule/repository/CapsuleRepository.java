@@ -1,6 +1,7 @@
 package back.fcz.domain.capsule.repository;
 
 import back.fcz.domain.capsule.entity.Capsule;
+import back.fcz.domain.unlock.dto.response.projection.NearbyOpenCapsuleProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,6 +38,7 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
     AND (c.maxViewCount IS NULL OR c.currentViewCount < c.maxViewCount)
 """)
     int incrementViewCountIfAvailable(@Param("capsuleId") Long capsuleId);
+
     // TODO: 작성자, 기간, 키워드 검색 등은 추후 QueryDsl / Specification 으로 확장
     // 공개 캡슐이고 삭제되지 않았으며, 위치 정보가 유효한 캡슐 조회
     @Query("SELECT c FROM Capsule c " +
@@ -242,5 +244,32 @@ public interface CapsuleRepository extends JpaRepository<Capsule, Long> {
             @Param("memberId") Long memberId,
             @Param("isDeleted") int isDeleted,
             @Param("protectedValue") int protectedValue
+    );
+           
+    // 위도, 경도 bounding box 범위 내의 삭제되지 않은 공개 캡슐 조회
+    @Query("""
+    SELECT new back.fcz.domain.unlock.dto.response.projection.NearbyOpenCapsuleProjection(
+        c.capsuleId,
+        c.locationName,
+        c.nickname,
+        c.title,
+        c.content,
+        c.createdAt,
+        c.unlockType,
+        c.locationLat,
+        c.locationLng,
+        c.likeCount
+    )
+    FROM Capsule c
+    WHERE c.visibility = 'PUBLIC'
+    AND c.isDeleted = 0
+    AND c.locationLat BETWEEN :minLat AND :maxLat
+    AND c.locationLng BETWEEN :minLng AND :maxLng
+    """)
+    List<NearbyOpenCapsuleProjection> findNearbyCapsules(
+            @Param("minLat") double minLat,
+            @Param("maxLat") double maxLat,
+            @Param("minLng") double minLng,
+            @Param("maxLng") double maxLng
     );
 }
