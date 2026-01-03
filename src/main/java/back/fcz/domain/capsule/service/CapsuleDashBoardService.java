@@ -70,11 +70,9 @@ public class CapsuleDashBoardService {
 
         if(year < currentYear){
             //지나간 해의 데이터는 (1월~12월까지 계산, 캐싱된 데이터)
-            System.out.println("이전 해 송수신 조회");
             stats.addAll(capsuleCacheService.getCachedPastStats(memberId, year, 12, phoneHash).data());
         }else{
             //이전 달 까진 캐싱된 데이터를 사용
-            System.out.println("이전 달 송수신 조회");
             stats.addAll(capsuleCacheService.getCachedPastStats(memberId, year, currentMonth - 1, phoneHash).data());
 
             //이번 달은 데이터 정확성을 위해 직접 계산
@@ -91,7 +89,6 @@ public class CapsuleDashBoardService {
 
     private MonthlyCapsuleStat getRealTimeStat(Long memberId, int year, int month, String phoneHash) {
         // 이번 달의 송신/수신 개수를 각각 조회
-        System.out.println("이번달 송수신 조회");
         long sendCount = capsuleRepository.countSpecificMonthSend(memberId, year, month);
         long receiveCount = capsuleRecipientRepository.countSpecificMonthReceive(phoneHash, year, month);
 
