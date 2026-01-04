@@ -72,6 +72,30 @@ public class AnomalyDetector {
         long timeDiffSeconds = Duration.between(previousTime, currentTime).getSeconds();
         double distance = calculateDistance(previousLat, previousLng, currentLat, currentLng);
 
+        // 시간 역행 (클라이언트 조작)
+        if (timeDiffSeconds < 0) {
+            // GPS 오차 범위(100m) 내는 허용
+            if (distance < 0.1) {
+                log.debug("시간 역행이지만 GPS 오차 범위 내: {}초, {}km", timeDiffSeconds, distance);
+                return 0;
+            }
+
+            log.warn("시간 역행 + 위치 변경 감지: {}초, {}km", timeDiffSeconds, distance);
+            return 3;
+        }
+
+        // 정확히 동일 시간 (0초)
+        if (timeDiffSeconds == 0) {
+            // 200m 미만은 GPS 재연결 오차로 간주
+            if (distance < 0.2) {
+                log.debug("동일 시간이지만 GPS 재연결 오차 범위 내: {}km", distance);
+                return 0;
+            }
+
+            log.warn("동일 시간 위치 변경 감지: {}km 이동", distance);
+            return 3;
+        }
+
         // 일반 GPS 오차(5-10m) + 실내 오차(~50m) 고려
         if (distance < 0.1) {  // 100m
             log.debug("이동 거리 {}km는 GPS 오차 범위 내로 판단", distance);
@@ -84,23 +108,6 @@ public class AnomalyDetector {
             return 0;
         }
 
-        // 정확히 동일 시간 (0초)
-        if (timeDiffSeconds == 0) {
-            if (distance >= 0.2) {  // 200m 이상 이동
-                log.warn("동일 시간 위치 변경 감지: {}km 이동", distance);
-                return 3;  // 즉시 차단
-            }
-            return 0;  // 200m 미만은 GPS 재연결 오차로 간주
-        }
-
-        // 시간 역행 (클라이언트 조작)
-        if (timeDiffSeconds < 0) {
-            if (distance >= 0.1) {  // 100m 이상
-                log.warn("시간 역행 + 위치 변경 감지: {}초, {}km", timeDiffSeconds, distance);
-                return 3;  // 즉시 차단
-            }
-            return 0;
-        }
         double speed = calculateSpeed(distance, timeDiffSeconds);
 
         // 시간 간격에 따라 임계값 조정

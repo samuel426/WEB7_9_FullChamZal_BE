@@ -327,20 +327,147 @@ class AnomalyDetectorTest {
     }
 
     @Test
-    @DisplayName("시간이 음수(과거로 이동)이고 위치가 변경되면 즉시 차단한다")
-    void detectNegativeTimeWithMovement() {
-        // given - 미래에서 과거로 시간 이동 + 위치 변경
+    @DisplayName("GPS 오차 범위 내(100m 미만)는 항상 정상이다")
+    void ignoreMovementWithinGpsErrorRange() {
+        // given - 동일 위치에서 50m 이동
         double lat1 = 37.5665;
         double lng1 = 126.9780;
-        double lat2 = 37.6665;
-        double lng2 = 127.0780;
+        double lat2 = 37.5670; // 약 55m 이동
+        double lng2 = 126.9785;
         LocalDateTime time1 = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
-        LocalDateTime time2 = LocalDateTime.of(2025, 1, 1, 9, 50, 0); // 과거
+        LocalDateTime time2 = LocalDateTime.of(2025, 1, 1, 10, 0, 0); // 동일 시간
 
         // when
         int level = AnomalyDetector.classifyMovementAnomaly(lat1, lng1, lat2, lng2, time1, time2);
 
         // then
-        assertThat(level).isEqualTo(3);
+        assertThat(level).isEqualTo(0); // GPS 오차 범위
+    }
+
+    @Test
+    @DisplayName("동일 시간에 200m 미만 이동은 GPS 재연결 오차로 간주한다")
+    void ignoreSameTimeWithinReconnectionError() {
+        // given - 동일 시간, 150m 이동
+        double lat1 = 37.5665;
+        double lng1 = 126.9780;
+        double lat2 = 37.5678; // 약 144m 이동
+        double lng2 = 126.9795;
+        LocalDateTime time1 = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
+        LocalDateTime time2 = LocalDateTime.of(2025, 1, 1, 10, 0, 0); // 동일 시간
+
+        // when
+        int level = AnomalyDetector.classifyMovementAnomaly(lat1, lng1, lat2, lng2, time1, time2);
+
+        // then
+        assertThat(level).isEqualTo(0); // GPS 재연결 오차 허용
+    }
+
+    @Test
+    @DisplayName("동일 시간에 200m 이상 이동하면 즉시 차단한다")
+    void detectSameTimeOver200m() {
+        // given - 동일 시간, 250m 이동
+        double lat1 = 37.5665;
+        double lng1 = 126.9780;
+        double lat2 = 37.5687; // 약 244m 이동
+        double lng2 = 126.9805;
+        LocalDateTime time1 = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
+        LocalDateTime time2 = LocalDateTime.of(2025, 1, 1, 10, 0, 0); // 동일 시간
+
+        // when
+        int level = AnomalyDetector.classifyMovementAnomaly(lat1, lng1, lat2, lng2, time1, time2);
+
+        // then
+        assertThat(level).isEqualTo(3); // 즉시 차단
+    }
+
+    @Test
+    @DisplayName("동일 시간에 서울-부산(325km)처럼 명백한 조작은 즉시 차단한다")
+    void detectSameTimeExtremeDistance() {
+        // given - 서울에서 부산으로 325km 이동, 시간은 동일
+        double seoulLat = 37.5665;
+        double seoulLng = 126.9780;
+        double busanLat = 35.1796;
+        double busanLng = 129.0756;
+        LocalDateTime time1 = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
+        LocalDateTime time2 = LocalDateTime.of(2025, 1, 1, 10, 0, 0); // 동일 시간
+
+        // when
+        int level = AnomalyDetector.classifyMovementAnomaly(
+                seoulLat, seoulLng, busanLat, busanLng, time1, time2);
+
+        // then
+        assertThat(level).isEqualTo(3); // 즉시 차단
+    }
+
+    @Test
+    @DisplayName("시간 역행(음수) + 100m 미만 이동은 정상으로 간주한다")
+    void ignoreNegativeTimeWithinGpsError() {
+        // given - 과거로 10초 + 50m 이동
+        double lat1 = 37.5665;
+        double lng1 = 126.9780;
+        double lat2 = 37.5670; // 약 55m 이동
+        double lng2 = 126.9785;
+        LocalDateTime time1 = LocalDateTime.of(2025, 1, 1, 10, 0, 10);
+        LocalDateTime time2 = LocalDateTime.of(2025, 1, 1, 10, 0, 0); // 10초 과거
+
+        // when
+        int level = AnomalyDetector.classifyMovementAnomaly(lat1, lng1, lat2, lng2, time1, time2);
+
+        // then
+        assertThat(level).isEqualTo(0); // GPS 오차 범위
+    }
+
+    @Test
+    @DisplayName("시간 역행(음수) + 100m 이상 이동은 즉시 차단한다")
+    void detectNegativeTimeWithMovement() {
+        // given - 과거로 10초 + 150m 이동
+        double lat1 = 37.5665;
+        double lng1 = 126.9780;
+        double lat2 = 37.5678; // 약 144m 이동
+        double lng2 = 126.9795;
+        LocalDateTime time1 = LocalDateTime.of(2025, 1, 1, 10, 0, 10);
+        LocalDateTime time2 = LocalDateTime.of(2025, 1, 1, 10, 0, 0); // 10초 과거
+
+        // when
+        int level = AnomalyDetector.classifyMovementAnomaly(lat1, lng1, lat2, lng2, time1, time2);
+
+        // then
+        assertThat(level).isEqualTo(3); // 즉시 차단
+    }
+
+    @Test
+    @DisplayName("1분 미만 + 200m 미만 이동은 정상으로 간주한다")
+    void ignoreShortTimeShortDistance() {
+        // given - 30초 + 150m 이동
+        double lat1 = 37.5665;
+        double lng1 = 126.9780;
+        double lat2 = 37.5678; // 약 144m 이동
+        double lng2 = 126.9795;
+        LocalDateTime time1 = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
+        LocalDateTime time2 = LocalDateTime.of(2025, 1, 1, 10, 0, 30); // 30초 후
+
+        // when
+        int level = AnomalyDetector.classifyMovementAnomaly(lat1, lng1, lat2, lng2, time1, time2);
+
+        // then
+        assertThat(level).isEqualTo(0); // 짧은 시간 짧은 거리 허용
+    }
+
+    @Test
+    @DisplayName("1분 미만이지만 200m 이상 이동하면 속도 기반으로 판단한다")
+    void classifyShortTimeButLongDistance() {
+        // given - 30초 + 300m 이동 (36km/h)
+        double lat1 = 37.5665;
+        double lng1 = 126.9780;
+        double lat2 = 37.5692; // 약 300m 이동
+        double lng2 = 126.9815;
+        LocalDateTime time1 = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
+        LocalDateTime time2 = LocalDateTime.of(2025, 1, 1, 10, 0, 30); // 30초 후
+
+        // when
+        int level = AnomalyDetector.classifyMovementAnomaly(lat1, lng1, lat2, lng2, time1, time2);
+
+        // then
+        assertThat(level).isEqualTo(0); // 36km/h는 정상 속도
     }
 }
