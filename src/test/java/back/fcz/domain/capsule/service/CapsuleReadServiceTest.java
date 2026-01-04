@@ -366,7 +366,8 @@ class CapsuleReadServiceTest {
 
             verify(monitoringService, times(1)).incrementSuspicionScore(
                     eq(1L),
-                    eq(50)
+                    eq(50),
+
             );
 
             ArgumentCaptor<CapsuleOpenLog> logCaptor = ArgumentCaptor.forClass(CapsuleOpenLog.class);

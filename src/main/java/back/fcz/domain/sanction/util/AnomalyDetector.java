@@ -66,13 +66,16 @@ public class AnomalyDetector {
             double currentLat, double currentLng,
             LocalDateTime previousTime, LocalDateTime currentTime) {
         long timeDiffSeconds = Duration.between(previousTime, currentTime).getSeconds();
+        double distance = calculateDistance(previousLat, previousLng, currentLat, currentLng);
 
         // 너무 짧은 시간 간격은 검증 안 함
         if (timeDiffSeconds < 1) {
+            if (distance >= 0.15) {
+                return 3;
+            }
+
             return 0;
         }
-
-        double distance = calculateDistance(previousLat, previousLng, currentLat, currentLng);
 
         // 일반 GPS 오차(5-10m) + 실내 오차(~50m) 고려
         if (distance < 0.1) {  // 100m
