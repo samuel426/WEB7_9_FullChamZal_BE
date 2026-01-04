@@ -87,7 +87,7 @@ public class StorytrackService {
         // 스토리트랙 이미지 삭제
         List<StorytrackAttachment> targetImage = storytrackAttachmentRepository.findByStorytrack_StorytrackIdAndStatus(storytrackId, StorytrackStatus.THUMBNAIL);
 
-        for (StorytrackAttachment image : targetImage){
+        for (StorytrackAttachment image : targetImage) {
             image.markDeleted();
         }
         storytrackAttachmentRepository.saveAll(targetImage);
@@ -189,7 +189,6 @@ public class StorytrackService {
         attachFiles(memberId, storytrack, request.attachmentId());
 
 
-
         return CreateStorytrackResponse.from(storytrack);
     }
 
@@ -206,7 +205,7 @@ public class StorytrackService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORYTRACK_NOT_FOUND));
 
         // 참여자 확인
-        if(Objects.equals(storytrack.getMember().getMemberId(), memberId)){
+        if (Objects.equals(storytrack.getMember().getMemberId(), memberId)) {
             throw new BusinessException(ErrorCode.STORYTRACK_CREATOR_NOT_JOIN);
         }
 
@@ -216,7 +215,7 @@ public class StorytrackService {
         }
 
         // 스토리트랙 참여자 존재 확인 -> 존재하면 이미 존재 중이라고 예외 처리
-        if(storytrackProgressRepository.existsByMember_MemberIdAndStorytrack_StorytrackIdAndDeletedAt(memberId, request.storytrackId(), null)){
+        if (storytrackProgressRepository.existsByMember_MemberIdAndStorytrack_StorytrackIdAndDeletedAt(memberId, request.storytrackId(), null)) {
             throw new BusinessException(ErrorCode.PARTICIPANT_ALREADY_JOIN);
         }
 
@@ -393,7 +392,7 @@ public class StorytrackService {
                 storytrack.getTitle(),
                 storytrack.getDescription(),
                 storytrack.getTotalSteps(),
-                new PageResponse<> (responsePage)
+                new PageResponse<>(responsePage)
         );
     }
 
@@ -437,7 +436,7 @@ public class StorytrackService {
                         dto.withImageUrl(imageUrlMap.get(dto.storytrackId()))
                 );
 
-        return new PageResponse<> (finalPage);
+        return new PageResponse<>(finalPage);
     }
 
     // 참여자 : 참여한 스토리트랙 목록 조회 -> 삭제된 스토리트랙 목록 미조회 추가
@@ -478,7 +477,7 @@ public class StorytrackService {
                         dto.withImageUrl(imageUrlMap.get(dto.storytrackId()))
                 );
 
-        return new PageResponse<> (finalPage);
+        return new PageResponse<>(finalPage);
     }
 
     // 참여자 : 스토리트랙 진행 상세 조회 -> 삭제된 스토리트랙 미조회 추가
@@ -539,6 +538,7 @@ public class StorytrackService {
         }
     }
 
+    // 스토리트랙 캡슐 열람
     @Transactional
     public CapsuleConditionResponseDTO openCapsuleAndUpdateProgress(
             Long memberId,
@@ -553,7 +553,7 @@ public class StorytrackService {
                                 new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND)
                         );
 
-        // 현재 캡슐이 속한 step 조회
+        // 캡슐이 이 단계의 캡슐인지 확인
         StorytrackStep step =
                 storytrackStepRepository
                         .findByCapsule_CapsuleIdAndStorytrack_StorytrackId(
@@ -563,7 +563,24 @@ public class StorytrackService {
                                 new BusinessException(ErrorCode.STEP_NOT_FOUND)
                         );
 
-        // 캡슐 조건 검증 + 오픈
+        int lastCompleted = progress.getLastCompletedStep();
+        int requestedStep = step.getStepOrder();
+
+        // 아직 열 수 없는 단계
+        if (requestedStep > lastCompleted + 1) {
+            throw new BusinessException(ErrorCode.INVALID_STEP_ORDER);
+        }
+
+        // 이미 완료한 단계 -> 재조회
+        if (requestedStep <= lastCompleted) {
+            return capsuleReadService.readAlreadyOpendeStorytrackCapsule(
+                    step.getCapsule(),
+                    request,
+                    memberId
+            );
+        }
+
+        // 지금 열 차례인 단계 -> 최초 열람
         CapsuleConditionResponseDTO response =
                 capsuleReadService.conditionAndRead(request);
 
@@ -573,7 +590,7 @@ public class StorytrackService {
 
         // 진행 상태 업데이트
         progress.completeStep(
-                step.getStepOrder(),
+                requestedStep,
                 progress.getStorytrack().getTotalSteps()
         );
 
@@ -581,7 +598,7 @@ public class StorytrackService {
     }
 
     private void attachFiles(Long memberId, Storytrack storytrack, Long attachmentId) {
-        if (attachmentId == null) return ;
+        if (attachmentId == null) return;
 
         StorytrackAttachment attachment =
                 storytrackAttachmentRepository.findByIdAndUploaderIdAndStatusAndDeletedAtIsNull(attachmentId, memberId, StorytrackStatus.TEMP)
@@ -594,8 +611,8 @@ public class StorytrackService {
                 )
                 .ifPresent(StorytrackAttachment::markDeleted);
 
-            attachment.attachToStorytrack(storytrack);
-            storytrackAttachmentRepository.save(attachment);
+        attachment.attachToStorytrack(storytrack);
+        storytrackAttachmentRepository.save(attachment);
     }
 
     private String buildAttachmentViews(Long storytrackId) {
