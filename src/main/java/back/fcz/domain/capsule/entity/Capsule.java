@@ -14,7 +14,10 @@ import java.time.LocalDateTime;
 @Builder
 @Table(name = "capsule", indexes = {
         @Index(name = "idx_capsule_uuid", columnList = "uuid", unique = true),
-        @Index(name = "idx_lat_lng", columnList = "locationLat, locationLng")
+        @Index(name = "idx_lat_lng", columnList = "locationLat, locationLng"),
+        @Index(name = "idx_member_deleted", columnList = "member_id, isDeleted"),
+        @Index(name = "idx_visibility_deleted", columnList = "visibility, isDeleted"),
+        @Index(name = "idx_visibility_deleted_lat_lng", columnList = "visibility, isDeleted, locationLat, locationLng")
 })
 public class Capsule extends BaseEntity {
     @Id
