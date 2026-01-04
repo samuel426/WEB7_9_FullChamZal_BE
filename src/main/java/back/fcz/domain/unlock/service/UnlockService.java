@@ -3,6 +3,7 @@ package back.fcz.domain.unlock.service;
 import back.fcz.domain.capsule.entity.AnomalyType;
 import back.fcz.domain.capsule.entity.Capsule;
 import back.fcz.domain.capsule.entity.CapsuleOpenLog;
+import back.fcz.domain.capsule.entity.CapsuleOpenStatus;
 import back.fcz.domain.capsule.repository.CapsuleOpenLogRepository;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
 import back.fcz.domain.sanction.constant.SanctionConstants;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -228,12 +230,18 @@ public class UnlockService {
 
         // 4. 불가능한 이동 감지 (위치 정보가 있는 경우만)
         if (currentLat != null && currentLng != null) {
-            CapsuleOpenLog lastLog = recentLogs.get(0);
-            if (lastLog.getCurrentLat() != null && lastLog.getCurrentLng() != null) {
+            Optional<CapsuleOpenLog> lastValidLog = recentLogs.stream()
+                    .filter(log -> log.getStatus() == CapsuleOpenStatus.SUCCESS)  // 성공한 요청만
+                    .filter(log -> log.getCurrentLat() != null && log.getCurrentLng() != null)  // 좌표가 있는 것만
+                    .findFirst(); // 가장 최근 것만
+
+            if (lastValidLog.isPresent()) {
+                CapsuleOpenLog baseLog = lastValidLog.get();
+
                 int movementLevel = AnomalyDetector.classifyMovementAnomaly(
-                        lastLog.getCurrentLat(), lastLog.getCurrentLng(),
+                        baseLog.getCurrentLat(), baseLog.getCurrentLng(),
                         currentLat, currentLng,
-                        lastLog.getOpenedAt(), serverTime
+                        baseLog.getOpenedAt(), serverTime
                 );
 
                 if (movementLevel >= 3) {
@@ -244,7 +252,7 @@ public class UnlockService {
                     return AnomalyType.SUSPICIOUS_PATTERN;
                 }
                 else if (movementLevel == 1) {
-                    log.info("의심 이동 감지 (점수 미적용): memberId={}");
+                    log.info("의심 이동 감지 (점수 미적용): memberId={}", memberId);
                 }
             }
         }
