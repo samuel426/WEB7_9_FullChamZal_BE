@@ -84,12 +84,23 @@ public class AnomalyDetector {
             return 0;
         }
 
-        // 동일 시간 + 위치 변경 - 조작 감지
-        if (timeDiffSeconds <= 0 && distance >= 0.001) {
-            log.warn("동일 시간 위치 변경 감지: {}km 이동, 시간차 {}초", distance, timeDiffSeconds);
-            return 3;  // 즉시 차단
+        // 정확히 동일 시간 (0초)
+        if (timeDiffSeconds == 0) {
+            if (distance >= 0.2) {  // 200m 이상 이동
+                log.warn("동일 시간 위치 변경 감지: {}km 이동", distance);
+                return 3;  // 즉시 차단
+            }
+            return 0;  // 200m 미만은 GPS 재연결 오차로 간주
         }
 
+        // 시간 역행 (클라이언트 조작)
+        if (timeDiffSeconds < 0) {
+            if (distance >= 0.1) {  // 100m 이상
+                log.warn("시간 역행 + 위치 변경 감지: {}초, {}km", timeDiffSeconds, distance);
+                return 3;  // 즉시 차단
+            }
+            return 0;
+        }
         double speed = calculateSpeed(distance, timeDiffSeconds);
 
         // 시간 간격에 따라 임계값 조정
