@@ -26,13 +26,7 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_col_capsule_member_status",
                         columnList = "capsule_id, member_id, status"),
                 @Index(name = "idx_col_capsule_ip_status",
-                        columnList = "capsule_id, ip_address, status"),
-                @Index(name = "idx_col_check_success",
-                        columnList = "capsule_id, member_id, status"),
-                @Index(name = "idx_col_anomaly_member",
-                        columnList = "capsule_id, member_id, opened_at"),
-                @Index(name = "idx_col_anomaly_ip",
-                        columnList = "capsule_id, ip_address, opened_at")
+                        columnList = "capsule_id, ip_address, status")
         }
 )
 public class CapsuleOpenLog {
