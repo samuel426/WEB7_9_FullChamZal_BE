@@ -15,6 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 // 선착순 캡슐 조회수 관리 서비스
@@ -38,6 +39,7 @@ public class FirstComeService {
 
     // Redis 조회수 관리 상수
     private static final String VIEW_COUNT_KEY_PREFIX = "capsule:view:";
+    private static final Duration VIEW_COUNT_TTL = Duration.ofMinutes(30);
 
     // 선착순 제한이 있는 캡슐인지 확인
     public boolean hasFirstComeLimit(Capsule capsule) {
@@ -186,7 +188,14 @@ public class FirstComeService {
         String key = VIEW_COUNT_KEY_PREFIX + capsuleId;
 
         try {
-            redisTemplate.opsForValue().increment(key);
+            Long newCount = redisTemplate.opsForValue().increment(key);
+
+            if (newCount != null && newCount == 1) {
+                redisTemplate.expire(key, VIEW_COUNT_TTL);
+                log.debug("Redis 조회수 TTL 설정 - capsuleId: {}, TTL: {}분",
+                        capsuleId, VIEW_COUNT_TTL.toMinutes());
+            }
+
             log.debug("Redis 조회수 증가 성공 - capsuleId: {}", capsuleId);
         } catch (Exception e) {
             log.error("Redis 장애 발생 - DB 직접 업데이트로 폴백. capsuleId: {}", capsuleId, e);

@@ -21,7 +21,7 @@ public class ViewCountSyncScheduler {
 
     private static final String VIEW_COUNT_KEY_PREFIX = "capsule:view:";
 
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 900000)
     @Transactional
     public void syncViewCountsToDB() {
         Set<String> keys = redisTemplate.keys(VIEW_COUNT_KEY_PREFIX + "*");

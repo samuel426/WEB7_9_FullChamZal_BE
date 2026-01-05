@@ -61,7 +61,9 @@ public class CapsuleReadService {
     private static final String PRESIGNED_URL_KEY_PREFIX = "presigned:attachment:";
     private static final Duration PRESIGNED_URL_TTL = Duration.ofMinutes(14);
     private static final Duration PRESIGNED_URL_VALIDITY = Duration.ofMinutes(15);
+
     private static final String VIEW_COUNT_KEY_PREFIX = "capsule:view:";
+    private static final Duration VIEW_COUNT_TTL = Duration.ofMinutes(30);
 
     private final ExecutorService s3ExecutorService = Executors.newFixedThreadPool(10);
 
@@ -640,7 +642,13 @@ public class CapsuleReadService {
         String key = VIEW_COUNT_KEY_PREFIX + capsuleId;
 
         try {
-            redisTemplate.opsForValue().increment(key);
+            Long newCount = redisTemplate.opsForValue().increment(key);
+
+            if (newCount != null && newCount == 1) {
+                redisTemplate.expire(key, VIEW_COUNT_TTL);
+                log.debug("Redis 조회수 TTL 설정 - capsuleId: {}, TTL: {}분",
+                        capsuleId, VIEW_COUNT_TTL.toMinutes());
+            }
         } catch (Exception e) {
             log.error("Redis 장애 발생 - DB 직접 업데이트로 폴백. capsuleId: {}", capsuleId, e);
 
