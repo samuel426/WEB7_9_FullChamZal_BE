@@ -65,11 +65,8 @@ public class StorytrackProgress extends BaseEntity {
     }
 
     // 진행 상황에 따른 진행 단계
-    @OneToMany(
-            mappedBy = "progress",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "progress", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<StorytrackProgressStep> completedStepSet = new HashSet<>();
 
     public boolean isStepCompleted(int stepOrder) {
