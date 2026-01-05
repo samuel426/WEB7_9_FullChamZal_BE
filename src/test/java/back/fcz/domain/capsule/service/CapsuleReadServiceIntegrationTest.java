@@ -233,7 +233,7 @@ class CapsuleReadServiceIntegrationTest {
             assertThat(logs).hasSize(1);
             assertThat(logs.get(0).getStatus()).isEqualTo(CapsuleOpenStatus.SUCCESS);
             assertThat(logs.get(0).getViewerType()).isEqualTo("MEMBER");
-            assertThat(logs.get(0).getMemberId().getMemberId()).isEqualTo(testRecipient.getMemberId());
+            assertThat(logs.get(0).getMemberId()).isEqualTo(testRecipient.getMemberId());
 
             // 공개 캡슐 수신자 정보 확인
             List<PublicCapsuleRecipient> recipients = publicCapsuleRecipientRepository.findAll();
@@ -388,7 +388,7 @@ class CapsuleReadServiceIntegrationTest {
             List<CapsuleOpenLog> logs = capsuleOpenLogRepository.findAll();
             assertThat(logs).hasSize(1);
             assertThat(logs.get(0).getStatus()).isEqualTo(CapsuleOpenStatus.FAIL_PERMISSION);
-            assertThat(logs.get(0).getMemberId().getMemberId()).isEqualTo(otherMember.getMemberId());
+            assertThat(logs.get(0).getMemberId()).isEqualTo(otherMember.getMemberId());
         }
 
         @Test

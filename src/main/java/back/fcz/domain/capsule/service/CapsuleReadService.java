@@ -6,14 +6,8 @@ import back.fcz.domain.capsule.DTO.response.CapsuleAttachmentViewResponse;
 import back.fcz.domain.capsule.DTO.response.CapsuleConditionResponseDTO;
 import back.fcz.domain.capsule.DTO.response.CapsuleReadResponse;
 import back.fcz.domain.capsule.entity.*;
-import back.fcz.domain.capsule.repository.CapsuleOpenLogRepository;
-import back.fcz.domain.capsule.repository.CapsuleRecipientRepository;
-import back.fcz.domain.capsule.repository.CapsuleRepository;
-import back.fcz.domain.capsule.repository.PublicCapsuleRecipientRepository;
-import back.fcz.domain.capsule.entity.*;
 import back.fcz.domain.capsule.repository.*;
 import back.fcz.domain.member.dto.response.MemberDetailResponse;
-import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.domain.member.service.CurrentUserContext;
 import back.fcz.domain.member.service.MemberService;
@@ -108,7 +102,7 @@ public class CapsuleReadService {
 
         // 성공 기록이 있는지 확인
         boolean hasSuccessfullyViewed = capsuleOpenLogRepository
-                .existsByCapsuleId_CapsuleIdAndMemberId_MemberIdAndStatus(
+                .existsByCapsuleId_CapsuleIdAndMemberIdAndStatus(
                         capsule.getCapsuleId(),
                         currentMemberId,
                         CapsuleOpenStatus.SUCCESS
@@ -275,7 +269,7 @@ public class CapsuleReadService {
 
         // 성공 기록이 있는지 확인
         boolean hasSuccessfullyViewed = capsuleOpenLogRepository
-                .existsByCapsuleId_CapsuleIdAndMemberId_MemberIdAndStatus(
+                .existsByCapsuleId_CapsuleIdAndMemberIdAndStatus(
                         capsule.getCapsuleId(),
                         currentMemberId,
                         CapsuleOpenStatus.SUCCESS
@@ -491,7 +485,7 @@ public class CapsuleReadService {
         // 회원인 경우
         if (memberId != null) {
             return capsuleOpenLogRepository
-                    .existsByCapsuleId_CapsuleIdAndMemberId_MemberIdAndStatus(
+                    .existsByCapsuleId_CapsuleIdAndMemberIdAndStatus(
                             capsuleId,
                             memberId,
                             CapsuleOpenStatus.SUCCESS
@@ -613,14 +607,9 @@ public class CapsuleReadService {
             Long memberId,
             String viewerType
     ) {
-        Member member = null;
-        if(memberId != null) {
-            member = memberRepository.findById(memberId).orElse(null);
-        }
-
         return CapsuleOpenLog.builder()
                 .capsuleId(capsule)
-                .memberId(member)
+                .memberId(memberId)
                 .viewerType(viewerType)
                 .status(status)
                 .anomalyType(AnomalyType.NONE)

@@ -5,7 +5,6 @@ import back.fcz.domain.capsule.entity.*;
 import back.fcz.domain.capsule.repository.CapsuleOpenLogRepository;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
 import back.fcz.domain.capsule.repository.PublicCapsuleRecipientRepository;
-import back.fcz.domain.member.entity.Member;
 import back.fcz.domain.member.repository.MemberRepository;
 import back.fcz.global.exception.BusinessException;
 import back.fcz.global.exception.ErrorCode;
@@ -104,9 +103,6 @@ public class FirstComeService {
         Capsule capsule = capsuleRepository.findById(capsuleId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CAPSULE_NOT_FOUND));
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-
         // UPDATE 쿼리로 원자적으로 증가 및 마감 체크
         int updatedRows = capsuleRepository.incrementViewCountIfAvailable(capsuleId);
 
@@ -121,7 +117,7 @@ public class FirstComeService {
         // 성공 로그 저장
         CapsuleOpenLog openLog = CapsuleOpenLog.builder()
                 .capsuleId(capsule)
-                .memberId(member)
+                .memberId(memberId)
                 .viewerType("MEMBER")
                 .status(CapsuleOpenStatus.SUCCESS)
                 .anomalyType(AnomalyType.NONE)

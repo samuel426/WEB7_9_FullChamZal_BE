@@ -248,7 +248,7 @@ class CapsuleReadServiceTest {
 
             when(capsuleRepository.findById(1L)).thenReturn(Optional.of(publicCapsule));
             when(currentUserContext.getCurrentMemberId()).thenReturn(1L);
-            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberId_MemberIdAndStatus(
+            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberIdAndStatus(
                     1L, 1L, CapsuleOpenStatus.SUCCESS
             )).thenReturn(false);
 
@@ -271,8 +271,6 @@ class CapsuleReadServiceTest {
 
             when(bookmarkRepository.existsByMemberIdAndCapsuleIdAndDeletedAtIsNull(anyLong(), eq(1L)))
                     .thenReturn(false);
-
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
 
             // When
             CapsuleConditionResponseDTO result = capsuleReadService.conditionAndRead(requestDto);
@@ -298,7 +296,7 @@ class CapsuleReadServiceTest {
 
             when(capsuleRepository.findById(1L)).thenReturn(Optional.of(publicCapsule));
             when(currentUserContext.getCurrentMemberId()).thenReturn(1L);
-            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberId_MemberIdAndStatus(
+            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberIdAndStatus(
                     1L, 1L, CapsuleOpenStatus.SUCCESS
             )).thenReturn(false);
 
@@ -312,8 +310,6 @@ class CapsuleReadServiceTest {
                     eq(1L),
                     anyString()
             )).thenReturn(failResult);
-
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
 
             // When
             CapsuleConditionResponseDTO result = capsuleReadService.conditionAndRead(requestDto);
@@ -340,7 +336,7 @@ class CapsuleReadServiceTest {
 
             when(capsuleRepository.findById(1L)).thenReturn(Optional.of(publicCapsule));
             when(currentUserContext.getCurrentMemberId()).thenReturn(1L);
-            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberId_MemberIdAndStatus(
+            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberIdAndStatus(
                     1L, 1L, CapsuleOpenStatus.SUCCESS
             )).thenReturn(false);
 
@@ -358,8 +354,6 @@ class CapsuleReadServiceTest {
                     eq(1L),
                     anyString()
             )).thenReturn(anomalyResult);
-
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
 
             // When & Then
             BusinessException exception = assertThrows(
@@ -443,7 +437,7 @@ class CapsuleReadServiceTest {
 
             when(phoneCrypto.verifyHash("01012345678", "phoneHash")).thenReturn(true);
 
-            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberId_MemberIdAndStatus(
+            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberIdAndStatus(
                     1L, 1L, CapsuleOpenStatus.SUCCESS
             )).thenReturn(false);
 
@@ -460,7 +454,6 @@ class CapsuleReadServiceTest {
 
             when(bookmarkRepository.existsByMemberIdAndCapsuleIdAndDeletedAtIsNull(anyLong(), eq(1L)))
                     .thenReturn(false);
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
 
             // When
             CapsuleConditionResponseDTO result = capsuleReadService.conditionAndRead(requestDto);
@@ -508,7 +501,6 @@ class CapsuleReadServiceTest {
             when(memberService.getDetailMe(userResponse)).thenReturn(detailResponse);
 
             when(phoneCrypto.verifyHash("01012345678", "otherHash")).thenReturn(false);
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
 
             // When & Then
             BusinessException exception = assertThrows(
@@ -546,7 +538,7 @@ class CapsuleReadServiceTest {
 
             when(currentUserContext.getCurrentMemberId()).thenReturn(1L);
 
-            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberId_MemberIdAndStatus(
+            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberIdAndStatus(
                     1L, 1L, CapsuleOpenStatus.SUCCESS
             )).thenReturn(false);
 
@@ -563,7 +555,6 @@ class CapsuleReadServiceTest {
 
             when(bookmarkRepository.existsByMemberIdAndCapsuleIdAndDeletedAtIsNull(anyLong(), eq(1L)))
                     .thenReturn(false);
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
 
             // When
             CapsuleConditionResponseDTO result = capsuleReadService.conditionAndRead(requestDto);
@@ -637,7 +628,6 @@ class CapsuleReadServiceTest {
             when(phoneCrypto.verifyHash("wrongPassword", "hashedPassword")).thenReturn(false);
 
             when(currentUserContext.getCurrentMemberId()).thenReturn(1L);
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
 
             // When & Then
             BusinessException exception = assertThrows(
@@ -685,13 +675,12 @@ class CapsuleReadServiceTest {
             when(phoneCrypto.verifyHash("1234", "hashedPassword")).thenReturn(true);
             when(currentUserContext.getCurrentMemberId()).thenReturn(1L);
 
-            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberId_MemberIdAndStatus(
+            when(capsuleOpenLogRepository.existsByCapsuleId_CapsuleIdAndMemberIdAndStatus(
                     1L, 1L, CapsuleOpenStatus.SUCCESS
             )).thenReturn(true);
 
             when(bookmarkRepository.existsByMemberIdAndCapsuleIdAndDeletedAtIsNull(anyLong(), eq(1L)))
                     .thenReturn(false);
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
 
             // When
             CapsuleConditionResponseDTO result = capsuleReadService.conditionAndRead(requestDto);
