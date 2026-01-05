@@ -2,6 +2,7 @@ package back.fcz.domain.capsule.controller;
 
 
 import back.fcz.domain.capsule.DTO.request.CapsuleAttachmentUploadRequest;
+import back.fcz.domain.capsule.DTO.response.AttachmentStatusResponse;
 import back.fcz.domain.capsule.DTO.response.CapsuleAttachmentUploadResponse;
 import back.fcz.domain.capsule.service.AttachmentService;
 import back.fcz.domain.capsule.service.CapsuleAttachmentPresignService;
@@ -59,6 +60,25 @@ public class CapsuleAttachmentController {
         CapsuleAttachmentUploadResponse response = capsuleAttachmentPresignService.presignedUpload(memberId, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @PostMapping("/presign/{attachmentId}")
+    public ResponseEntity<ApiResponse<Void>> completeUpload(
+            @PathVariable Long attachmentId
+    ){
+        Long memberId = currentUserContext.getCurrentMemberId();
+        capsuleAttachmentPresignService.completeUpload(memberId, attachmentId);
+        return ResponseEntity.ok(ApiResponse.noContent());
+    }
+
+    @GetMapping("/presign/{attachmentId}")
+    public ResponseEntity<ApiResponse<AttachmentStatusResponse>> getStatus(
+            @PathVariable Long attachmentId
+    ){
+        Long memberId = currentUserContext.getCurrentMemberId();
+        AttachmentStatusResponse response = capsuleAttachmentPresignService.getStatus(memberId, attachmentId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
 
     @Operation(summary = "임시 파일 삭제", description = "업로드한 임시 파일을 삭제합니다.")
     @ApiErrorCodeExample({

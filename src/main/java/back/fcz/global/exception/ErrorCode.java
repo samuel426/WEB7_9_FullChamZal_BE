@@ -100,6 +100,9 @@ public enum ErrorCode {
     CAPSULE_FILES_NOT_FOUND("CPSF005", HttpStatus.NOT_FOUND, "일부 캡슐 파일을 찾을 수 없습니다."),
     CAPSULE_FILE_ATTACH_FORBIDDEN("CPSF006", HttpStatus.FORBIDDEN, "본인이 업로드 한 파일만 첨부할 수 있습니다."),
     CAPSULE_FILE_ATTACH_INVALID_STATUS("CPSF007", HttpStatus.BAD_REQUEST, "임시 저장 상태인 파일만 첨부할 수 있습니다."),
+    CAPSULE_FILE_UPLOAD_NOT_FINISHED("CPSF008", HttpStatus.BAD_REQUEST, "캡슐 파일 업로드가 완료되지 않았습니다."),
+    CAPSULE_FILE_UPLOAD_SIZE_MISMATCH("CPSF009", HttpStatus.BAD_REQUEST, "캡슐 파일 업로드 크기 불일치 오류입니다."),
+    CAPSULE_FILE_UPLOAD_TYPE_MISMATCH("CPSF010", HttpStatus.BAD_REQUEST, "캡슐 파일 업로드 타입 불일치 오류입니다."),
 
     // ========== 북마크 에러 ==========
     BOOKMARK_ALREADY_EXISTS("BMK001", HttpStatus.CONFLICT, "이미 북마크된 캡슐입니다."),
