@@ -150,6 +150,14 @@ public enum ErrorCode {
     PARTICIPANT_ALREADY_JOIN("ST010", HttpStatus.BAD_REQUEST, "이미 스토리트랙에 참여하고 있는 회원입니다."),
     STORYTRACK_CREATOR_NOT_JOIN("ST011", HttpStatus.BAD_REQUEST, "스토리트랙 생성자는 참여할 수 없습니다."),
 
+    // ========== 스토리트랙 파일 업로드 ==========
+    STORYTRACK_FILE_NOT_FOUND("STF001", HttpStatus.NOT_FOUND, "스토리트랙 업로드 파일을 찾을 수 없습니다."),
+    STORYTRACK_FILE_ATTACH_FORBIDDEN("STF002", HttpStatus.FORBIDDEN, "본인이 업로드 한 파일만 첨부할 수 있습니다."),
+    STORYTRACK_FILE_ATTACH_INVALID_STATUS("STF003", HttpStatus.BAD_REQUEST, "임시 저장 상태인 파일만 첨부할 수 있습니다."),
+    STORYTRACK_FILE_UPLOAD_NOT_FINISHED("STF004", HttpStatus.BAD_REQUEST, "스토리트랙 파일 업로드가 완료되지 않았습니다."),
+    STORYTRACK_FILE_UPLOAD_SIZE_MISMATCH("STF005", HttpStatus.BAD_REQUEST, "스토리트랙 파일 업로드 크기 불일치 오류입니다."),
+    STORYTRACK_FILE_UPLOAD_TYPE_MISMATCH("STF006", HttpStatus.BAD_REQUEST, "스토리트랙 파일 업로드 타입 불일치 오류입니다."),
+
     // ========== AI(OpenAI) / Moderation ==========
     OPENAI_MODERATION_FAILED("AI001", HttpStatus.SERVICE_UNAVAILABLE, "콘텐츠 검증에 실패했습니다. 잠시 후 다시 시도해주세요."),
 

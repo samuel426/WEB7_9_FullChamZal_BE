@@ -69,19 +69,14 @@ public class CapsuleAttachment {
         attachment.expiredAt = LocalDateTime.now().plusMinutes(15);
         return attachment;
     }
-    public void markTemp(){
-        this.status = CapsuleAttachmentStatus.TEMP;
-    }
-
+    public void markTemp(){this.status = CapsuleAttachmentStatus.TEMP;}
     public void markDeleted() {
         this.status = CapsuleAttachmentStatus.DELETED;
         this.deletedAt = LocalDateTime.now();
     }
-
     public void markPending() {
         this.status = CapsuleAttachmentStatus.PENDING;
     }
-
     public void attachToCapsule(Capsule capsule) {
         this.capsule = capsule;
         this.status = CapsuleAttachmentStatus.USED;

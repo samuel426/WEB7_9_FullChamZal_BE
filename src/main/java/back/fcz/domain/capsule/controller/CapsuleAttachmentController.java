@@ -2,7 +2,7 @@ package back.fcz.domain.capsule.controller;
 
 
 import back.fcz.domain.capsule.DTO.request.CapsuleAttachmentUploadRequest;
-import back.fcz.domain.capsule.DTO.response.AttachmentStatusResponse;
+import back.fcz.domain.capsule.DTO.response.CapsuleAttachmentStatusResponse;
 import back.fcz.domain.capsule.DTO.response.CapsuleAttachmentUploadResponse;
 import back.fcz.domain.capsule.service.AttachmentService;
 import back.fcz.domain.capsule.service.CapsuleAttachmentPresignService;
@@ -71,11 +71,11 @@ public class CapsuleAttachmentController {
     }
 
     @GetMapping("/presign/{attachmentId}")
-    public ResponseEntity<ApiResponse<AttachmentStatusResponse>> getStatus(
+    public ResponseEntity<ApiResponse<CapsuleAttachmentStatusResponse>> getStatus(
             @PathVariable Long attachmentId
     ){
         Long memberId = currentUserContext.getCurrentMemberId();
-        AttachmentStatusResponse response = capsuleAttachmentPresignService.getStatus(memberId, attachmentId);
+        CapsuleAttachmentStatusResponse response = capsuleAttachmentPresignService.getStatus(memberId, attachmentId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
