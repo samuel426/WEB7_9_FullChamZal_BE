@@ -272,6 +272,8 @@ class CapsuleReadServiceTest {
             when(bookmarkRepository.existsByMemberIdAndCapsuleIdAndDeletedAtIsNull(anyLong(), eq(1L)))
                     .thenReturn(false);
 
+            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
+
             // When
             CapsuleConditionResponseDTO result = capsuleReadService.conditionAndRead(requestDto);
 
@@ -282,6 +284,7 @@ class CapsuleReadServiceTest {
                     eq(1L), eq(1L), any(CapsuleConditionRequestDTO.class)
             );
 
+            verify(capsuleOpenLogRepository, times(1)).save(any(CapsuleOpenLog.class));
             verify(capsuleOpenLogService, never()).saveLogInNewTransaction(any(CapsuleOpenLog.class));
         }
 
@@ -319,10 +322,12 @@ class CapsuleReadServiceTest {
             assertNotNull(result);
 
             ArgumentCaptor<CapsuleOpenLog> logCaptor = ArgumentCaptor.forClass(CapsuleOpenLog.class);
-            verify(capsuleOpenLogService, times(1)).saveLogInNewTransaction(logCaptor.capture());
+            verify(capsuleOpenLogRepository, times(1)).save(logCaptor.capture());
 
             CapsuleOpenLog savedLog = logCaptor.getValue();
             assertEquals(CapsuleOpenStatus.FAIL_LOCATION, savedLog.getStatus());
+
+            verify(capsuleOpenLogService, never()).saveLogInNewTransaction(any(CapsuleOpenLog.class));
         }
 
         @Test
@@ -370,10 +375,11 @@ class CapsuleReadServiceTest {
             );
 
             ArgumentCaptor<CapsuleOpenLog> logCaptor = ArgumentCaptor.forClass(CapsuleOpenLog.class);
-            verify(capsuleOpenLogService, times(2)).saveLogInNewTransaction(logCaptor.capture());
+            verify(capsuleOpenLogRepository, times(1)).save(logCaptor.capture());
 
-            CapsuleOpenLog anomalyLog = logCaptor.getAllValues().get(1);
-            assertEquals(AnomalyType.IMPOSSIBLE_MOVEMENT, anomalyLog.getAnomalyType());
+            CapsuleOpenLog savedLog = logCaptor.getValue();
+            assertEquals(CapsuleOpenStatus.SUSPICIOUS, savedLog.getStatus());
+            assertEquals(AnomalyType.IMPOSSIBLE_MOVEMENT, savedLog.getAnomalyType());
         }
 
         @Test
@@ -462,8 +468,10 @@ class CapsuleReadServiceTest {
             // Then
             assertNotNull(result);
 
-            verify(capsuleOpenLogService, times(1)).saveLogInNewTransaction(any(CapsuleOpenLog.class));
+            verify(capsuleOpenLogRepository, times(1)).save(any(CapsuleOpenLog.class));
             verify(capsuleRecipientRepository, times(1)).save(recipient);
+
+            verify(capsuleOpenLogService, never()).saveLogInNewTransaction(any(CapsuleOpenLog.class));
         }
 
         @Test
@@ -564,11 +572,13 @@ class CapsuleReadServiceTest {
             assertNotNull(result);
 
             ArgumentCaptor<CapsuleOpenLog> logCaptor = ArgumentCaptor.forClass(CapsuleOpenLog.class);
-            verify(capsuleOpenLogService, times(1)).saveLogInNewTransaction(logCaptor.capture());
+            verify(capsuleOpenLogRepository, times(1)).save(logCaptor.capture());
 
             CapsuleOpenLog savedLog = logCaptor.getValue();
             assertEquals("MEMBER", savedLog.getViewerType());
             assertEquals(CapsuleOpenStatus.SUCCESS, savedLog.getStatus());
+
+            verify(capsuleOpenLogService, never()).saveLogInNewTransaction(any(CapsuleOpenLog.class));
         }
 
         @Test
@@ -604,12 +614,14 @@ class CapsuleReadServiceTest {
             assertNotNull(result);
 
             ArgumentCaptor<CapsuleOpenLog> logCaptor = ArgumentCaptor.forClass(CapsuleOpenLog.class);
-            verify(capsuleOpenLogService, times(1)).saveLogInNewTransaction(logCaptor.capture());
+            verify(capsuleOpenLogRepository, times(1)).save(logCaptor.capture());
 
             CapsuleOpenLog savedLog = logCaptor.getValue();
             assertEquals("GUEST", savedLog.getViewerType());
             assertEquals(CapsuleOpenStatus.SUCCESS, savedLog.getStatus());
             assertNull(savedLog.getMemberId());
+
+            verify(capsuleOpenLogService, never()).saveLogInNewTransaction(any(CapsuleOpenLog.class));
         }
 
         @Test
@@ -690,6 +702,9 @@ class CapsuleReadServiceTest {
             verify(unlockService, never()).validateUnlockConditionsForPrivate(
                     any(), any(), any(), any(), any(), any(), any()
             );
+
+            verify(capsuleOpenLogRepository, times(1)).save(any(CapsuleOpenLog.class));
+            verify(capsuleOpenLogService, never()).saveLogInNewTransaction(any(CapsuleOpenLog.class));
         }
     }
 

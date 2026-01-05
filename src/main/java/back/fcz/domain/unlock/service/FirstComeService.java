@@ -165,26 +165,8 @@ public class FirstComeService {
         Capsule capsule = capsuleRepository.findById(capsuleId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CAPSULE_NOT_FOUND));
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-
         // 조회수 증가
-        capsule.increasedViewCount();
-
-        // SUCCESS 로그 저장
-        CapsuleOpenLog openLog = CapsuleOpenLog.builder()
-                .capsuleId(capsule)
-                .memberId(member)
-                .viewerType("MEMBER")
-                .status(CapsuleOpenStatus.SUCCESS)
-                .anomalyType(AnomalyType.NONE)
-                .openedAt(requestDto.unlockAt())
-                .currentLat(requestDto.locationLat())
-                .currentLng(requestDto.locationLng())
-                .userAgent(requestDto.userAgent())
-                .ipAddress(requestDto.ipAddress())
-                .build();
-        capsuleOpenLogRepository.save(openLog);
+        capsuleRepository.incrementViewCountIfAvailable(capsuleId);
 
         // 수신자 정보 저장
         PublicCapsuleRecipient recipient = PublicCapsuleRecipient.builder()
