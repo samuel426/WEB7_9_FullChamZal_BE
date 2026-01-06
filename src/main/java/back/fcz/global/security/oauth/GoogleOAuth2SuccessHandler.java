@@ -1,10 +1,7 @@
 package back.fcz.global.security.oauth;
 
-import back.fcz.domain.backup.repository.BackupRepository;
 import back.fcz.domain.backup.service.BackupService;
-import back.fcz.domain.backup.service.GoogleTokenRedisService;
 import back.fcz.domain.member.entity.Member;
-import back.fcz.global.crypto.PhoneCrypto;
 import back.fcz.global.security.jwt.CookieProperties;
 import back.fcz.global.security.jwt.JwtProperties;
 import back.fcz.global.security.jwt.JwtProvider;
@@ -42,11 +39,8 @@ public class GoogleOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     private final JwtProperties jwtProperties;
     private final JwtProvider jwtProvider;
 
-    private final BackupRepository backupRepository;
     private final OAuth2AuthorizedClientService authorizedClientService;
-    private final GoogleTokenRedisService googleTokenRedisService;
     private final BackupService backupService;
-    private final PhoneCrypto phoneCrypto;
 
     @Value("${cors.allowed-origins}")
     private String frontendDomain;
@@ -123,12 +117,10 @@ public class GoogleOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
      */
     private void saveGoogleToken(Long memberId, OAuth2AuthorizedClient client) {
         String googleAccessToken = client.getAccessToken().getTokenValue();
-        log.info("Google Access Token present: {}", googleAccessToken != null);
 
         // 구글 보안 정책상 '최초 동의' 시에만 refresh 토큰 제공됨 (이후 로그인 시, null일 수 있음)
         String googleRefreshToken = (client.getRefreshToken() != null)
                 ? client.getRefreshToken().getTokenValue() : null;
-        log.info("Google Refresh Token present: {}", client.getRefreshToken() != null);
 
         // 구글 access 토큰의 만료 시간 계산 (기본값 1시간)
         Instant expiresAt = client.getAccessToken().getExpiresAt();
