@@ -14,6 +14,8 @@ public record NearbyOpenCapsuleResponse(
         String capsuleUnlockType,
         double capsuleLatitude,
         double capsuleLongitude,
+        LocalDateTime capsuleUnlockAt,
+        LocalDateTime capsuleUnlockUntil,
 
         int maxViewCount,         // 선착순 제한 인원(NULL이면 무제한)
         int currentViewCount,     // 현재 조회 인원
@@ -35,6 +37,8 @@ public record NearbyOpenCapsuleResponse(
                 capsule.getUnlockType(),
                 capsule.getLocationLat(),
                 capsule.getLocationLng(),
+                capsule.getUnlockAt(),
+                capsule.getUnlockUntil(),
 
                 capsule.getMaxViewCount(),
                 capsule.getCurrentViewCount(),
