@@ -83,8 +83,6 @@ public class BackupService {
 
         String accessToken = (String) tokenData.get("access_token");
         String refreshToken = (String) tokenData.get("refresh_token");
-        log.info("Google Access Token present: {}", accessToken != null);
-        log.info("Google Refresh Token present: {}", refreshToken != null);
 
         // 구글 access 토큰의 만료 시간 (기본값 1시간)
         Object expiresInObj = tokenData.get("expires_in");
