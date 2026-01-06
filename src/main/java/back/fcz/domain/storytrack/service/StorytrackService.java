@@ -484,8 +484,6 @@ public class StorytrackService {
                         .findByStorytrack_StorytrackIdAndMember_MemberIdAndDeletedAtIsNull(storytrackId, memberId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
-        List<StorytrackAttachment> image = storytrackAttachmentRepository.findByStorytrack_StorytrackIdAndDeletedAtIsNull(storytrackId);
-
         String imageUrl = buildAttachmentViews(storytrackId);
 
         return ParticipantProgressResponse.from(
