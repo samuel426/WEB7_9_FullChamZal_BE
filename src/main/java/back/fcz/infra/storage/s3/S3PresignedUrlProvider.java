@@ -12,7 +12,6 @@ import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
-
 public class S3PresignedUrlProvider implements PresignedUrlProvider {
 
     private final S3Presigner s3Presigner;
@@ -25,8 +24,6 @@ public class S3PresignedUrlProvider implements PresignedUrlProvider {
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
-                .contentType(contentType)
-                .contentLength(size)
                 .build();
 
         return s3Presigner.presignPutObject(p-> p
