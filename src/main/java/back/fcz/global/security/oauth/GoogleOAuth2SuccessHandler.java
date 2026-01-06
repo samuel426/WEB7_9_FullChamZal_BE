@@ -1,10 +1,7 @@
 package back.fcz.global.security.oauth;
 
-import back.fcz.domain.backup.repository.BackupRepository;
 import back.fcz.domain.backup.service.BackupService;
-import back.fcz.domain.backup.service.GoogleTokenRedisService;
 import back.fcz.domain.member.entity.Member;
-import back.fcz.global.crypto.PhoneCrypto;
 import back.fcz.global.security.jwt.CookieProperties;
 import back.fcz.global.security.jwt.JwtProperties;
 import back.fcz.global.security.jwt.JwtProvider;
@@ -42,11 +39,8 @@ public class GoogleOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     private final JwtProperties jwtProperties;
     private final JwtProvider jwtProvider;
 
-    private final BackupRepository backupRepository;
     private final OAuth2AuthorizedClientService authorizedClientService;
-    private final GoogleTokenRedisService googleTokenRedisService;
     private final BackupService backupService;
-    private final PhoneCrypto phoneCrypto;
 
     @Value("${cors.allowed-origins}")
     private String frontendDomain;
