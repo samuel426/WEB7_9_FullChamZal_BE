@@ -6,6 +6,9 @@ import back.fcz.domain.sms.entity.PhoneVerificationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +31,10 @@ public interface PhoneVerificationRepository extends JpaRepository<PhoneVerifica
             PhoneVerificationPurpose purpose,
             PhoneVerificationStatus status
     );
+
+    @Modifying
+    @Query("delete from PhoneVerification pv where pv.createdAt < :expiredAt")
+    int deleteExpired(@Param("expiredAt") LocalDateTime expiredAt);
 
     // 기존 코드 호환용
     default Optional<PhoneVerification> findLatestPending(String phoneNumberHash, PhoneVerificationPurpose purpose) {
