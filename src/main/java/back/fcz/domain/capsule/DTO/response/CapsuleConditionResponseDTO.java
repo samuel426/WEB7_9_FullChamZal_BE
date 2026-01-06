@@ -120,7 +120,6 @@ public record CapsuleConditionResponseDTO(
                 capsule.getLocationLng(),
                 capsule.getLocationRadiusM(),
 
-
                 capsule.getMaxViewCount(),
                 capsule.getCurrentViewCount(),
 
