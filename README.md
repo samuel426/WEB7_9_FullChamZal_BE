@@ -9,6 +9,8 @@
 ## 📚 목차
 - [📋 프로젝트 개요](#-프로젝트-개요)
   - [즉각성 피로 사회의 안티테제](#즉각성-피로-사회의-안티테제)
+- [📅 개발 기간 & 팀 구성](#-개발-기간--팀-구성)
+- [🚀 실제 배포 사이트](#-실제-배포-사이트)
 - [⚙️ 핵심 기능](#️-핵심-기능)
   - [🔒 개인 캡슐](#-개인-캡슐-11-프라이빗-메시지)
   - [🌍 공개 캡슐](#-공개-캡슐)
@@ -18,8 +20,6 @@
   - [🛡️ 이상 감지 모니터링 & 접근 제어](#️-이상-감지-모니터링--접근-제어)
   - [🔐 안전한 인증·접근 구조](#-안전한-인증접근-구조)
   - [📊 로그 기반 상태 관리](#-로그-기반-상태-관리)
-- [📅 개발 기간 & 팀 구성](#-개발-기간--팀-구성)
-- [🚀 실제 배포 사이트](#-실제-배포-사이트)
 - [📹 시연 영상](#-시연-영상)
 - [📊 시스템 아키텍처](#-시스템-아키텍처)
 - [🏗️ 기술 스택](#️-기술-스택)
@@ -43,17 +43,48 @@
 
 ---
 
+## 📅 개발 기간 & 팀 구성
+
+- **개발 기간**: 2025-12-03 ~ 2026-01-07
+- [**Frontend Github**](https://github.com/prgrms-web-devcourse-final-project/WEB6_7_FullChamZal_FE): 노영권(팀장), 김지호(팀원), 이상엽(팀원), 정민경(팀원)
+
+
+|              Backend(PO)               |              Backend(팀장)               |             Backend(팀원)             |              Backend(팀원)               |               Backend(팀원)               |               Backend(팀원)               |
+| :---------------------------------------: | :---------------------------------------: | :------------------------------------: | :---------------------------------------: | :---------------------------------------: | :---------------------------------------: |
+| ![](https://github.com/samuel426.png)  | ![](https://github.com/Hyeseung-OH.png)  | ![](https://github.com/qivvoon.png)  | ![](https://github.com/Plectranthus.png)  | ![](https://github.com/LimByeongSu.png)  | ![](https://github.com/otr995.png)  |
+| [우성현](https://github.com/samuel426) | [오혜승](https://github.com/Hyeseung-OH) | [강지원](https://github.com/qivvoon) | [양희원](https://github.com/Plectranthus) | [임병수](https://github.com/LimByeongSu) | [허성찬](https://github.com/otr995) |
+
+---
+
+## 🚀 실제 배포 사이트
+https://web.dear4u.cloud/
+
+---
+
 ## ⚙️ 핵심 기능
 
+### 🔐 안전한 인증·접근 구조
+<p align="center"> <img width="500" alt="image" src="https://github.com/user-attachments/assets/fa110385-b5f3-41a8-bc4e-7c91952b9861" /> </p>
+
+- 쿠키 기반 JWT 인증 (Access / Refresh Token)
+- Redis 기반 토큰 블랙리스트 및 제한 관리
+- URL + 비밀번호 방식과 회원 인증 방식 병행 지원
+- 전화번호 및 개인정보 AES-256, SHA-256 암호화 저장 정책
+- 개인정보 최소 수집 및 비회원 접근 시 보안 정책 적용
+- 구글 소셜 로그인 지
+
+---
+
 ### 🔒 개인 캡슐 (1:1 프라이빗 메시지)
+<p align="center"> <img width="600" alt="image" src="https://github.com/user-attachments/assets/e75a29dd-cc49-4589-836f-cc908f356b83" /> </p>
 
 - 연인 · 가족 · 친구 등 **특정 수신자만 열 수 있는 개인 메시지**
 - 시간 / 장소 / 시간+장소 조건으로 열람 제어
 - 미래의 나에게 보내는 기록, 기념일 메시지, 목표 달성 후 열어보는 편지 등 활용
 
----
 
 ### 🌍 공개 캡슐
+<p align="center"> <img width="600" alt="image" src="https://github.com/user-attachments/assets/881bc971-25b8-4d0f-ad21-aa1adf5f1953" /> </p>
 
 - 관광지 · 명소 · 특정 장소에 남겨진 **익명의 메시지**
 - 장소 / 시간+장소 조건으로 열람 제어
@@ -61,15 +92,14 @@
 - “이 장소에 온 당신에게”라는 메시지를 통해 낯선 사람과의 **공간 기반 연결 경험** 제공
 - 인스타그래머블한 순간 + 우연한 발견의 감동
 
----
 
 ### 📍 GPS 기반 위치 해제 캡슐
+<p align="center"> <img width="600" alt="image" src="https://github.com/user-attachments/assets/960e4a31-92e7-4c20-a0bd-71e3095b03e4" /> </p>
 
 - 특정 **장소에 실제로 도달해야만 열리는 메시지**
 - GPS 좌표 + 반경 기반 검증으로 현실 공간과 디지털 메시지를 연결
 - “여기에 와야 읽을 수 있어”라는 **물리적 퀘스트 경험** 제공
 
----
 
 ### ⏰ 선착순 · 특정 시간 한정 캡슐
 
@@ -82,6 +112,7 @@
 ---
 
 ### 🧭 스토리트랙 (연속 해제 콘텐츠)
+<p align="center"> <img width="600" alt="image" src="https://github.com/user-attachments/assets/81aece14-fbd3-4ecf-9de5-363714710d51" /> </p>
 
 - 여러 장소를 순회하며 **순차적으로 열리는 캡슐 묶음**
 - 여행·데이트·미션을 하나의 **스토리 흐름으로 게임화**
@@ -106,16 +137,6 @@
 
 ---
 
-### 🔐 안전한 인증·접근 구조
-
-- 쿠키 기반 JWT 인증 (Access / Refresh Token)
-- Redis 기반 토큰 블랙리스트 및 제한 관리
-- URL + 비밀번호 방식과 회원 인증 방식 병행 지원
-- 전화번호 및 개인정보 AES-256, SHA-256 암호화 저장 정책
-- 개인정보 최소 수집 및 비회원 접근 시 보안 정책 적용
-
----
-
 ### 📊 로그 기반 상태 관리
 
 - 모든 캡슐 열람 시 **열람 로그 기록**
@@ -126,28 +147,10 @@
 
 ---
 
-## 📅 개발 기간 & 팀 구성
-
-- **개발 기간**: 2025-12-03 ~ 2026-01-07
-- [**Frontend Github**](https://github.com/prgrms-web-devcourse-final-project/WEB6_7_FullChamZal_FE): 노영권(팀장), 김지호(팀원), 이상엽(팀원), 정민경(팀원)
-
-
-|              Backend(PO)               |              Backend(팀장)               |             Backend(팀원)             |              Backend(팀원)               |               Backend(팀원)               |               Backend(팀원)               |
-| :---------------------------------------: | :---------------------------------------: | :------------------------------------: | :---------------------------------------: | :---------------------------------------: | :---------------------------------------: |
-| ![](https://github.com/samuel426.png)  | ![](https://github.com/Hyeseung-OH.png)  | ![](https://github.com/qivvoon.png)  | ![](https://github.com/Plectranthus.png)  | ![](https://github.com/LimByeongSu.png)  | ![](https://github.com/otr995.png)  |
-| [우성현](https://github.com/samuel426) | [오혜승](https://github.com/Hyeseung-OH) | [강지원](https://github.com/qivvoon) | [양희원](https://github.com/Plectranthus) | [임병수](https://github.com/LimByeongSu) | [허성찬](https://github.com/otr995) |
-| [우성현](https://github.com/samuel426) | [오혜승](https://github.com/Hyeseung-OH) | [강지원](https://github.com/qivvoon) | [양희원](https://github.com/Plectranthus) | [임병수](https://github.com/LimByeongSu) | [허성찬](https://github.com/otr995) |
-
----
-
-## 🚀 실제 배포 사이트
-https://web.dear4u.cloud/
-
----
-
 ## 📹 시연 영상
 [![시연 영상](https://img.youtube.com/vi/82a3T85IkBY/0.jpg)](https://youtu.be/82a3T85IkBY)
 
+---
 
 ## 📊 시스템 아키텍처
 <img width="1252" height="1112" alt="image" src="https://github.com/user-attachments/assets/24ddd8fd-7501-4811-9909-6c1991492a60" />
