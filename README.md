@@ -105,7 +105,6 @@ https://web.dear4u.cloud/
 
 
 ### ⏰ 선착순 · 특정 시간 한정 캡슐
-
 - 특정 **시간** 혹은 **장소**에 도달한 사람만 열 수 있는 이벤트성 콘텐츠
 - 예시
     - `2026-01-01 00:00`
@@ -114,6 +113,7 @@ https://web.dear4u.cloud/
 
 
 ### 📷 S3 Presigned URL 업로드 및 콘텐츠 필터링
+<p align="center"><img width="600" alt="image" src="https://github.com/user-attachments/assets/e7001338-3482-4829-bbdc-a81abcbf7c36" /></p>
 - 캡슐 생성 시 OpenAI API 활용해 유해 콘텐츠(텍스트, 이미지) 감지 및 필터링
 - AWS S3 활용해 Presigned URL 이미지 업로드
 
@@ -131,6 +131,7 @@ https://web.dear4u.cloud/
 ---   
 
 ### 👷 관리자 대시보드
+<p align="center"><img width="600" alt="image" src="https://github.com/user-attachments/assets/abd0ba4c-9949-431c-b2bd-239a558d4db8" /></p>
 
 - 사용자·캡슐 관리
 - 캡슐·사용자 신고 처리(숨김, 차단, 보류)
