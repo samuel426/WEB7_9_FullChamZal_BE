@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +31,20 @@ public interface CapsuleOpenLogRepository extends JpaRepository<CapsuleOpenLog, 
     List<CapsuleOpenLog> findTop15ByCapsuleId_CapsuleIdAndIpAddressOrderByOpenedAtDesc(
             Long capsuleId,
             String ipAddress
+    );
+
+    // 특정 시간 이후의 로그만 조회 (회원용)
+    List<CapsuleOpenLog> findTop15ByCapsuleId_CapsuleIdAndMemberIdAndOpenedAtAfterOrderByOpenedAtDesc(
+            Long capsuleId,
+            Long memberId,
+            LocalDateTime after
+    );
+
+    // 특정 시간 이후의 로그만 조회 (비회원용)
+    List<CapsuleOpenLog> findTop15ByCapsuleId_CapsuleIdAndIpAddressAndOpenedAtAfterOrderByOpenedAtDesc(
+            Long capsuleId,
+            String ipAddress,
+            LocalDateTime after
     );
 
     // 성공 기록 확인 (회원용)

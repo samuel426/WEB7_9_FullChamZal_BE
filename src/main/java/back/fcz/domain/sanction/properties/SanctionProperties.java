@@ -16,6 +16,7 @@ public class SanctionProperties {
 
     private RateLimit rateLimit = new RateLimit();
     private Monitoring monitoring = new Monitoring();
+    private AnomalyDetection anomalyDetection = new AnomalyDetection();
 
     @Getter
     @Setter
@@ -38,5 +39,12 @@ public class SanctionProperties {
             private int warning;
             private int limit;
         }
+    }
+
+    @Getter
+    @Setter
+    public static class AnomalyDetection {
+        private int logWindowHours;
+        private int duplicateRequestSeconds;
     }
 }

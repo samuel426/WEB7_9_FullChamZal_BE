@@ -59,6 +59,22 @@ public class SanctionConstants  {
         return score;
     }
 
+    public int getLogWindowHours() {
+        if (sanctionProperties.getAnomalyDetection() == null) {
+            log.warn("anomaly-detection 설정이 없습니다. 기본값 24를 반환합니다.");
+            return 24;
+        }
+        return sanctionProperties.getAnomalyDetection().getLogWindowHours();
+    }
+
+    public int getDuplicateRequestSeconds() {
+        if (sanctionProperties.getAnomalyDetection() == null) {
+            log.warn("anomaly-detection 설정이 없습니다. 기본값 3을 반환합니다.");
+            return 3;
+        }
+        return sanctionProperties.getAnomalyDetection().getDuplicateRequestSeconds();
+    }
+
     // 자동 제재 사유 생성
     public static String buildAutoSanctionReason(String detail) {
         return AUTO_SANCTION_REASON_PREFIX + detail;
