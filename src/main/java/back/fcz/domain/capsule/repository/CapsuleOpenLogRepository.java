@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,16 +21,18 @@ public interface CapsuleOpenLogRepository extends JpaRepository<CapsuleOpenLog, 
     @Query("delete from CapsuleOpenLog col where col.capsuleId.capsuleId in :capsuleIds")
     int deleteByCapsuleIds(@Param("capsuleIds") List<Long> capsuleIds);
 
-    // 특정 캡슐에 대한 특정 회원의 최근 로그 조회
-    List<CapsuleOpenLog> findTop15ByCapsuleId_CapsuleIdAndMemberIdOrderByOpenedAtDesc(
+    // 특정 시간 이후의 로그만 조회 (회원용)
+    List<CapsuleOpenLog> findTop15ByCapsuleId_CapsuleIdAndMemberIdAndOpenedAtAfterOrderByOpenedAtDesc(
             Long capsuleId,
-            Long memberId
+            Long memberId,
+            LocalDateTime after
     );
 
-    // 특정 IP 주소의 최근 로그 조회
-    List<CapsuleOpenLog> findTop15ByCapsuleId_CapsuleIdAndIpAddressOrderByOpenedAtDesc(
+    // 특정 시간 이후의 로그만 조회 (비회원용)
+    List<CapsuleOpenLog> findTop15ByCapsuleId_CapsuleIdAndIpAddressAndOpenedAtAfterOrderByOpenedAtDesc(
             Long capsuleId,
-            String ipAddress
+            String ipAddress,
+            LocalDateTime after
     );
 
     // 성공 기록 확인 (회원용)

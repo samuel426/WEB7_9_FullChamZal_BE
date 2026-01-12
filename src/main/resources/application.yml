@@ -75,7 +75,7 @@ sanction:
       HIGH: 10
 
     cooldown-seconds:
-      LOW: 0
+      LOW: 60
       MEDIUM: 300
       HIGH: 1800
 
@@ -92,6 +92,10 @@ sanction:
       LOCATION_RETRY: 15
       IMPOSSIBLE_MOVEMENT: 50
       TIME_MANIPULATION: 30
+
+    anomaly-detection:
+      log-window-hours: 24
+      duplicate-request-seconds: 3
 
 
 resilience4j:

@@ -593,7 +593,7 @@ public class CapsuleReadService {
                 .viewerType(viewerType)
                 .status(status)
                 .anomalyType(AnomalyType.NONE)
-                .openedAt(requestDto.unlockAt())
+                .openedAt(requestDto.serverTime())
                 .currentLat(requestDto.locationLat())
                 .currentLng(requestDto.locationLng())
                 .userAgent(requestDto.userAgent())

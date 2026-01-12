@@ -3,6 +3,7 @@ package back.fcz.domain.unlock.service;
 import back.fcz.domain.capsule.entity.AnomalyType;
 import back.fcz.domain.capsule.entity.Capsule;
 import back.fcz.domain.capsule.entity.CapsuleOpenLog;
+import back.fcz.domain.capsule.entity.CapsuleOpenStatus;
 import back.fcz.domain.capsule.repository.CapsuleOpenLogRepository;
 import back.fcz.domain.capsule.repository.CapsuleRepository;
 import back.fcz.domain.sanction.constant.SanctionConstants;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -191,39 +193,54 @@ public class UnlockService {
         // 1. 좌표 유효성 검증 (위치 정보가 있는 경우만)
         if (currentLat != null && currentLng != null) {
             if (!AnomalyDetector.isValidCoordinate(currentLat, currentLng)) {
+                log.warn("유효하지 않은 좌표 감지: lat={}, lng={}, memberId={}, ip={}",
+                        currentLat, currentLng, memberId, ipAddress);
                 return AnomalyType.SUSPICIOUS_PATTERN;
             }
         }
 
         // 2. 시간 조작 감지 (위치 정보 없어도 가능)
         if (AnomalyDetector.isTimeManipulation(serverTime, clientTime)) {
+            log.warn("시간 조작 감지: memberId={}, ip={}, 서버시간={}, 클라이언트시간={}",
+                    memberId, ipAddress, serverTime, clientTime);
             return AnomalyType.TIME_MANIPULATION;
         }
 
-        // 3. 이전 로그 조회 (회원/비회원 분기)
+        // 3. 24시간 윈도우 기반 이전 로그 조회 (회원/비회원 분기)
+        int logWindowHours = sanctionConstants.getLogWindowHours();
+        LocalDateTime windowStart = serverTime.minusHours(logWindowHours);
+
         List<CapsuleOpenLog> recentLogs;
 
         if (memberId != null) {
             // 회원: memberId로 조회
             recentLogs = capsuleOpenLogRepository
-                    .findTop15ByCapsuleId_CapsuleIdAndMemberIdOrderByOpenedAtDesc(
+                    .findTop15ByCapsuleId_CapsuleIdAndMemberIdAndOpenedAtAfterOrderByOpenedAtDesc(
                             capsule.getCapsuleId(),
-                            memberId
+                            memberId,
+                            windowStart
                     );
+            log.debug("회원 최근 {}시간 로그 조회: capsuleId={}, memberId={}, 로그 개수={}",
+                    logWindowHours, capsule.getCapsuleId(), memberId, recentLogs.size());
         } else if (ipAddress != null && !ipAddress.equals("UNKNOWN")) {
             // 비회원: IP로 조회
             recentLogs = capsuleOpenLogRepository
-                    .findTop15ByCapsuleId_CapsuleIdAndIpAddressOrderByOpenedAtDesc(
+                    .findTop15ByCapsuleId_CapsuleIdAndIpAddressAndOpenedAtAfterOrderByOpenedAtDesc(
                             capsule.getCapsuleId(),
-                            ipAddress
+                            ipAddress,
+                            windowStart
                     );
+            log.debug("비회원 최근 {}시간 로그 조회: capsuleId={}, ip={}, 로그 개수={}",
+                    logWindowHours, capsule.getCapsuleId(), ipAddress, recentLogs.size());
         } else {
+            log.debug("IP 정보 없음 - 패턴 분석 불가");
             // IP도 없으면 로그 조회 불가
             recentLogs = List.of();
         }
 
         // 첫 시도면 패턴 분석 불가
         if (recentLogs.isEmpty()) {
+            log.debug("{}시간 이내 이전 기록 없음 - 첫 시도로 판단하여 정상 처리", logWindowHours);
             return AnomalyType.NONE;
         }
 
@@ -236,22 +253,41 @@ public class UnlockService {
             if (lastValidLog.isPresent()) {
                 CapsuleOpenLog baseLog = lastValidLog.get();
 
-                int movementLevel = AnomalyDetector.classifyMovementAnomaly(
-                        baseLog.getCurrentLat(), baseLog.getCurrentLng(),
-                        currentLat, currentLng,
-                        baseLog.getOpenedAt(), serverTime
-                );
+                int duplicateThreshold = sanctionConstants.getDuplicateRequestSeconds();
+                long timeDiffSeconds = Duration.between(baseLog.getOpenedAt(), serverTime).getSeconds();
+                if (timeDiffSeconds < duplicateThreshold) {
+                    log.info("이전 시도가 {}초 전으로 {}초 임계값 이내 - 중복 요청으로 판단하여 이동 분석 스킵",
+                            timeDiffSeconds, duplicateThreshold);
+                } else {
+                    int movementLevel = AnomalyDetector.classifyMovementAnomaly(
+                            baseLog.getCurrentLat(), baseLog.getCurrentLng(),
+                            currentLat, currentLng,
+                            baseLog.getOpenedAt(), serverTime,
+                            duplicateThreshold
+                    );
 
-                if (movementLevel >= 3) {
-                    return AnomalyType.IMPOSSIBLE_MOVEMENT;
-                }
+                    log.debug("이동 분석 결과: level={}, 이전위치=({}, {}), 현재위치=({}, {}), 시간차={}초",
+                            movementLevel,
+                            baseLog.getCurrentLat(), baseLog.getCurrentLng(),
+                            currentLat, currentLng,
+                            timeDiffSeconds);
 
-                if (movementLevel >= 2) {
-                    return AnomalyType.SUSPICIOUS_PATTERN;
+                    if (movementLevel >= 3) {
+                        log.warn("즉시 차단급 이동: memberId={}, ip={}, capsuleId={}",
+                                memberId, ipAddress, capsule.getCapsuleId());
+                        return AnomalyType.IMPOSSIBLE_MOVEMENT;
+                    }
+
+                    if (movementLevel >= 2) {
+                        log.warn("강한 의심 이동: memberId={}, ip={}, capsuleId={}",
+                                memberId, ipAddress, capsule.getCapsuleId());
+                        return AnomalyType.SUSPICIOUS_PATTERN;
+                    } else if (movementLevel == 1) {
+                        log.info("의심 이동 감지 (점수 미적용): memberId={}", memberId);
+                    }
                 }
-                else if (movementLevel == 1) {
-                    log.info("의심 이동 감지 (점수 미적용): memberId={}", memberId);
-                }
+            } else {
+                log.debug("{}시간 이내 로그에 위치 정보 없음 - 이동 분석 불가", logWindowHours);
             }
         }
 
@@ -261,6 +297,8 @@ public class UnlockService {
                 .count();
 
         if (recentAttemptsCount >= 7) {
+            log.warn("짧은 시간 내 반복 시도: {}회, memberId={}, ip={}, capsuleId={}",
+                    recentAttemptsCount, memberId, ipAddress, capsule.getCapsuleId());
             return AnomalyType.RAPID_RETRY;
         }
 
@@ -268,14 +306,22 @@ public class UnlockService {
         if (recentLogs.size() >= 15) {
             long failedCount = recentLogs.stream()
                     .limit(15)
-                    .filter(log -> "FAILED".equals(log.getStatus().name()))
+                    .filter(log -> {
+                        CapsuleOpenStatus status = log.getStatus();
+                        return status == CapsuleOpenStatus.FAIL_TIME
+                                || status == CapsuleOpenStatus.FAIL_LOCATION
+                                || status == CapsuleOpenStatus.FAIL_BOTH;
+                    })
                     .count();
 
             if (failedCount >= 15) {
+                log.warn("조건 반복 실패: {}회, memberId={}, ip={}, capsuleId={}",
+                        failedCount, memberId, ipAddress, capsule.getCapsuleId());
                 return AnomalyType.LOCATION_RETRY;
             }
         }
 
+        log.debug("이상 행동 미감지 - 정상 처리");
         return AnomalyType.NONE;
     }
 }
