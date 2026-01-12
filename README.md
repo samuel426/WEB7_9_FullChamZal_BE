@@ -140,6 +140,7 @@ https://web.dear4u.cloud/
 ---
 
 ### 🛡️ 이상 감지 모니터링 & 접근 제어
+<p align="center"><img width="600" alt="image" src="https://github.com/user-attachments/assets/27ee8c1e-1d50-4dbc-8a63-c22fab4b2623" /></p>
 
 - 캡슐 열람 시 **시간·위치 조작 여부를 지속적으로 검증**
 - 다음과 같은 이상 패턴을 탐지:
