@@ -1,0 +1,13 @@
+.git
+.github
+.gradle
+.idea
+build
+out
+*.iml
+*.log
+.env
+.env.*
+db_dev.*
+desktop.ini
+tokens.csv

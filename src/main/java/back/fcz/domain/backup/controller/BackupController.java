@@ -26,7 +26,7 @@ import java.io.IOException;
 public class BackupController {
     private final BackupService backupService;
 
-    @Value("${cors.allowed-origins}")
+    @Value("${cors.frontend-domain}")
     private String frontendDomain;
 
     @Operation(summary = "구글 드라이브 백업",

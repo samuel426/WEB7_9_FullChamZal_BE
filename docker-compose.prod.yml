@@ -1,0 +1,145 @@
+name: dear4u
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    mem_limit: 600m
+    environment:
+      TZ: Asia/Seoul
+      MYSQL_DATABASE: ${DB_NAME:-dear4u}
+      MYSQL_USER: ${DB_USERNAME:-dear4u}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --innodb-buffer-pool-size=256M
+      - --max-connections=40
+      - --performance-schema=OFF
+      - --table-open-cache=400
+      - --thread-cache-size=8
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    networks:
+      - backend
+
+  redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    mem_limit: 192m
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - ${REDIS_PASSWORD}
+      - --maxmemory
+      - 128mb
+      - --maxmemory-policy
+      - allkeys-lru
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  app:
+    image: ${APP_IMAGE}
+    restart: unless-stopped
+    mem_limit: 850m
+    environment:
+      TZ: Asia/Seoul
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod,demo}
+      JAVA_TOOL_OPTIONS: -Xms256m -Xmx512m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
+      PORT: 8080
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-dear4u}
+      DB_USERNAME: ${DB_USERNAME:-dear4u}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_MAX_POOL_SIZE: ${DB_MAX_POOL_SIZE:-8}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      AES_KEY: ${AES_KEY}
+      SHA_SALT: ${SHA_SALT}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-dear4u.cloud}
+      FRONTEND_URL: ${FRONTEND_URL:-https://dear4u.cloud}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://dear4u.cloud}
+      CORS_CAPSULE_DOMAIN: ${CORS_CAPSULE_DOMAIN:-https://dear4u.cloud/capsules}
+      COOLSMS_API_KEY: ${COOLSMS_API_KEY}
+      COOLSMS_API_SECRET: ${COOLSMS_API_SECRET}
+      COOLSMS_FROM_NUMBER: ${COOLSMS_FROM_NUMBER}
+      GOOGLE_OAUTH_ID: ${GOOGLE_OAUTH_ID}
+      GOOGLE_OAUTH_SECRET: ${GOOGLE_OAUTH_SECRET}
+      GOOGLE_OAUTH_REDIRECT: ${GOOGLE_OAUTH_REDIRECT:-https://api.dear4u.cloud/login/oauth2/code/google}
+      GOOGLE_DRIVE_REDIRECT: ${GOOGLE_DRIVE_REDIRECT:-https://api.dear4u.cloud/api/v1/backup/google-drive/connect/callback}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      S3_REGION: ${S3_REGION:-ap-northeast-2}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD}
+      DEMO_ADMIN_PASSWORD: ${DEMO_ADMIN_PASSWORD}
+      LOG_PATH: /var/log/fcz
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - app-logs:/var/log/fcz
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    networks:
+      - backend
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    mem_limit: 128m
+    environment:
+      API_DOMAIN: ${API_DOMAIN:-api.dear4u.cloud}
+      ACME_EMAIL: ${ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:
+  app-logs:
+  caddy-data:
+  caddy-config:
