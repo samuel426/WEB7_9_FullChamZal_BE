@@ -30,7 +30,7 @@ public class SecurityConfig {
     private final GoogleOAuth2SuccessHandler googleOAuth2SuccessHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
-    @Value("${cors.allowed-origins}")
+    @Value("${cors.frontend-domain}")
     private String frontendDomain;
 
     private static final String[] SWAGGER_WHITELIST = {

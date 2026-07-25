@@ -42,7 +42,7 @@ public class GoogleOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final BackupService backupService;
 
-    @Value("${cors.allowed-origins}")
+    @Value("${cors.frontend-domain}")
     private String frontendDomain;
 
     @Override
