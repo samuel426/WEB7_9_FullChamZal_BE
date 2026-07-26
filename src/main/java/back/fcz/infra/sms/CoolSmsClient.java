@@ -6,11 +6,13 @@ import back.fcz.global.exception.ErrorCode;
 import com.solapi.sdk.SolapiClient;
 import com.solapi.sdk.message.model.Message;
 import com.solapi.sdk.message.service.DefaultMessageService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class CoolSmsClient {
 
     private final DefaultMessageService messageService;
@@ -42,7 +44,15 @@ public class CoolSmsClient {
 
             messageService.send(message);
         } catch (Exception e){
-            throw new BusinessException(ErrorCode.SMS_SEND_FAILED);
+            log.error(
+                    "SOLAPI SMS send failed: exceptionType={}, message={}",
+                    e.getClass().getSimpleName(),
+                    e.getMessage(),
+                    e
+            );
+            BusinessException businessException = new BusinessException(ErrorCode.SMS_SEND_FAILED);
+            businessException.initCause(e);
+            throw businessException;
         }
     }
     private String formatToNumber(String to) {
