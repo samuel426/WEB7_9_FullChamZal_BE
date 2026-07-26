@@ -1,5 +1,7 @@
 package back.fcz.infra.sms;
 
+import back.fcz.global.exception.BusinessException;
+import back.fcz.global.exception.ErrorCode;
 import com.solapi.sdk.message.model.Message;
 import com.solapi.sdk.message.service.DefaultMessageService;
 import org.junit.jupiter.api.DisplayName;
@@ -8,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
@@ -39,6 +42,28 @@ public class CoolSmsClientTest {
         assertThat(sent.getText()).isEqualTo("Test");
 
     }
+
+    @Test
+    @DisplayName("SOLAPI 예외가 발생하면 원인을 보존한 SMS 발송 오류를 반환한다")
+    public void sendSmsFailurePreservesCause() throws Exception {
+        // given
+        DefaultMessageService mockMessageService = mock(DefaultMessageService.class);
+        IllegalStateException cause = new IllegalStateException("response processing failed");
+        when(mockMessageService.send(any(Message.class))).thenThrow(cause);
+
+        CoolSmsClient client = new CoolSmsClientForTest(
+                mockMessageService,
+                "01099998888"
+        );
+
+        // when, then
+        assertThatThrownBy(() -> client.sendSms("010-1234-5678", "Test"))
+                .isInstanceOfSatisfying(BusinessException.class, exception -> {
+                    assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.SMS_SEND_FAILED);
+                    assertThat(exception.getCause()).isSameAs(cause);
+                });
+    }
+
     static class CoolSmsClientForTest extends CoolSmsClient {
         protected  CoolSmsClientForTest(DefaultMessageService mockMessageService, String fromNumber) {
             super(mockMessageService, fromNumber);
